@@ -349,9 +349,15 @@
                             @endphp
                             <div class="py-1">
                                 @foreach($headerCategories as $cat)
-                                    <a href="{{ route('category.show', $cat->slug) }}" class="flex items-center justify-between px-3 py-2 rounded-lg text-sm text-slate-700 hover:bg-sky-50 hover:text-sky-700 transition">
-                                        <span class="font-medium">{{ $cat->name }}</span>
-                                        <span class="text-xs text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">{{ $cat->products()->count() }}</span>
+                                    <a href="{{ route('category.show', $cat->slug) }}" class="flex items-center justify-between px-3 py-2 rounded-xl text-sm text-slate-700 hover:bg-sky-50 hover:text-sky-700 transition">
+                                        <div class="flex items-center gap-2.5">
+                                            <div class="w-6 h-6 rounded-lg flex items-center justify-center p-1 text-white shrink-0 shadow-xs"
+                                                 style="background: {{ $cat->icon_style_gradient }};">
+                                                {!! $cat->renderIcon('w-3.5 h-3.5 text-white') !!}
+                                            </div>
+                                            <span class="font-medium text-xs">{{ $cat->name }}</span>
+                                        </div>
+                                        <span class="text-[10px] text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">{{ $cat->products()->count() }}</span>
                                     </a>
                                 @endforeach
                             </div>

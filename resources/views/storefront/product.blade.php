@@ -64,9 +64,9 @@
         <div class="flex flex-col justify-between space-y-6">
             <div class="space-y-3">
                 <div class="flex items-center gap-3 text-xs text-slate-500 font-medium">
-                    <a href="{{ route('category.show', $product->category->slug) }}" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-50 hover:bg-sky-100 text-sky-800 font-bold border border-sky-200 transition shadow-xs">
-                        <span class="w-4 h-4 inline-flex items-center justify-center text-sky-600">
-                            {!! $product->category->renderIcon('w-3.5 h-3.5') !!}
+                    <a href="{{ route('category.show', $product->category->slug) }}" class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-50 hover:bg-slate-100 text-slate-800 font-bold border border-slate-200 transition shadow-xs">
+                        <span class="w-5 h-5 rounded-md inline-flex items-center justify-center p-0.5 text-white shrink-0 shadow-xs" style="background: {{ $product->category->icon_style_gradient }};">
+                            {!! $product->category->renderIcon('w-3.5 h-3.5 text-white') !!}
                         </span>
                         <span>{{ $product->category->name }}</span>
                     </a>

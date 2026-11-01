@@ -16,7 +16,8 @@
 
     {{-- Category Header Banner --}}
     <div class="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 rounded-3xl p-6 sm:p-8 text-white shadow-xl border border-slate-800 flex flex-col sm:flex-row items-start sm:items-center gap-6">
-        <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-gradient-to-br {!! $category->icon_gradient_class !!} {!! $category->icon_shadow_class !!} flex items-center justify-center flex-shrink-0 shadow-lg border border-white/20">
+        <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg border border-white/20"
+             style="background: {{ $category->icon_style_gradient }}; box-shadow: 0 10px 25px -5px {{ $category->icon_shadow_color }};">
             {!! $category->renderIcon('w-10 h-10 sm:w-12 sm:h-12 text-white') !!}
         </div>
         <div class="max-w-2xl">

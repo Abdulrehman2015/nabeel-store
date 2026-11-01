@@ -91,9 +91,10 @@
                     @foreach($presetIcons as $key => $preset)
                         <button type="button" 
                                 @click="icon = '{{ $key }}'"
-                                :class="icon === '{{ $key }}' ? 'border-emerald-600 bg-emerald-50 ring-2 ring-emerald-500/20 text-emerald-700 shadow-xs' : 'border-slate-200 bg-white hover:border-slate-300 text-slate-600'"
-                                class="p-3 border rounded-xl flex flex-col items-center justify-center gap-1.5 transition-all cursor-pointer group text-center">
-                            <div class="w-8 h-8 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                :class="icon === '{{ $key }}' ? 'border-sky-600 bg-sky-50 ring-2 ring-sky-500/20 text-sky-800 shadow-sm' : 'border-slate-200 bg-white hover:border-slate-300 text-slate-700'"
+                                class="p-3 border rounded-xl flex flex-col items-center justify-center gap-2 transition-all cursor-pointer group text-center">
+                            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-xs p-2 group-hover:scale-110 transition-transform"
+                                 style="background: {{ $preset['style_gradient'] }};">
                                 {!! $preset['svg'] !!}
                             </div>
                             <span class="text-[10px] font-bold truncate max-w-full capitalize">{{ $key }}</span>

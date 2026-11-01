@@ -62,29 +62,29 @@
 
                             {{-- High-Contrast Floating Promotional Content Card --}}
                             <div class="absolute inset-0 flex items-center px-4 sm:px-10 lg:px-14 z-10">
-                                <div class="max-w-xl sm:max-w-2xl p-5 sm:p-7 rounded-2xl sm:rounded-3xl shadow-2xl space-y-3 sm:space-y-4" style="background: rgba(15, 23, 42, 0.78); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.8);">
+                                <div class="max-w-xl sm:max-w-2xl p-5 sm:p-7 rounded-2xl sm:rounded-3xl shadow-2xl space-y-3 sm:space-y-4" style="background: rgba(15, 23, 42, 0.88); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.2); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.9);">
                                     @if($banner->badge)
                                         <div>
-                                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] sm:text-xs font-black uppercase tracking-wider bg-lime-400 text-slate-950 shadow-md">
+                                            <span style="display: inline-flex; align-items: center; gap: 6px; padding: 5px 14px; border-radius: 9999px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; background-color: #facc15; color: #000000; box-shadow: 0 4px 12px rgba(250, 204, 21, 0.4); border: 1px solid #fde047;">
                                                 {{ $banner->badge }}
                                             </span>
                                         </div>
                                     @endif
 
-                                    <h2 class="text-2xl sm:text-3xl lg:text-4xl font-black text-white leading-tight tracking-tight" style="text-shadow: 0 2px 10px rgba(0,0,0,0.85);">
+                                    <h2 class="text-2xl sm:text-3xl lg:text-4xl leading-tight tracking-tight" style="color: #ffffff !important; text-shadow: 0 2px 10px rgba(0,0,0,0.95); font-weight: 900;">
                                         {{ $banner->title }}
                                     </h2>
 
                                     @if($banner->subtitle)
-                                        <p class="text-xs sm:text-sm lg:text-base text-slate-100 line-clamp-2 max-w-lg font-medium" style="text-shadow: 0 1px 6px rgba(0,0,0,0.85);">
+                                        <p class="text-xs sm:text-sm lg:text-base line-clamp-2 max-w-lg" style="color: #f1f5f9 !important; text-shadow: 0 1px 6px rgba(0,0,0,0.9); font-weight: 500;">
                                             {{ $banner->subtitle }}
                                         </p>
                                     @endif
 
                                     <div class="pt-1 sm:pt-2">
-                                        <span class="inline-flex items-center gap-2 px-5 py-2.5 sm:px-6 sm:py-3 rounded-xl bg-sky-500 hover:bg-sky-400 text-white font-bold text-xs sm:text-sm shadow-xl shadow-sky-500/40 transition-all duration-300 group-hover/banner:translate-x-1">
+                                        <span style="display: inline-flex; align-items: center; gap: 8px; padding: 11px 24px; border-radius: 12px; background: #0284c7; color: #ffffff !important; font-weight: 700; font-size: 14px; text-decoration: none; box-shadow: 0 6px 20px rgba(2, 132, 199, 0.55); border: 1px solid rgba(255, 255, 255, 0.25);">
                                             <span>{{ $banner->button_text ?: 'Shop Wholesale Now' }}</span>
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                                            <svg style="width: 16px; height: 16px; stroke-width: 2.5; stroke: #ffffff;" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
                                         </span>
                                     </div>
                                 </div>
@@ -177,12 +177,13 @@
 
             <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-5">
                 @foreach($categories as $category)
-                    <a href="{{ route('category.show', $category->slug) }}" class="group bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/90 hover:border-lime-500 hover:shadow-xl hover:shadow-lime-500/10 transition-all duration-300 text-center flex flex-col items-center">
-                        {{-- Dynamic Category Icon Badge --}}
-                        <div class="w-18 h-18 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-tr {{ $category->icon_gradient_class }} text-white shadow-md {{ $category->icon_shadow_class }} flex items-center justify-center p-4 mb-3.5 group-hover:scale-110 group-hover:rotate-2 transition-all duration-300">
-                            {!! $category->renderIcon('w-9 h-9 sm:w-10 sm:h-10 text-white') !!}
+                    <a href="{{ route('category.show', $category->slug) }}" class="group bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/90 hover:border-sky-500 hover:shadow-xl hover:shadow-sky-500/10 transition-all duration-300 text-center flex flex-col items-center">
+                        {{-- Dynamic Category Icon Badge with Guaranteed Rich Inline Gradients --}}
+                        <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl flex items-center justify-center p-3 sm:p-4 mb-3.5 shadow-md group-hover:scale-110 group-hover:rotate-2 transition-all duration-300"
+                             style="background: {{ $category->icon_style_gradient }}; box-shadow: 0 10px 20px -5px {{ $category->icon_shadow_color }};">
+                            {!! $category->renderIcon('w-8 h-8 sm:w-10 sm:h-10 text-white') !!}
                         </div>
-                        <h3 class="text-xs sm:text-sm font-bold text-slate-900 group-hover:text-lime-700 transition leading-snug line-clamp-2">
+                        <h3 class="text-xs sm:text-sm font-bold text-slate-900 group-hover:text-sky-700 transition leading-snug line-clamp-2">
                             {{ $category->name }}
                         </h3>
                         <span class="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-500 mt-1.5 px-2 py-0.5 bg-slate-100 rounded-md">
