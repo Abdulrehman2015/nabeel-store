@@ -35,11 +35,8 @@
     @endif
 
     {{-- Favicon --}}
-    @if(setting('site_favicon'))
-        <link rel="icon" type="image/x-icon" href="{{ asset('storage/' . setting('site_favicon')) }}">
-    @else
-        <link rel="icon" type="image/png" href="{{ asset('images/product-placeholder.png') }}">
-    @endif
+    <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}">
+    <link rel="shortcut icon" type="image/png" href="{{ asset('favicon.png') }}">
 
     {{-- Google Fonts --}}
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -257,18 +254,14 @@
 
                 {{-- Brand Logo --}}
                 <div class="flex items-center">
-                    <a href="{{ url('/') }}" class="flex items-center gap-3">
-                        @if(setting('site_logo'))
-                            <img src="{{ asset('storage/' . setting('site_logo')) }}" alt="{{ setting('site_name') }}" class="h-11 w-auto object-contain">
-                        @else
-                            <div class="w-10 h-10 rounded-xl bg-sky-600 flex items-center justify-center text-white font-extrabold text-xl shadow-md">
-                                99
-                            </div>
-                            <div>
-                                <span class="text-xl font-black text-slate-900 tracking-tight">{{ setting('site_name', '99 Bulk Sales') }}</span>
-                                <span class="block text-[10px] uppercase font-bold text-sky-600 tracking-wider">Wholesale Cartons</span>
-                            </div>
-                        @endif
+                    <a href="{{ url('/') }}" class="flex items-center gap-3 group">
+                        <div class="bg-slate-950 p-2 sm:px-3 sm:py-2 rounded-2xl shadow-md border border-slate-800 flex items-center transition-all group-hover:border-lime-500/50 group-hover:shadow-lime-500/10">
+                            <img src="{{ asset('images/logo.png') }}" alt="{{ setting('site_name', 'N&J mini mart') }}" class="h-9 sm:h-11 w-auto object-contain">
+                        </div>
+                        <div class="hidden xl:block">
+                            <span class="block text-xs font-black text-slate-900 uppercase tracking-tight">Wholesale Direct</span>
+                            <span class="block text-[10px] font-semibold text-lime-600">Pallet & Carton Supply</span>
+                        </div>
                     </a>
                 </div>
 
@@ -648,10 +641,9 @@
                 {{-- Col 1: Brand Info --}}
                 <div class="lg:col-span-2 space-y-4">
                     <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-xl bg-sky-600 flex items-center justify-center text-white font-black text-xl shadow">
-                            99
+                        <div class="bg-slate-950 p-2.5 rounded-2xl border border-slate-800 shadow-md">
+                            <img src="{{ asset('images/logo.png') }}" alt="{{ setting('site_name', 'N&J mini mart') }}" class="h-10 sm:h-12 w-auto object-contain">
                         </div>
-                        <span class="text-2xl font-black text-white tracking-tight">{{ setting('site_name', '99 Bulk Sales') }}</span>
                     </div>
                     <p class="text-xs text-slate-400 leading-relaxed max-w-sm">
                         {{ setting('site_tagline', 'Direct wholesale carton groceries, beverages, cooking oil, and cleaning supplies delivered to your doorstep.') }}

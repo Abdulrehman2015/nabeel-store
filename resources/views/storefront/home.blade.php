@@ -11,59 +11,52 @@
                     activeSlide: 0,
                     totalSlides: {{ $banners->count() }},
                     interval: null,
+                    next() { this.activeSlide = (this.activeSlide + 1) % this.totalSlides; },
+                    prev() { this.activeSlide = (this.activeSlide - 1 + this.totalSlides) % this.totalSlides; },
                     start() {
-                        this.interval = setInterval(() => {
-                            this.activeSlide = (this.activeSlide + 1) % this.totalSlides;
-                        }, 5000);
+                        this.interval = setInterval(() => { this.next(); }, 6000);
                     },
                     stop() { clearInterval(this.interval); }
                 }" 
                 x-init="start()" 
                 @mouseenter="stop()" 
                 @mouseleave="start()"
-                class="relative rounded-2xl overflow-hidden shadow-xl bg-slate-900 border border-slate-800 text-white min-h-[380px] sm:min-h-[460px] flex items-center"
+                class="relative rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl bg-slate-950 border border-slate-800 text-white aspect-[16/9] sm:aspect-[21/8] lg:aspect-[24/9] max-h-[520px] flex items-center group"
             >
                 @foreach($banners as $index => $banner)
                     <div 
                         x-show="activeSlide === {{ $index }}" 
                         x-transition:enter="transition ease-out duration-500"
-                        x-transition:enter-start="opacity-0"
-                        x-transition:enter-end="opacity-100"
+                        x-transition:enter-start="opacity-0 scale-98"
+                        x-transition:enter-end="opacity-100 scale-100"
                         x-transition:leave="transition ease-in duration-300"
-                        x-transition:leave-start="opacity-100"
-                        x-transition:leave-end="opacity-0"
-                        class="absolute inset-0"
+                        x-transition:leave-start="opacity-100 scale-100"
+                        x-transition:leave-end="opacity-0 scale-98"
+                        class="absolute inset-0 w-full h-full"
                     >
-                        @if($banner->desktop_image)
-                            <img src="{{ asset('storage/' . $banner->desktop_image) }}" alt="{{ $banner->title }}" class="absolute inset-0 w-full h-full object-cover">
-                            <div class="absolute inset-0 bg-gradient-to-r from-slate-950/95 via-slate-900/80 to-transparent"></div>
-                        @else
-                            <div class="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-900 to-sky-950"></div>
-                        @endif
-
-                        <div class="relative z-20 h-full flex flex-col justify-center px-6 sm:px-12 lg:px-16 py-12 max-w-2xl space-y-4">
-                            @if($banner->badge)
-                                <span class="inline-block px-3 py-1 bg-amber-500 text-slate-950 text-xs font-black rounded-full uppercase tracking-wider w-max shadow">
-                                    {{ $banner->badge }}
-                                </span>
-                            @endif
-                            <h1 class="text-3xl sm:text-5xl font-black text-white leading-tight tracking-tight drop-shadow-md">
-                                {{ $banner->title }}
-                            </h1>
-                            <p class="text-slate-200 text-sm sm:text-base leading-relaxed drop-shadow">
-                                {{ $banner->subtitle }}
-                            </p>
-                            @if($banner->link)
-                                <div class="pt-2">
-                                    <a href="{{ $banner->link }}" class="inline-flex items-center gap-2 px-6 py-3 bg-sky-600 hover:bg-sky-500 text-white font-extrabold text-sm rounded-xl shadow-lg transition transform hover:-translate-y-0.5">
-                                        <span>{{ $banner->button_text ?: 'Shop Now' }}</span>
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
-                                    </a>
+                        <a href="{{ $banner->link ?: route('category.index') }}" class="block w-full h-full relative group/banner">
+                            @if($banner->desktop_image)
+                                <img src="{{ asset('storage/' . $banner->desktop_image) }}" alt="{{ $banner->title }}" class="w-full h-full object-cover sm:object-fill">
+                            @else
+                                <div class="w-full h-full bg-gradient-to-r from-slate-950 via-slate-900 to-emerald-950 flex items-center p-8 sm:p-14">
+                                    <div class="max-w-xl space-y-3">
+                                        <span class="px-3 py-1 bg-lime-500 text-slate-950 text-xs font-black rounded-full uppercase tracking-wider inline-block">N&J WHOLESALE DIRECT</span>
+                                        <h2 class="text-3xl sm:text-5xl font-black text-white leading-tight">{{ $banner->title }}</h2>
+                                        <p class="text-slate-300 text-sm sm:text-base">{{ $banner->subtitle }}</p>
+                                    </div>
                                 </div>
                             @endif
-                        </div>
+                        </a>
                     </div>
                 @endforeach
+
+                {{-- Left & Right Slider Arrows --}}
+                <button type="button" @click="prev()" class="absolute left-3 sm:left-5 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-slate-900/70 hover:bg-slate-900 text-white backdrop-blur-sm border border-white/10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 shadow-lg cursor-pointer">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
+                </button>
+                <button type="button" @click="next()" class="absolute right-3 sm:right-5 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-slate-900/70 hover:bg-slate-900 text-white backdrop-blur-sm border border-white/10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 shadow-lg cursor-pointer">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+                </button>
 
                 {{-- Slider Nav Indicators --}}
                 <div class="absolute bottom-4 left-0 right-0 z-20 flex justify-center gap-2">
@@ -71,8 +64,8 @@
                         <button 
                             type="button" 
                             @click="activeSlide = {{ $index }}" 
-                            class="h-2 rounded-full transition-all"
-                            :class="activeSlide === {{ $index }} ? 'w-8 bg-sky-500' : 'w-2 bg-white/40 hover:bg-white/70'"
+                            class="h-2 rounded-full transition-all cursor-pointer"
+                            :class="activeSlide === {{ $index }} ? 'w-8 bg-lime-500 shadow-md shadow-lime-500/50' : 'w-2 bg-white/40 hover:bg-white/70'"
                         ></button>
                     @endforeach
                 </div>
@@ -138,33 +131,19 @@
                 </a>
             </div>
 
-            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-5">
                 @foreach($categories as $category)
-                    <a href="{{ route('category.show', $category->slug) }}" class="group bg-white rounded-2xl p-4 border border-slate-200 hover:border-sky-500 hover:shadow-md transition text-center flex flex-col items-center">
-                        @if($category->image)
-                            <img src="{{ asset('storage/' . $category->image) }}" alt="{{ $category->name }}" class="w-16 h-16 rounded-xl object-contain mb-3 p-1 bg-slate-50 border border-slate-100 group-hover:scale-105 transition">
-                        @else
-                            <div class="w-16 h-16 rounded-2xl bg-sky-50 text-sky-600 flex items-center justify-center text-2xl group-hover:bg-sky-600 group-hover:text-white transition transform group-hover:scale-105 mb-3">
-                                @switch($category->icon)
-                                    @case('drink') 🥤 @break
-                                    @case('milk') 🥛 @break
-                                    @case('oil') 🛢️ @break
-                                    @case('noodle') 🍜 @break
-                                    @case('can') 🥫 @break
-                                    @case('snack') 🍪 @break
-                                    @case('coffee') ☕ @break
-                                    @case('laundry') 🧺 @break
-                                    @case('paper') 🧻 @break
-                                    @case('cleaning') 🧼 @break
-                                    @default 📦
-                                @endswitch
-                            </div>
-                        @endif
-                        <h3 class="text-xs sm:text-sm font-bold text-slate-900 group-hover:text-sky-600 transition leading-snug line-clamp-2">
+                    <a href="{{ route('category.show', $category->slug) }}" class="group bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/90 hover:border-lime-500 hover:shadow-xl hover:shadow-lime-500/10 transition-all duration-300 text-center flex flex-col items-center">
+                        {{-- Dynamic Category Icon Badge --}}
+                        <div class="w-18 h-18 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-tr {{ $category->icon_gradient_class }} text-white shadow-md {{ $category->icon_shadow_class }} flex items-center justify-center p-4 mb-3.5 group-hover:scale-110 group-hover:rotate-2 transition-all duration-300">
+                            {!! $category->renderIcon('w-9 h-9 sm:w-10 sm:h-10 text-white') !!}
+                        </div>
+                        <h3 class="text-xs sm:text-sm font-bold text-slate-900 group-hover:text-lime-700 transition leading-snug line-clamp-2">
                             {{ $category->name }}
                         </h3>
-                        <span class="text-[11px] text-slate-400 mt-1 font-medium">
-                            {{ $category->products_count }} {{ Str::plural('Carton', $category->products_count) }}
+                        <span class="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-500 mt-1.5 px-2 py-0.5 bg-slate-100 rounded-md">
+                            <span>📦</span>
+                            <span>{{ $category->products_count }} {{ Str::plural('Carton', $category->products_count) }}</span>
                         </span>
                     </a>
                 @endforeach

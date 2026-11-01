@@ -40,10 +40,7 @@
             {{-- Admin Brand Header --}}
             <div class="h-16 flex items-center justify-between px-6 bg-slate-950 border-b border-slate-800">
                 <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-2.5">
-                    <div class="w-8 h-8 rounded-lg bg-sky-600 flex items-center justify-center text-white font-black text-sm">
-                        99
-                    </div>
-                    <span class="font-black text-white text-base tracking-tight">Bulk Admin</span>
+                    <img src="{{ asset('images/logo.png') }}" alt="{{ setting('site_name', 'N&J mini mart') }}" class="h-8 w-auto object-contain">
                 </a>
                 <button type="button" @click="sidebarOpen = false" class="lg:hidden text-slate-400 p-1">
                     ✕

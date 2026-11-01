@@ -7,7 +7,8 @@
     name: '{{ old('name', addslashes($category->name)) }}',
     metaTitle: '{{ old('meta_title', addslashes($category->meta_title ?? '')) }}',
     metaDesc: '{{ old('meta_description', addslashes($category->meta_description ?? '')) }}',
-    slug: '{{ old('slug', $category->slug) }}'
+    slug: '{{ old('slug', $category->slug) }}',
+    icon: '{{ old('icon', $category->icon ?? 'box') }}'
 }">
     <!-- Header -->
     <div class="flex items-center justify-between">
@@ -43,7 +44,7 @@
         @csrf
         @method('PUT')
 
-        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-4">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-5">
             <h3 class="text-base font-semibold text-gray-900 border-b border-gray-100 pb-3">Category Details</h3>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -57,7 +58,7 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                     <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Parent Category</label>
                     <select name="parent_id" class="w-full text-sm border-gray-300 rounded-lg focus:ring-primary focus:border-primary">
@@ -68,12 +69,58 @@
                     </select>
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Icon (Emoji or SVG)</label>
-                    <input type="text" name="icon" value="{{ old('icon', $category->icon) }}" class="w-full text-sm border-gray-300 rounded-lg focus:ring-primary focus:border-primary">
-                </div>
-                <div>
                     <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Sort Order</label>
                     <input type="number" name="sort_order" value="{{ old('sort_order', $category->sort_order) }}" class="w-full text-sm border-gray-300 rounded-lg focus:ring-primary focus:border-primary">
+                </div>
+            </div>
+
+            <!-- Dynamic Category Icon Section -->
+            <div class="p-5 bg-slate-50 border border-slate-200 rounded-xl space-y-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h4 class="text-sm font-bold text-slate-900">Category Icon (Dynamic Selection)</h4>
+                        <p class="text-xs text-slate-500">Choose a vector preset icon below or upload a custom icon file</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs font-medium text-slate-500">Selected:</span>
+                        <span class="px-2.5 py-1 bg-white border border-slate-200 rounded-md font-mono text-xs font-bold text-emerald-700" x-text="icon || 'None'"></span>
+                    </div>
+                </div>
+
+                <!-- Hidden Input Bound to Form -->
+                <input type="hidden" name="icon" x-model="icon">
+
+                <!-- Preset Icon Grid -->
+                <div class="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-6 gap-2.5">
+                    @foreach($presetIcons as $key => $preset)
+                        <button type="button" 
+                                @click="icon = '{{ $key }}'"
+                                :class="icon === '{{ $key }}' ? 'border-emerald-600 bg-emerald-50 ring-2 ring-emerald-500/20 text-emerald-700 shadow-xs' : 'border-slate-200 bg-white hover:border-slate-300 text-slate-600'"
+                                class="p-3 border rounded-xl flex flex-col items-center justify-center gap-1.5 transition-all cursor-pointer group text-center">
+                            <div class="w-8 h-8 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                {!! $preset['svg'] !!}
+                            </div>
+                            <span class="text-[10px] font-bold truncate max-w-full capitalize">{{ $key }}</span>
+                        </button>
+                    @endforeach
+                </div>
+
+                <!-- Custom Icon Upload & Manual Input -->
+                <div class="pt-3 border-t border-slate-200/80 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Upload Custom Icon (SVG / PNG)</label>
+                        <input type="file" name="icon_file" accept=".svg,.png,.jpg,.jpeg,.webp" class="w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-800 hover:file:bg-slate-300">
+                        @if($category->icon && (str_contains($category->icon, '/') || str_contains($category->icon, '.')))
+                            <div class="mt-2 flex items-center gap-2 text-xs text-slate-600">
+                                <span>Current file:</span>
+                                <img src="{{ asset('storage/' . $category->icon) }}" class="w-6 h-6 object-contain">
+                            </div>
+                        @endif
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Custom Key or Emoji</label>
+                        <input type="text" x-model="icon" placeholder="e.g. drink, oil, or 🥤" class="w-full text-xs border-slate-300 rounded-lg focus:ring-primary focus:border-primary">
+                    </div>
                 </div>
             </div>
 
@@ -83,7 +130,7 @@
             </div>
 
             <div>
-                <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Category Image</label>
+                <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Banner / Background Image (Optional)</label>
                 @if($category->image)
                     <div class="flex items-center gap-3 mb-2">
                         <img src="{{ asset('storage/' . $category->image) }}" class="w-16 h-16 rounded-lg object-cover border border-gray-200">
@@ -119,41 +166,20 @@
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                    <div class="flex justify-between items-center mb-1">
-                        <label class="text-xs font-semibold text-gray-700 uppercase">Meta Title</label>
-                        <span class="text-[10px] text-gray-400" :class="metaTitle.length > 60 ? 'text-red-500 font-bold' : ''" x-text="metaTitle.length + '/60 chars'"></span>
-                    </div>
-                    <input type="text" name="meta_title" x-model="metaTitle" value="{{ old('meta_title', $category->meta_title) }}" class="w-full text-sm border-gray-300 rounded-lg focus:ring-primary focus:border-primary">
+                    <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Meta Title</label>
+                    <input type="text" name="meta_title" x-model="metaTitle" value="{{ old('meta_title', $category->meta_title) }}" placeholder="Custom SEO title..." class="w-full text-sm border-gray-300 rounded-lg focus:ring-primary focus:border-primary">
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Focus Keyword</label>
-                    <input type="text" name="focus_keyword" value="{{ old('focus_keyword', $category->focus_keyword) }}" class="w-full text-sm border-gray-300 rounded-lg focus:ring-primary focus:border-primary">
+                    <input type="text" name="focus_keyword" value="{{ old('focus_keyword', $category->focus_keyword) }}" placeholder="e.g. wholesale soft drinks puchong" class="w-full text-sm border-gray-300 rounded-lg focus:ring-primary focus:border-primary">
                 </div>
             </div>
 
             <div>
-                <div class="flex justify-between items-center mb-1">
-                    <label class="text-xs font-semibold text-gray-700 uppercase">Meta Description</label>
-                    <span class="text-[10px] text-gray-400" :class="metaDesc.length > 160 ? 'text-red-500 font-bold' : ''" x-text="metaDesc.length + '/160 chars'"></span>
-                </div>
-                <textarea name="meta_description" x-model="metaDesc" rows="2" class="w-full text-sm border-gray-300 rounded-lg focus:ring-primary focus:border-primary">{{ old('meta_description', $category->meta_description) }}</textarea>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Meta Keywords</label>
-                    <input type="text" name="meta_keywords" value="{{ old('meta_keywords', $category->meta_keywords) }}" class="w-full text-sm border-gray-300 rounded-lg focus:ring-primary focus:border-primary">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Robots Tag</label>
-                    <select name="robots" class="w-full text-sm border-gray-300 rounded-lg focus:ring-primary focus:border-primary">
-                        <option value="index, follow" {{ old('robots', $category->robots) === 'index, follow' ? 'selected' : '' }}>index, follow (Default)</option>
-                        <option value="noindex, follow" {{ old('robots', $category->robots) === 'noindex, follow' ? 'selected' : '' }}>noindex, follow</option>
-                    </select>
-                </div>
+                <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Meta Description</label>
+                <textarea name="meta_description" x-model="metaDesc" rows="2" placeholder="Custom SEO snippet for search results..." class="w-full text-sm border-gray-300 rounded-lg focus:ring-primary focus:border-primary">{{ old('meta_description', $category->meta_description) }}</textarea>
             </div>
         </div>
     </form>
 </div>
 @endsection
-

@@ -34,13 +34,9 @@
                     @forelse($categories as $category)
                         <tr class="hover:bg-gray-50/75 transition">
                             <td class="px-6 py-4 flex items-center gap-3">
-                                @if($category->image)
-                                    <img src="{{ asset('storage/' . $category->image) }}" class="w-10 h-10 rounded-lg object-cover border border-gray-200">
-                                @else
-                                    <div class="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center text-lg">
-                                        {{ $category->icon ?: '📦' }}
-                                    </div>
-                                @endif
+                                <div class="w-11 h-11 rounded-xl bg-gradient-to-tr {{ $category->icon_gradient_class }} text-white flex items-center justify-center shadow-xs p-2.5 shrink-0">
+                                    {!! $category->renderIcon('w-6 h-6') !!}
+                                </div>
                                 <div>
                                     <span class="font-semibold text-gray-900 block">{{ $category->name }}</span>
                                     <span class="text-xs text-gray-400 font-mono">/category/{{ $category->slug }}</span>

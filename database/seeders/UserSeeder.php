@@ -20,7 +20,7 @@ class UserSeeder extends Seeder
                 'role' => 'admin',
                 'is_active' => true,
                 'email_verified_at' => now(),
-                'password' => Hash::make('Admin@12345!'),
+                'password' => Hash::make('Admin@123456'),
             ]
         );
 
@@ -33,20 +33,20 @@ class UserSeeder extends Seeder
                 'role' => 'staff',
                 'is_active' => true,
                 'email_verified_at' => now(),
-                'password' => Hash::make('Staff@12345!'),
+                'password' => Hash::make('Staff@123456'),
             ]
         );
 
         // 3. Demo Customer
         $customer = User::updateOrCreate(
-            ['email' => 'customer@gmail.com'],
+            ['email' => 'customer@example.com'],
             [
-                'name' => 'Nabeel Ahmad',
+                'name' => 'Wholesale Customer',
                 'phone' => '+60112233445',
                 'role' => 'customer',
                 'is_active' => true,
                 'email_verified_at' => now(),
-                'password' => Hash::make('Customer@123!'),
+                'password' => Hash::make('Customer@123456'),
             ]
         );
 

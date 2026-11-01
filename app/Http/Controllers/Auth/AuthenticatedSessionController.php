@@ -4,13 +4,19 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Services\OtpService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class AuthenticatedSessionController extends Controller
 {
+    public function __construct(
+        protected OtpService $otpService
+    ) {}
+
     /**
      * Display the login view.
      */
@@ -26,9 +32,41 @@ class AuthenticatedSessionController extends Controller
     {
         $request->authenticate();
 
+        $user = Auth::user();
+
+        // Security Check 1: Account Active Status
+        if (! $user->is_active) {
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            throw ValidationException::withMessages([
+                'email' => 'This account has been deactivated. Please contact support for assistance.',
+            ]);
+        }
+
+        // Security Check 2: OTP Verification for Customer Accounts
+        if ($user->isCustomer() && is_null($user->email_verified_at)) {
+            // Generate OTP for verification
+            try {
+                $this->otpService->generate($user->email, 'email_verification', $user);
+            } catch (\Throwable $e) {
+                // cooldown may apply
+            }
+
+            session(['pending_verification_email' => $user->email]);
+
+            return redirect()->route('otp.verify.notice')
+                ->with('status', 'Please enter your 6-digit verification code to complete sign in.');
+        }
+
         $request->session()->regenerate();
 
-        return redirect()->intended(route('dashboard', absolute: false));
+        if ($user->isAdmin() || $user->isStaff()) {
+            return redirect()->intended(route('admin.dashboard'));
+        }
+
+        return redirect()->intended(route('home'));
     }
 
     /**

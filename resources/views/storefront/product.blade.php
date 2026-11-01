@@ -64,9 +64,12 @@
         <div class="flex flex-col justify-between space-y-6">
             <div class="space-y-3">
                 <div class="flex items-center gap-3 text-xs text-slate-500 font-medium">
-                    <span class="px-2.5 py-0.5 rounded-full bg-sky-50 text-sky-700 font-bold border border-sky-200">
-                        {{ $product->category->name }}
-                    </span>
+                    <a href="{{ route('category.show', $product->category->slug) }}" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-50 hover:bg-sky-100 text-sky-800 font-bold border border-sky-200 transition shadow-xs">
+                        <span class="w-4 h-4 inline-flex items-center justify-center text-sky-600">
+                            {!! $product->category->renderIcon('w-3.5 h-3.5') !!}
+                        </span>
+                        <span>{{ $product->category->name }}</span>
+                    </a>
                     @if($product->brand)
                         <span>Brand: <strong class="text-slate-800">{{ $product->brand->name }}</strong></span>
                     @endif

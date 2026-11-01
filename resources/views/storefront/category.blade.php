@@ -15,10 +15,15 @@
     </nav>
 
     {{-- Category Header Banner --}}
-    <div class="bg-gradient-to-r from-slate-900 to-slate-800 rounded-3xl p-6 sm:p-8 text-white shadow-md">
+    <div class="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 rounded-3xl p-6 sm:p-8 text-white shadow-xl border border-slate-800 flex flex-col sm:flex-row items-start sm:items-center gap-6">
+        <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-gradient-to-br {!! $category->icon_gradient_class !!} {!! $category->icon_shadow_class !!} flex items-center justify-center flex-shrink-0 shadow-lg border border-white/20">
+            {!! $category->renderIcon('w-10 h-10 sm:w-12 sm:h-12 text-white') !!}
+        </div>
         <div class="max-w-2xl">
-            <span class="text-xs font-bold text-sky-400 uppercase tracking-wider">Wholesale Category</span>
-            <h1 class="text-2xl sm:text-4xl font-black mt-1">{{ $category->name }}</h1>
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-sky-300 text-xs font-bold uppercase tracking-wider mb-1">
+                <span>Wholesale Department</span>
+            </div>
+            <h1 class="text-2xl sm:text-4xl font-black mt-1 tracking-tight">{{ $category->name }}</h1>
             <p class="text-slate-300 text-xs sm:text-sm mt-2 leading-relaxed">
                 {{ $category->description ?? 'Browse our wholesale cartons and commercial pack sizes with door-to-door delivery.' }}
             </p>

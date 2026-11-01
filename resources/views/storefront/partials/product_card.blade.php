@@ -1,12 +1,12 @@
-<div class="bg-white rounded-2xl border border-slate-200 hover:border-sky-400 hover:shadow-lg transition-all duration-200 flex flex-col justify-between overflow-hidden group">
-    <div class="p-4">
+<div class="bg-white rounded-2xl border border-slate-200/90 hover:border-lime-500 hover:shadow-xl hover:shadow-slate-200/60 transition-all duration-300 flex flex-col justify-between overflow-hidden group">
+    <div class="p-4 sm:p-4.5">
         {{-- Product Thumbnail with Flags --}}
-        <div class="relative w-full aspect-square bg-slate-50 rounded-xl overflow-hidden mb-3 border border-slate-100 flex items-center justify-center p-3">
+        <div class="relative w-full aspect-square bg-linear-to-b from-slate-50/80 to-slate-100/60 rounded-xl overflow-hidden mb-3 border border-slate-100 flex items-center justify-center p-2.5">
             <a href="{{ route('product.show', $product->slug) }}" class="w-full h-full flex items-center justify-center">
                 <img 
                     src="{{ $product->image_url }}" 
                     alt="{{ $product->name }}" 
-                    class="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-300"
+                    class="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-300 drop-shadow-xs"
                     loading="lazy"
                 >
             </a>
@@ -19,8 +19,8 @@
                     </span>
                 @endif
                 @if($product->is_new)
-                    <span class="px-2 py-0.5 bg-emerald-600 text-white text-[10px] font-black rounded-md tracking-wider uppercase shadow-sm">
-                        NEW
+                    <span class="px-2 py-0.5 bg-lime-600 text-white text-[10px] font-black rounded-md tracking-wider uppercase shadow-sm">
+                        NEW CASE
                     </span>
                 @endif
             </div>
@@ -36,19 +36,19 @@
 
         {{-- Category & SKU --}}
         <div class="flex items-center justify-between text-[11px] text-slate-400 mb-1">
-            <span class="font-semibold text-sky-600 truncate">{{ $product->category->name }}</span>
+            <span class="font-semibold text-lime-700 truncate">{{ $product->category->name }}</span>
             <span class="font-mono">{{ $product->sku }}</span>
         </div>
 
         {{-- Product Name --}}
-        <h3 class="text-sm font-bold text-slate-900 leading-snug line-clamp-2 group-hover:text-sky-600 transition">
+        <h3 class="text-sm font-bold text-slate-900 leading-snug line-clamp-2 group-hover:text-lime-700 transition">
             <a href="{{ route('product.show', $product->slug) }}">
                 {{ $product->name }}
             </a>
         </h3>
 
         {{-- Carton / Pack Size Callout --}}
-        <div class="mt-2 inline-flex items-center gap-1.5 px-2 py-1 bg-slate-100 text-slate-700 rounded-md text-[11px] font-semibold">
+        <div class="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-100/80 text-slate-700 rounded-lg text-[11px] font-semibold border border-slate-200/60">
             <span>📦</span>
             <span class="truncate">{{ $product->pack_size }}</span>
         </div>
@@ -61,7 +61,7 @@
                 <span class="text-lg font-black text-slate-900">
                     {{ format_currency($product->current_price) }}
                 </span>
-                <span class="text-[10px] text-slate-500 font-semibold block">/ carton</span>
+                <span class="text-[10px] text-slate-500 font-semibold block">/ wholesale case</span>
             </div>
             @if($product->is_on_sale)
                 <span class="text-xs text-slate-400 line-through font-medium">
@@ -72,7 +72,7 @@
 
         @if($product->in_stock)
             <div class="flex items-center gap-2" x-data="{ qty: 1 }">
-                <div class="flex items-center border border-slate-300 rounded-xl bg-white overflow-hidden shadow-sm">
+                <div class="flex items-center border border-slate-300 rounded-xl bg-white overflow-hidden shadow-2xs">
                     <button type="button" @click="qty = Math.max(1, qty - 1)" class="px-2.5 py-1.5 text-slate-600 hover:bg-slate-100 font-bold text-xs">-</button>
                     <span class="px-2 text-xs font-bold text-slate-800" x-text="qty"></span>
                     <button type="button" @click="qty = Math.min({{ $product->stock_quantity }}, qty + 1)" class="px-2.5 py-1.5 text-slate-600 hover:bg-slate-100 font-bold text-xs">+</button>
@@ -80,10 +80,10 @@
                 <button 
                     type="button" 
                     @click="addToCart({{ $product->id }}, qty)"
-                    class="flex-1 py-2 px-3 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-bold shadow transition flex items-center justify-center gap-1.5"
+                    class="flex-1 py-2 px-3 bg-slate-900 hover:bg-slate-800 active:scale-95 text-white rounded-xl text-xs font-bold shadow-sm transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                 >
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
-                    <span>Add</span>
+                    <svg class="w-4 h-4 text-lime-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                    <span>Add to Cart</span>
                 </button>
             </div>
         @else

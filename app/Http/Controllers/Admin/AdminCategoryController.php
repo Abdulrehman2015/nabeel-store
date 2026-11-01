@@ -23,7 +23,8 @@ class AdminCategoryController extends Controller
     public function create()
     {
         $parentCategories = Category::whereNull('parent_id')->orderBy('name')->get();
-        return view('admin.categories.create', compact('parentCategories'));
+        $presetIcons = Category::presetIcons();
+        return view('admin.categories.create', compact('parentCategories', 'presetIcons'));
     }
 
     public function store(Request $request)
@@ -33,7 +34,8 @@ class AdminCategoryController extends Controller
             'slug' => 'nullable|string|max:150|unique:categories,slug',
             'parent_id' => 'nullable|exists:categories,id',
             'description' => 'nullable|string|max:1000',
-            'icon' => 'nullable|string|max:50',
+            'icon' => 'nullable|string|max:255',
+            'icon_file' => 'nullable|file|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
             'image' => 'nullable|image|max:2048',
             'sort_order' => 'nullable|integer',
             'is_active' => 'nullable|boolean',
@@ -55,6 +57,10 @@ class AdminCategoryController extends Controller
 
         if ($request->hasFile('image')) {
             $validated['image'] = $request->file('image')->store('categories', 'public');
+        }
+
+        if ($request->hasFile('icon_file')) {
+            $validated['icon'] = $request->file('icon_file')->store('categories/icons', 'public');
         }
 
         $category = Category::create($validated);
@@ -69,8 +75,9 @@ class AdminCategoryController extends Controller
             ->where('id', '!=', $category->id)
             ->orderBy('name')
             ->get();
+        $presetIcons = Category::presetIcons();
 
-        return view('admin.categories.edit', compact('category', 'parentCategories'));
+        return view('admin.categories.edit', compact('category', 'parentCategories', 'presetIcons'));
     }
 
     public function update(Request $request, Category $category)
@@ -80,7 +87,8 @@ class AdminCategoryController extends Controller
             'slug' => 'nullable|string|max:150|unique:categories,slug,' . $category->id,
             'parent_id' => 'nullable|exists:categories,id',
             'description' => 'nullable|string|max:1000',
-            'icon' => 'nullable|string|max:50',
+            'icon' => 'nullable|string|max:255',
+            'icon_file' => 'nullable|file|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
             'image' => 'nullable|image|max:2048',
             'sort_order' => 'nullable|integer',
             'is_active' => 'nullable|boolean',
@@ -104,6 +112,10 @@ class AdminCategoryController extends Controller
             $validated['image'] = $request->file('image')->store('categories', 'public');
         }
 
+        if ($request->hasFile('icon_file')) {
+            $validated['icon'] = $request->file('icon_file')->store('categories/icons', 'public');
+        }
+
         $category->update($validated);
         ActivityLog::log('category.updated', $category, ['name' => $category->name]);
 
@@ -115,7 +127,6 @@ class AdminCategoryController extends Controller
         ActivityLog::log('category.deleted', $category, ['name' => $category->name]);
         $category->delete();
 
-        return redirect()->route('admin.categories.index')->with('success', 'Category deleted.');
+        return redirect()->route('admin.categories.index')->with('success', 'Category deleted successfully.');
     }
 }
-

@@ -17,20 +17,8 @@
         @foreach($categories as $category)
             <a href="{{ route('category.show', $category->slug) }}" class="group bg-white rounded-3xl p-6 border border-slate-200 hover:border-sky-500 hover:shadow-xl transition flex flex-col justify-between">
                 <div>
-                    <div class="w-16 h-16 rounded-2xl bg-sky-50 text-sky-600 text-3xl flex items-center justify-center mb-4 group-hover:bg-sky-600 group-hover:text-white transition transform group-hover:scale-105">
-                        @switch($category->icon)
-                            @case('drink') 🥤 @break
-                            @case('milk') 🥛 @break
-                            @case('oil') 🛢️ @break
-                            @case('noodle') 🍜 @break
-                            @case('can') 🥫 @break
-                            @case('snack') 🍪 @break
-                            @case('coffee') ☕ @break
-                            @case('laundry') 🧺 @break
-                            @case('paper') 🧻 @break
-                            @case('cleaning') 🧼 @break
-                            @default 📦
-                        @endswitch
+                    <div class="w-16 h-16 rounded-2xl bg-gradient-to-br {!! $category->icon_gradient_class !!} {!! $category->icon_shadow_class !!} flex items-center justify-center mb-4 text-white transition-all duration-300 transform group-hover:scale-110 shadow-lg">
+                        {!! $category->renderIcon('w-8 h-8 text-white') !!}
                     </div>
                     <h3 class="text-base font-bold text-slate-900 group-hover:text-sky-600 transition">
                         {{ $category->name }}
