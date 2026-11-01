@@ -14,7 +14,7 @@
                     next() { this.activeSlide = (this.activeSlide + 1) % this.totalSlides; },
                     prev() { this.activeSlide = (this.activeSlide - 1 + this.totalSlides) % this.totalSlides; },
                     start() {
-                        this.interval = setInterval(() => { this.next(); }, 6000);
+                        this.interval = setInterval(() => { this.next(); }, {{ setting('slider_autoplay_speed', 6000) }});
                     },
                     stop() { clearInterval(this.interval); }
                 }" 
@@ -53,34 +53,36 @@
                                     alt="{{ $banner->title }}" 
                                     class="w-full h-full object-cover object-center transform group-hover/banner:scale-105 transition-transform duration-1000 ease-out"
                                 >
-                                {{-- Cinematic Dark Gradient Overlays for High-Contrast Readability --}}
-                                <div class="absolute inset-0 bg-gradient-to-r from-slate-950/90 via-slate-950/60 to-transparent sm:to-slate-950/20"></div>
-                                <div class="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-transparent to-transparent sm:hidden"></div>
+                                {{-- High-Contrast Dark Gradient Overlays --}}
+                                <div class="absolute inset-0 pointer-events-none" style="background: linear-gradient(90deg, rgba(2, 6, 23, 0.92) 0%, rgba(2, 6, 23, 0.72) 48%, rgba(2, 6, 23, 0.25) 75%, rgba(2, 6, 23, 0.05) 100%);"></div>
+                                <div class="absolute inset-0 pointer-events-none sm:hidden" style="background: linear-gradient(0deg, rgba(2, 6, 23, 0.9) 0%, rgba(2, 6, 23, 0.4) 60%, transparent 100%);"></div>
                             @else
                                 <div class="w-full h-full bg-gradient-to-r from-slate-950 via-slate-900 to-emerald-950"></div>
                             @endif
 
-                            {{-- Floating Promotional Content --}}
-                            <div class="absolute inset-0 flex items-center px-6 sm:px-12 lg:px-16 z-10">
-                                <div class="max-w-xl sm:max-w-2xl space-y-2.5 sm:space-y-4">
+                            {{-- High-Contrast Floating Promotional Content Card --}}
+                            <div class="absolute inset-0 flex items-center px-4 sm:px-10 lg:px-14 z-10">
+                                <div class="max-w-xl sm:max-w-2xl p-5 sm:p-7 rounded-2xl sm:rounded-3xl shadow-2xl space-y-3 sm:space-y-4" style="background: rgba(15, 23, 42, 0.78); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.8);">
                                     @if($banner->badge)
-                                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] sm:text-xs font-black uppercase tracking-wider bg-lime-400 text-slate-950 shadow-lg shadow-lime-500/20">
-                                            {{ $banner->badge }}
-                                        </span>
+                                        <div>
+                                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] sm:text-xs font-black uppercase tracking-wider bg-lime-400 text-slate-950 shadow-md">
+                                                {{ $banner->badge }}
+                                            </span>
+                                        </div>
                                     @endif
 
-                                    <h2 class="text-2xl sm:text-4xl lg:text-5xl font-black text-white leading-tight tracking-tight drop-shadow-md">
+                                    <h2 class="text-2xl sm:text-3xl lg:text-4xl font-black text-white leading-tight tracking-tight" style="text-shadow: 0 2px 10px rgba(0,0,0,0.85);">
                                         {{ $banner->title }}
                                     </h2>
 
                                     @if($banner->subtitle)
-                                        <p class="text-xs sm:text-sm lg:text-base text-slate-200 line-clamp-2 max-w-lg drop-shadow font-medium">
+                                        <p class="text-xs sm:text-sm lg:text-base text-slate-100 line-clamp-2 max-w-lg font-medium" style="text-shadow: 0 1px 6px rgba(0,0,0,0.85);">
                                             {{ $banner->subtitle }}
                                         </p>
                                     @endif
 
                                     <div class="pt-1 sm:pt-2">
-                                        <span class="inline-flex items-center gap-2 px-5 py-2.5 sm:px-6 sm:py-3 rounded-xl bg-sky-500 hover:bg-sky-400 text-white font-bold text-xs sm:text-sm shadow-xl shadow-sky-500/30 transition-all duration-300 group-hover/banner:translate-x-1">
+                                        <span class="inline-flex items-center gap-2 px-5 py-2.5 sm:px-6 sm:py-3 rounded-xl bg-sky-500 hover:bg-sky-400 text-white font-bold text-xs sm:text-sm shadow-xl shadow-sky-500/40 transition-all duration-300 group-hover/banner:translate-x-1">
                                             <span>{{ $banner->button_text ?: 'Shop Wholesale Now' }}</span>
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
                                         </span>

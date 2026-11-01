@@ -100,6 +100,12 @@
 
                 <div class="pt-4 pb-1 px-3 text-[10px] uppercase font-bold text-slate-500 tracking-wider">Storefront CMS</div>
 
+                {{-- Homepage Settings (Hero Banners, Headings, Multi-slider) --}}
+                <a href="{{ route('admin.settings.homepage') }}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition {{ request()->routeIs('admin.settings.homepage') ? 'bg-sky-600 text-white font-bold' : 'hover:bg-slate-800 text-slate-300' }}">
+                    <span class="text-base">🏠</span>
+                    <span>Homepage Settings</span>
+                </a>
+
                 {{-- Banners / Slider --}}
                 <a href="{{ route('admin.banners.index') }}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition {{ request()->routeIs('admin.banners.*') ? 'bg-sky-600 text-white font-bold' : 'hover:bg-slate-800 text-slate-300' }}">
                     <span class="text-base">🖼️</span>
@@ -131,6 +137,12 @@
                 </a>
 
                 <div class="pt-4 pb-1 px-3 text-[10px] uppercase font-bold text-slate-500 tracking-wider">Settings & Engines</div>
+
+                {{-- Homepage Settings --}}
+                <a href="{{ route('admin.settings.homepage') }}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition {{ request()->routeIs('admin.settings.homepage') ? 'bg-sky-600 text-white font-bold' : 'hover:bg-slate-800 text-slate-300' }}">
+                    <span class="text-base">🏠</span>
+                    <span>Homepage Settings</span>
+                </a>
 
                 {{-- Delivery Settings (Phase 3) --}}
                 <a href="{{ route('admin.settings.delivery') }}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition {{ request()->routeIs('admin.settings.delivery') ? 'bg-sky-600 text-white font-bold' : 'hover:bg-slate-800 text-slate-300' }}">

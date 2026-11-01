@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\ActivityLog;
+use App\Models\Banner;
 use App\Models\Page;
 use App\Models\Setting;
 use Illuminate\Http\Request;
@@ -238,6 +239,99 @@ class AdminSettingsController extends Controller
         ActivityLog::log('settings.page_seo_updated', null, ['page' => $pageKey]);
 
         return redirect()->route('admin.settings.page-seo', ['page' => $pageKey])->with('success', 'Page SEO updated for ' . $pageKey . '.');
+    }
+
+    /**
+     * Phase Homepage Settings: Hero Banners, Headings, Descriptions & Dynamic Add (+) Sliders
+     */
+    public function homepage()
+    {
+        $banners = Banner::orderBy('sort_order')->get();
+        return view('admin.settings.homepage', compact('banners'));
+    }
+
+    public function saveHomepage(Request $request)
+    {
+        $request->validate([
+            'banners' => 'nullable|array',
+            'banners.*.title' => 'required|string|max:150',
+            'banners.*.subtitle' => 'nullable|string|max:255',
+            'banners.*.badge' => 'nullable|string|max:50',
+            'banners.*.link' => 'nullable|string|max:255',
+            'banners.*.button_text' => 'nullable|string|max:50',
+            'banners.*.sort_order' => 'nullable|integer',
+            'banners.*.desktop_image' => 'nullable|image|max:5120',
+
+            'new_banners' => 'nullable|array',
+            'new_banners.*.title' => 'required|string|max:150',
+            'new_banners.*.subtitle' => 'nullable|string|max:255',
+            'new_banners.*.badge' => 'nullable|string|max:50',
+            'new_banners.*.link' => 'nullable|string|max:255',
+            'new_banners.*.button_text' => 'nullable|string|max:50',
+            'new_banners.*.sort_order' => 'nullable|integer',
+            'new_banners.*.desktop_image' => 'nullable|image|max:5120',
+        ]);
+
+        // 1. Update existing banners
+        if ($request->has('banners')) {
+            foreach ($request->input('banners') as $id => $bannerData) {
+                $banner = Banner::find($id);
+                if (!$banner) continue;
+
+                $banner->title = $bannerData['title'];
+                $banner->subtitle = $bannerData['subtitle'] ?? null;
+                $banner->badge = $bannerData['badge'] ?? null;
+                $banner->link = $bannerData['link'] ?? null;
+                $banner->button_text = $bannerData['button_text'] ?? null;
+                $banner->sort_order = isset($bannerData['sort_order']) ? (int)$bannerData['sort_order'] : 0;
+                $banner->is_active = isset($bannerData['is_active']) ? (bool)$bannerData['is_active'] : false;
+
+                if ($request->hasFile("banners.{$id}.desktop_image")) {
+                    $banner->desktop_image = $request->file("banners.{$id}.desktop_image")->store('banners', 'public');
+                }
+
+                $banner->save();
+            }
+        }
+
+        // 2. Create newly added banners from dynamic "+" rows
+        if ($request->has('new_banners')) {
+            foreach ($request->input('new_banners') as $index => $newBannerData) {
+                if (empty($newBannerData['title'])) continue;
+
+                $imagePath = 'images/banner-1.jpg'; // default fallback
+                if ($request->hasFile("new_banners.{$index}.desktop_image")) {
+                    $imagePath = $request->file("new_banners.{$index}.desktop_image")->store('banners', 'public');
+                }
+
+                Banner::create([
+                    'title' => $newBannerData['title'],
+                    'subtitle' => $newBannerData['subtitle'] ?? null,
+                    'badge' => $newBannerData['badge'] ?? null,
+                    'link' => $newBannerData['link'] ?? null,
+                    'button_text' => $newBannerData['button_text'] ?? 'Shop Wholesale Now',
+                    'sort_order' => isset($newBannerData['sort_order']) ? (int)$newBannerData['sort_order'] : (Banner::max('sort_order') + 1),
+                    'is_active' => isset($newBannerData['is_active']) ? (bool)$newBannerData['is_active'] : true,
+                    'desktop_image' => $imagePath,
+                ]);
+            }
+        }
+
+        if ($request->filled('slider_autoplay_speed')) {
+            Setting::set('slider_autoplay_speed', $request->input('slider_autoplay_speed', 6000), 'homepage');
+        }
+
+        ActivityLog::log('settings.homepage_banners_updated');
+
+        return redirect()->route('admin.settings.homepage')->with('success', 'Homepage banners and slider settings updated successfully!');
+    }
+
+    public function deleteBanner(Banner $banner)
+    {
+        ActivityLog::log('banner.deleted', $banner, ['title' => $banner->title]);
+        $banner->delete();
+
+        return redirect()->route('admin.settings.homepage')->with('success', 'Slide banner removed successfully.');
     }
 }
 

@@ -84,6 +84,10 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
         Route::get('/appearance', [AdminSettingsController::class, 'appearance'])->name('appearance');
         Route::post('/appearance', [AdminSettingsController::class, 'saveAppearance'])->name('appearance.save');
 
+        Route::get('/homepage', [AdminSettingsController::class, 'homepage'])->name('homepage');
+        Route::post('/homepage', [AdminSettingsController::class, 'saveHomepage'])->name('homepage.save');
+        Route::delete('/homepage/banner/{banner}', [AdminSettingsController::class, 'deleteBanner'])->name('homepage.banner.delete');
+
         Route::get('/master-seo', [AdminSettingsController::class, 'masterSeo'])->name('master-seo');
         Route::post('/master-seo', [AdminSettingsController::class, 'saveMasterSeo'])->name('master-seo.save');
 
