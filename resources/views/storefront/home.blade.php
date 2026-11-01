@@ -24,37 +24,78 @@
                 class="relative rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl bg-slate-950 border border-slate-800 text-white aspect-[16/9] sm:aspect-[21/8] lg:aspect-[24/9] max-h-[520px] flex items-center group"
             >
                 @foreach($banners as $index => $banner)
+                    @php
+                        $rawPath = ltrim($banner->desktop_image ?? '', '/');
+                        if (str_starts_with($rawPath, 'storage/')) {
+                            $imageSrc = asset($rawPath);
+                        } elseif (str_starts_with($rawPath, 'images/')) {
+                            $imageSrc = asset($rawPath);
+                        } else {
+                            $imageSrc = asset('storage/' . $rawPath);
+                        }
+                        $publicFallback = asset('images/' . basename($rawPath));
+                    @endphp
                     <div 
                         x-show="activeSlide === {{ $index }}" 
-                        x-transition:enter="transition ease-out duration-500"
-                        x-transition:enter-start="opacity-0 scale-98"
+                        x-transition:enter="transition ease-out duration-700"
+                        x-transition:enter-start="opacity-0 scale-95"
                         x-transition:enter-end="opacity-100 scale-100"
-                        x-transition:leave="transition ease-in duration-300"
+                        x-transition:leave="transition ease-in duration-500"
                         x-transition:leave-start="opacity-100 scale-100"
-                        x-transition:leave-end="opacity-0 scale-98"
+                        x-transition:leave-end="opacity-0 scale-95"
                         class="absolute inset-0 w-full h-full"
                     >
-                        <a href="{{ $banner->link ?: route('category.index') }}" class="block w-full h-full relative group/banner">
+                        <a href="{{ $banner->link ?: route('category.index') }}" class="block w-full h-full relative group/banner overflow-hidden">
                             @if($banner->desktop_image)
-                                <img src="{{ asset('storage/' . $banner->desktop_image) }}" alt="{{ $banner->title }}" class="w-full h-full object-cover sm:object-fill">
+                                <img 
+                                    src="{{ $imageSrc }}" 
+                                    onerror="this.onerror=null; this.src='{{ $publicFallback }}'" 
+                                    alt="{{ $banner->title }}" 
+                                    class="w-full h-full object-cover object-center transform group-hover/banner:scale-105 transition-transform duration-1000 ease-out"
+                                >
+                                {{-- Cinematic Dark Gradient Overlays for High-Contrast Readability --}}
+                                <div class="absolute inset-0 bg-gradient-to-r from-slate-950/90 via-slate-950/60 to-transparent sm:to-slate-950/20"></div>
+                                <div class="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-transparent to-transparent sm:hidden"></div>
                             @else
-                                <div class="w-full h-full bg-gradient-to-r from-slate-950 via-slate-900 to-emerald-950 flex items-center p-8 sm:p-14">
-                                    <div class="max-w-xl space-y-3">
-                                        <span class="px-3 py-1 bg-lime-500 text-slate-950 text-xs font-black rounded-full uppercase tracking-wider inline-block">N&J WHOLESALE DIRECT</span>
-                                        <h2 class="text-3xl sm:text-5xl font-black text-white leading-tight">{{ $banner->title }}</h2>
-                                        <p class="text-slate-300 text-sm sm:text-base">{{ $banner->subtitle }}</p>
+                                <div class="w-full h-full bg-gradient-to-r from-slate-950 via-slate-900 to-emerald-950"></div>
+                            @endif
+
+                            {{-- Floating Promotional Content --}}
+                            <div class="absolute inset-0 flex items-center px-6 sm:px-12 lg:px-16 z-10">
+                                <div class="max-w-xl sm:max-w-2xl space-y-2.5 sm:space-y-4">
+                                    @if($banner->badge)
+                                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] sm:text-xs font-black uppercase tracking-wider bg-lime-400 text-slate-950 shadow-lg shadow-lime-500/20">
+                                            {{ $banner->badge }}
+                                        </span>
+                                    @endif
+
+                                    <h2 class="text-2xl sm:text-4xl lg:text-5xl font-black text-white leading-tight tracking-tight drop-shadow-md">
+                                        {{ $banner->title }}
+                                    </h2>
+
+                                    @if($banner->subtitle)
+                                        <p class="text-xs sm:text-sm lg:text-base text-slate-200 line-clamp-2 max-w-lg drop-shadow font-medium">
+                                            {{ $banner->subtitle }}
+                                        </p>
+                                    @endif
+
+                                    <div class="pt-1 sm:pt-2">
+                                        <span class="inline-flex items-center gap-2 px-5 py-2.5 sm:px-6 sm:py-3 rounded-xl bg-sky-500 hover:bg-sky-400 text-white font-bold text-xs sm:text-sm shadow-xl shadow-sky-500/30 transition-all duration-300 group-hover/banner:translate-x-1">
+                                            <span>{{ $banner->button_text ?: 'Shop Wholesale Now' }}</span>
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                                        </span>
                                     </div>
                                 </div>
-                            @endif
+                            </div>
                         </a>
                     </div>
                 @endforeach
 
                 {{-- Left & Right Slider Arrows --}}
-                <button type="button" @click="prev()" class="absolute left-3 sm:left-5 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-slate-900/70 hover:bg-slate-900 text-white backdrop-blur-sm border border-white/10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 shadow-lg cursor-pointer">
+                <button type="button" @click="prev()" aria-label="Previous slide" class="absolute left-3 sm:left-5 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full bg-slate-900/70 hover:bg-slate-900 text-white backdrop-blur-md border border-white/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 shadow-xl cursor-pointer">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
                 </button>
-                <button type="button" @click="next()" class="absolute right-3 sm:right-5 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-slate-900/70 hover:bg-slate-900 text-white backdrop-blur-sm border border-white/10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 shadow-lg cursor-pointer">
+                <button type="button" @click="next()" aria-label="Next slide" class="absolute right-3 sm:right-5 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full bg-slate-900/70 hover:bg-slate-900 text-white backdrop-blur-md border border-white/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 shadow-xl cursor-pointer">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
                 </button>
 
@@ -64,8 +105,9 @@
                         <button 
                             type="button" 
                             @click="activeSlide = {{ $index }}" 
-                            class="h-2 rounded-full transition-all cursor-pointer"
-                            :class="activeSlide === {{ $index }} ? 'w-8 bg-lime-500 shadow-md shadow-lime-500/50' : 'w-2 bg-white/40 hover:bg-white/70'"
+                            aria-label="Go to slide {{ $index + 1 }}"
+                            class="h-2 rounded-full transition-all duration-300 cursor-pointer"
+                            :class="activeSlide === {{ $index }} ? 'w-8 bg-lime-400 shadow-lg shadow-lime-400/50' : 'w-2.5 bg-white/40 hover:bg-white/75'"
                         ></button>
                     @endforeach
                 </div>
