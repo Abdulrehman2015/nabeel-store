@@ -1,0 +1,35 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
+class CustomerAddress extends Model
+{
+    protected $fillable = [
+        'user_id',
+        'label',
+        'recipient_name',
+        'recipient_phone',
+        'address_line',
+        'area_city',
+        'floor',
+        'landmark',
+        'latitude',
+        'longitude',
+        'is_default',
+    ];
+
+    protected $casts = [
+        'floor' => 'integer',
+        'latitude' => 'decimal:7',
+        'longitude' => 'decimal:7',
+        'is_default' => 'boolean',
+    ];
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+}

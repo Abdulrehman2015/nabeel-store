@@ -1,0 +1,143 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+
+class Product extends Model
+{
+    use HasFactory;
+
+    protected $fillable = [
+        'category_id',
+        'brand_id',
+        'name',
+        'slug',
+        'sku',
+        'pack_size',
+        'unit_description',
+        'weight_volume',
+        'price',
+        'sale_price',
+        'stock_quantity',
+        'short_description',
+        'description',
+        'featured_image',
+        'is_active',
+        'is_featured',
+        'is_new',
+        'is_promo',
+        // SEO
+        'meta_title',
+        'meta_description',
+        'meta_keywords',
+        'canonical_url',
+        'robots',
+        'og_title',
+        'og_description',
+        'og_image',
+        'twitter_card',
+        'focus_keyword',
+        'schema_type',
+    ];
+
+    protected $casts = [
+        'price' => 'decimal:2',
+        'sale_price' => 'decimal:2',
+        'stock_quantity' => 'integer',
+        'is_active' => 'boolean',
+        'is_featured' => 'boolean',
+        'is_new' => 'boolean',
+        'is_promo' => 'boolean',
+    ];
+
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(Category::class);
+    }
+
+    public function brand(): BelongsTo
+    {
+        return $this->belongsTo(Brand::class);
+    }
+
+    public function images(): HasMany
+    {
+        return $this->hasMany(ProductImage::class)->orderBy('sort_order');
+    }
+
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
+    }
+
+    public function scopeFeatured($query)
+    {
+        return $query->where('is_featured', true)->where('is_active', true);
+    }
+
+    public function scopePromo($query)
+    {
+        return $query->where('is_promo', true)->where('is_active', true);
+    }
+
+    public function scopeNewArrivals($query)
+    {
+        return $query->where('is_new', true)->where('is_active', true);
+    }
+
+    public function scopeInStock($query)
+    {
+        return $query->where('stock_quantity', '>', 0);
+    }
+
+    public function getCurrentPriceAttribute(): float
+    {
+        if ($this->sale_price !== null && $this->sale_price > 0 && $this->sale_price < $this->price) {
+            return (float) $this->sale_price;
+        }
+        return (float) $this->price;
+    }
+
+    public function getIsOnSaleAttribute(): bool
+    {
+        return $this->sale_price !== null && $this->sale_price > 0 && $this->sale_price < $this->price;
+    }
+
+    public function getDiscountPercentAttribute(): int
+    {
+        if (!$this->is_on_sale || $this->price <= 0) {
+            return 0;
+        }
+        return (int) round((($this->price - $this->sale_price) / $this->price) * 100);
+    }
+
+    public function getInStockAttribute(): bool
+    {
+        return $this->stock_quantity > 0;
+    }
+
+    public function getImageUrlAttribute(): string
+    {
+        if ($this->featured_image) {
+            if (str_starts_with($this->featured_image, 'http')) {
+                return $this->featured_image;
+            }
+            return asset('storage/' . $this->featured_image);
+        }
+        return asset('images/product-placeholder.png');
+    }
+
+    public function getSeoTitleAttribute(): string
+    {
+        return $this->meta_title ?: ($this->name . ' (' . $this->pack_size . ') - ' . setting('site_name', 'Bulk Mart'));
+    }
+
+    public function getSeoDescriptionAttribute(): string
+    {
+        return $this->meta_description ?: ($this->short_description ?: 'Buy ' . $this->name . ' in wholesale cartons at unbeatable prices.');
+    }
+}
