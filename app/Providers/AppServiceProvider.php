@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -19,6 +20,14 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        if (
+            request()->header('x-forwarded-proto') === 'https' ||
+            request()->server('HTTP_X_FORWARDED_PROTO') === 'https' ||
+            str_contains(request()->getHost(), 'lhr.life') ||
+            str_contains(request()->getHost(), 'ngrok') ||
+            str_contains(request()->getHost(), 'trycloudflare')
+        ) {
+            URL::forceScheme('https');
+        }
     }
 }
