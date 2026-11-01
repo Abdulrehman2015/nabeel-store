@@ -24,3 +24,5 @@ Homestead.yaml
 Thumbs.db
 cloudflared.exe
 cookie.txt
+deploy.zip
+_deploy_stage/
