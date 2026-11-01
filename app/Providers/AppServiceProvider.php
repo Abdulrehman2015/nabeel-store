@@ -25,7 +25,9 @@ class AppServiceProvider extends ServiceProvider
             request()->server('HTTP_X_FORWARDED_PROTO') === 'https' ||
             str_contains(request()->getHost(), 'lhr.life') ||
             str_contains(request()->getHost(), 'ngrok') ||
-            str_contains(request()->getHost(), 'trycloudflare')
+            str_contains(request()->getHost(), 'trycloudflare') ||
+            str_contains(request()->getHost(), 'devtunnels.ms') ||
+            str_contains(request()->getHost(), 'app.github.dev')
         ) {
             URL::forceScheme('https');
         }
