@@ -30,3 +30,4 @@ class OrderAlertAdminMail extends Mailable implements ShouldQueue
         );
     }
 }
+

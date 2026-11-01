@@ -88,3 +88,4 @@ class AdminCmsController extends Controller
         return redirect()->back()->with('success', 'Data request status updated.');
     }
 }
+

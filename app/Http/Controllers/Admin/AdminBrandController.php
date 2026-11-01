@@ -78,3 +78,4 @@ class AdminBrandController extends Controller
         return redirect()->route('admin.brands.index')->with('success', 'Brand deleted.');
     }
 }
+

@@ -141,3 +141,4 @@ class Product extends Model
         return $this->meta_description ?: ($this->short_description ?: 'Buy ' . $this->name . ' in wholesale cartons at unbeatable prices.');
     }
 }
+

@@ -143,3 +143,4 @@ class AdminPolicyController extends Controller
         return redirect()->route('admin.policies.index')->with('success', 'Policy deleted.');
     }
 }
+

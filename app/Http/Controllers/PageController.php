@@ -100,3 +100,4 @@ class PageController extends Controller
         return redirect()->back()->with('success', 'Your data request has been logged. Our compliance officer will process your request within 7 business days.');
     }
 }
+

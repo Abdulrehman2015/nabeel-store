@@ -30,3 +30,4 @@ class OrderStatusUpdatedMail extends Mailable implements ShouldQueue
         );
     }
 }
+

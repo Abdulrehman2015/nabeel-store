@@ -94,3 +94,4 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     // Activity & Audit Log (Phase 7.1)
     Route::get('activity-logs', [AdminActivityLogController::class, 'index'])->name('activity-logs.index');
 });
+

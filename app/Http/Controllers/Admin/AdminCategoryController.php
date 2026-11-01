@@ -118,3 +118,4 @@ class AdminCategoryController extends Controller
         return redirect()->route('admin.categories.index')->with('success', 'Category deleted.');
     }
 }
+

@@ -46,3 +46,4 @@ class OrderTrackingController extends Controller
         return view('storefront.order_track', compact('order', 'searched', 'whatsAppUrl', 'seo'));
     }
 }
+

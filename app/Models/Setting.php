@@ -79,3 +79,4 @@ class Setting extends Model
         Cache::forget(self::CACHE_KEY);
     }
 }
+

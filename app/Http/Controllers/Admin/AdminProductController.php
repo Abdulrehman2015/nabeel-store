@@ -192,3 +192,4 @@ class AdminProductController extends Controller
         return redirect()->route('admin.products.index')->with('success', 'Product deleted.');
     }
 }
+

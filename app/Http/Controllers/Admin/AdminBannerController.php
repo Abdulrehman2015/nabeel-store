@@ -93,3 +93,4 @@ class AdminBannerController extends Controller
         return redirect()->route('admin.banners.index')->with('success', 'Banner deleted.');
     }
 }
+

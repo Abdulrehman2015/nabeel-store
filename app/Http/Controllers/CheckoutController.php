@@ -231,3 +231,4 @@ class CheckoutController extends Controller
         return view('storefront.order_success', compact('order', 'whatsAppUrl', 'seo'));
     }
 }
+

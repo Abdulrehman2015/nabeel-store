@@ -49,3 +49,4 @@ class AdminCustomerController extends Controller
         return redirect()->back()->with('success', 'Customer account has been ' . $status . '.');
     }
 }
+

@@ -165,3 +165,4 @@ class AdminOrderController extends Controller
         return Storage::disk('local')->response($order->payment_proof_path);
     }
 }
+

@@ -41,8 +41,14 @@
         <link rel="icon" type="image/png" href="{{ asset('images/product-placeholder.png') }}">
     @endif
 
+    {{-- Google Fonts --}}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
     {{-- Phase 6: Dynamic CSS Variables & Tailwind Theme Injection --}}
     <style>
+        [x-cloak] { display: none !important; }
         :root {
             --color-primary: {{ setting('color_primary', '#0284c7') }};
             --color-primary-hover: {{ setting('color_primary_hover', '#0369a1') }};
@@ -53,8 +59,8 @@
             --color-header-bg: {{ setting('color_header_bg', '#ffffff') }};
             --color-footer-bg: {{ setting('color_footer_bg', '#0f172a') }};
             --color-button-text: {{ setting('color_button_text', '#ffffff') }};
-            --font-family: {{ setting('font_family', 'Inter, system-ui, -apple-system, sans-serif') }};
-            --border-radius: {{ setting('border_radius', '0.5rem') }};
+            --font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+            --border-radius: {{ setting('border_radius', '0.75rem') }};
         }
         body {
             font-family: var(--font-family);
@@ -89,7 +95,7 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
     {{-- Structured Data JSON-LD Schemas (Phase 5) --}}
-    {!! app(\App\Services\SeoService::class)->generateOrganizationJsonLd() !!}
+    <script type="application/ld+json">{!! app(\App\Services\SeoService::class)->generateOrganizationJsonLd() !!}</script>
     @isset($breadcrumbsJsonLd)
         <script type="application/ld+json">{!! $breadcrumbsJsonLd !!}</script>
     @endisset
@@ -735,3 +741,4 @@
     {!! setting('custom_footer_scripts') !!}
 </body>
 </html>
+

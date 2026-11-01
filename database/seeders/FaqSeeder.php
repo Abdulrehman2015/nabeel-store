@@ -56,3 +56,4 @@ class FaqSeeder extends Seeder
         }
     }
 }
+

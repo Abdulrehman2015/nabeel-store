@@ -69,3 +69,4 @@ class HomeSectionSeeder extends Seeder
         }
     }
 }
+

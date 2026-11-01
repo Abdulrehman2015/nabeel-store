@@ -240,3 +240,4 @@ class AdminSettingsController extends Controller
         return redirect()->route('admin.settings.page-seo', ['page' => $pageKey])->with('success', 'Page SEO updated for ' . $pageKey . '.');
     }
 }
+

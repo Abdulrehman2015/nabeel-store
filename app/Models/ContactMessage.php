@@ -19,3 +19,4 @@ class ContactMessage extends Model
         'is_read' => 'boolean',
     ];
 }
+

@@ -79,3 +79,4 @@ class Category extends Model
         return $this->meta_description ?: ($this->description ?: 'Shop ' . $this->name . ' in bulk at wholesale carton prices.');
     }
 }
+

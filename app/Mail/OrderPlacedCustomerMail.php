@@ -30,3 +30,4 @@ class OrderPlacedCustomerMail extends Mailable implements ShouldQueue
         );
     }
 }
+

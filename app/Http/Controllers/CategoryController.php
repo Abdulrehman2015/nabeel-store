@@ -117,3 +117,4 @@ class CategoryController extends Controller
         return view('storefront.categories_index', compact('categories', 'seo'));
     }
 }
+

@@ -54,3 +54,4 @@ class ProductsExport implements FromCollection, WithHeadings, WithMapping
         ];
     }
 }
+

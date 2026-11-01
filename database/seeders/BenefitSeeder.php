@@ -44,3 +44,4 @@ class BenefitSeeder extends Seeder
         }
     }
 }
+

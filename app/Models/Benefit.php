@@ -24,3 +24,4 @@ class Benefit extends Model
         return $query->where('is_active', true)->orderBy('sort_order');
     }
 }
+

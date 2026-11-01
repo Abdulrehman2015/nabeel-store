@@ -47,3 +47,4 @@ class Banner extends Model
         return $this->desktop_image_url;
     }
 }
+

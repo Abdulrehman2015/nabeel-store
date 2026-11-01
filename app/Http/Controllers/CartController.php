@@ -101,3 +101,4 @@ class CartController extends Controller
         return response()->json($this->cartService->getSummary());
     }
 }
+

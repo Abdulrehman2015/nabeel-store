@@ -27,28 +27,35 @@
                     <div 
                         x-show="activeSlide === {{ $index }}" 
                         x-transition:enter="transition ease-out duration-500"
-                        x-transition:enter-start="opacity-0 scale-95"
-                        x-transition:enter-end="opacity-100 scale-100"
+                        x-transition:enter-start="opacity-0"
+                        x-transition:enter-end="opacity-100"
                         x-transition:leave="transition ease-in duration-300"
-                        x-transition:leave-start="opacity-100 scale-100"
-                        x-transition:leave-end="opacity-0 scale-95"
-                        class="absolute inset-0 flex flex-col justify-center px-6 sm:px-12 lg:px-16 py-12 z-10 bg-gradient-to-r from-slate-950/90 via-slate-900/70 to-transparent"
+                        x-transition:leave-start="opacity-100"
+                        x-transition:leave-end="opacity-0"
+                        class="absolute inset-0"
                     >
-                        <div class="max-w-xl space-y-4">
+                        @if($banner->desktop_image)
+                            <img src="{{ asset('storage/' . $banner->desktop_image) }}" alt="{{ $banner->title }}" class="absolute inset-0 w-full h-full object-cover">
+                            <div class="absolute inset-0 bg-gradient-to-r from-slate-950/95 via-slate-900/80 to-transparent"></div>
+                        @else
+                            <div class="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-900 to-sky-950"></div>
+                        @endif
+
+                        <div class="relative z-20 h-full flex flex-col justify-center px-6 sm:px-12 lg:px-16 py-12 max-w-2xl space-y-4">
                             @if($banner->badge)
-                                <span class="inline-block px-3 py-1 bg-amber-500 text-slate-950 text-xs font-black rounded-full uppercase tracking-wider">
+                                <span class="inline-block px-3 py-1 bg-amber-500 text-slate-950 text-xs font-black rounded-full uppercase tracking-wider w-max shadow">
                                     {{ $banner->badge }}
                                 </span>
                             @endif
-                            <h1 class="text-3xl sm:text-5xl font-black text-white leading-tight tracking-tight">
+                            <h1 class="text-3xl sm:text-5xl font-black text-white leading-tight tracking-tight drop-shadow-md">
                                 {{ $banner->title }}
                             </h1>
-                            <p class="text-slate-300 text-sm sm:text-base leading-relaxed">
+                            <p class="text-slate-200 text-sm sm:text-base leading-relaxed drop-shadow">
                                 {{ $banner->subtitle }}
                             </p>
                             @if($banner->link)
                                 <div class="pt-2">
-                                    <a href="{{ $banner->link }}" class="inline-flex items-center gap-2 px-6 py-3 bg-sky-600 hover:bg-sky-500 text-white font-extrabold text-sm rounded-xl shadow-lg transition">
+                                    <a href="{{ $banner->link }}" class="inline-flex items-center gap-2 px-6 py-3 bg-sky-600 hover:bg-sky-500 text-white font-extrabold text-sm rounded-xl shadow-lg transition transform hover:-translate-y-0.5">
                                         <span>{{ $banner->button_text ?: 'Shop Now' }}</span>
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
                                     </a>
@@ -134,21 +141,25 @@
             <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                 @foreach($categories as $category)
                     <a href="{{ route('category.show', $category->slug) }}" class="group bg-white rounded-2xl p-4 border border-slate-200 hover:border-sky-500 hover:shadow-md transition text-center flex flex-col items-center">
-                        <div class="w-16 h-16 rounded-2xl bg-sky-50 text-sky-600 flex items-center justify-center text-2xl group-hover:bg-sky-600 group-hover:text-white transition transform group-hover:scale-105 mb-3">
-                            @switch($category->icon)
-                                @case('drink') 🥤 @break
-                                @case('milk') 🥛 @break
-                                @case('oil') 🛢️ @break
-                                @case('noodle') 🍜 @break
-                                @case('can') 🥫 @break
-                                @case('snack') 🍪 @break
-                                @case('coffee') ☕ @break
-                                @case('laundry') 🧺 @break
-                                @case('paper') 🧻 @break
-                                @case('cleaning') 🧼 @break
-                                @default 📦
-                            @endswitch
-                        </div>
+                        @if($category->image)
+                            <img src="{{ asset('storage/' . $category->image) }}" alt="{{ $category->name }}" class="w-16 h-16 rounded-xl object-contain mb-3 p-1 bg-slate-50 border border-slate-100 group-hover:scale-105 transition">
+                        @else
+                            <div class="w-16 h-16 rounded-2xl bg-sky-50 text-sky-600 flex items-center justify-center text-2xl group-hover:bg-sky-600 group-hover:text-white transition transform group-hover:scale-105 mb-3">
+                                @switch($category->icon)
+                                    @case('drink') 🥤 @break
+                                    @case('milk') 🥛 @break
+                                    @case('oil') 🛢️ @break
+                                    @case('noodle') 🍜 @break
+                                    @case('can') 🥫 @break
+                                    @case('snack') 🍪 @break
+                                    @case('coffee') ☕ @break
+                                    @case('laundry') 🧺 @break
+                                    @case('paper') 🧻 @break
+                                    @case('cleaning') 🧼 @break
+                                    @default 📦
+                                @endswitch
+                            </div>
+                        @endif
                         <h3 class="text-xs sm:text-sm font-bold text-slate-900 group-hover:text-sky-600 transition leading-snug line-clamp-2">
                             {{ $category->name }}
                         </h3>
@@ -335,3 +346,4 @@
 
 </div>
 @endsection
+

@@ -48,3 +48,4 @@ class HowItWorksSeeder extends Seeder
         }
     }
 }
+
