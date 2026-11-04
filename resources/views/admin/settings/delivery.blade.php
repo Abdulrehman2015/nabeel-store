@@ -14,7 +14,7 @@
             </div>
             <h1 class="text-2xl font-bold text-gray-900 mt-1">Delivery Zones & Floor Surcharge Engine</h1>
         </div>
-        <button type="submit" form="deliveryForm" class="px-5 py-2 bg-primary hover:bg-primary-hover text-white rounded-lg text-sm font-semibold shadow">Save Delivery Settings</button>
+        <button type="submit" form="deliveryForm" class="px-5 py-2.5 bg-sky-600 hover:bg-sky-700 active:bg-sky-800 text-white rounded-xl text-sm font-semibold shadow-sm transition-colors cursor-pointer">Save Delivery Settings</button>
     </div>
 
     @if($errors->any())
@@ -35,14 +35,62 @@
             <div class="flex items-center justify-between border-b border-gray-100 pb-3">
                 <div>
                     <h3 class="text-base font-semibold text-gray-900">Store Warehouse Coordinates</h3>
-                    <p class="text-xs text-gray-500">Search an address or drag the pin on the map to set your central distribution hub.</p>
+                    <p class="text-xs text-gray-500">Add a Google Maps link, search an address, or drag the pin on the map to set your central distribution hub.</p>
                 </div>
-                <span class="px-2.5 py-1 bg-primary/10 text-primary text-xs font-semibold rounded-full">OpenStreetMap + Leaflet</span>
+                <span class="px-2.5 py-1 bg-sky-50 text-sky-700 text-xs font-semibold rounded-full border border-sky-200">OpenStreetMap + Leaflet</span>
             </div>
 
-            <div class="flex gap-2">
-                <input type="text" id="storeSearchInput" placeholder="Search landmark, street, city in Malaysia..." class="flex-1 text-sm border-gray-300 rounded-lg focus:ring-primary focus:border-primary">
-                <button type="button" id="storeSearchBtn" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium">Find on Map</button>
+            <!-- Mode Switcher Tabs -->
+            <div class="inline-flex p-1 bg-slate-100 rounded-xl border border-slate-200">
+                <button type="button" id="tabLinkBtn" class="flex items-center gap-2 px-3.5 py-2 text-xs font-semibold rounded-lg transition shadow-xs bg-white text-slate-900 border border-slate-200 cursor-pointer">
+                    <svg class="w-3.5 h-3.5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+                    <span>Google Maps Link</span>
+                </button>
+                <button type="button" id="tabAddressBtn" class="flex items-center gap-2 px-3.5 py-2 text-xs font-medium rounded-lg transition text-slate-600 hover:text-slate-900 border border-transparent cursor-pointer">
+                    <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                    <span>Search Address</span>
+                </button>
+            </div>
+
+            <!-- Tab 1: Google Maps Link Input -->
+            <div id="panelLink" class="space-y-2">
+                <div class="flex gap-2.5 items-stretch">
+                    <div class="relative flex-1">
+                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                            <svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                        </div>
+                        <input type="text" id="mapLinkInput" placeholder="Paste Google Maps link (e.g. https://maps.app.goo.gl/... or coordinates)..." class="w-full h-11 pl-10 pr-4 text-sm border-slate-300 rounded-xl focus:ring-2 focus:ring-sky-500 focus:border-sky-500 shadow-xs">
+                    </div>
+                    <button type="button" id="fetchLinkBtn" class="h-11 px-5 bg-sky-600 hover:bg-sky-700 active:bg-sky-800 text-white rounded-xl text-sm font-semibold flex items-center justify-center gap-2 shadow-sm transition-colors whitespace-nowrap cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed">
+                        <svg class="w-4 h-4" id="fetchLinkIcon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                        <span id="fetchLinkText">Fetch Location</span>
+                    </button>
+                </div>
+                <div class="flex items-center justify-between text-xs text-slate-500 pt-0.5">
+                    <span>Supports <code>maps.app.goo.gl</code> short links, desktop Google Maps links, or coordinates (<code>lat, lng</code>).</span>
+                    <button type="button" id="pasteClipboardBtn" class="text-sky-600 hover:text-sky-700 font-semibold inline-flex items-center gap-1 cursor-pointer">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                        Paste from clipboard
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tab 2: Search Address Input -->
+            <div id="panelAddress" class="space-y-2 hidden">
+                <div class="flex gap-2.5 items-stretch">
+                    <input type="text" id="storeSearchInput" placeholder="Search landmark, street, city..." class="flex-1 h-11 px-4 text-sm border-slate-300 rounded-xl focus:ring-2 focus:ring-sky-500 focus:border-sky-500 shadow-xs">
+                    <button type="button" id="storeSearchBtn" class="h-11 px-5 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-sm font-semibold flex items-center justify-center gap-2 shadow-sm transition-colors whitespace-nowrap cursor-pointer">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                        <span>Find on Map</span>
+                    </button>
+                </div>
+                <p class="text-xs text-slate-500 pt-0.5">Geocoded using OpenStreetMap Nominatim.</p>
+            </div>
+
+            <!-- Status message container -->
+            <div id="fetchStatusBox" class="hidden p-3.5 rounded-xl text-xs flex items-center justify-between transition-all">
+                <div id="fetchStatusMsg" class="flex items-center gap-2 font-medium"></div>
+                <button type="button" id="closeFetchStatus" class="text-slate-400 hover:text-slate-600 text-base font-bold ml-2 cursor-pointer leading-none">&times;</button>
             </div>
 
             <!-- Leaflet Container -->
@@ -180,21 +228,198 @@ document.addEventListener('DOMContentLoaded', function() {
     var marker = L.marker([currentLat, currentLng], { draggable: true }).addTo(map);
     marker.bindPopup('<b>Store Central Hub</b><br>Drag to reposition').openPopup();
 
+    function updateCoordinates(lat, lng) {
+        latInput.value = parseFloat(lat).toFixed(8);
+        lngInput.value = parseFloat(lng).toFixed(8);
+    }
+
     marker.on('dragend', function(e) {
         var pos = marker.getLatLng();
-        latInput.value = pos.lat.toFixed(8);
-        lngInput.value = pos.lng.toFixed(8);
+        updateCoordinates(pos.lat, pos.lng);
+        showStatus('info', 'Pin moved to: ' + pos.lat.toFixed(6) + ', ' + pos.lng.toFixed(6));
     });
 
     map.on('click', function(e) {
         marker.setLatLng(e.latlng);
-        latInput.value = e.latlng.lat.toFixed(8);
-        lngInput.value = e.latlng.lng.toFixed(8);
+        updateCoordinates(e.latlng.lat, e.latlng.lng);
+        showStatus('info', 'Pin moved to: ' + e.latlng.lat.toFixed(6) + ', ' + e.latlng.lng.toFixed(6));
     });
 
-    document.getElementById('storeSearchBtn').addEventListener('click', function() {
-        var query = document.getElementById('storeSearchInput').value.trim();
+    // Tab switcher
+    var tabLinkBtn = document.getElementById('tabLinkBtn');
+    var tabAddressBtn = document.getElementById('tabAddressBtn');
+    var panelLink = document.getElementById('panelLink');
+    var panelAddress = document.getElementById('panelAddress');
+
+    function switchTab(mode) {
+        if(mode === 'link') {
+            tabLinkBtn.className = 'flex items-center gap-2 px-3.5 py-2 text-xs font-semibold rounded-lg transition shadow-xs bg-white text-slate-900 border border-slate-200 cursor-pointer';
+            tabAddressBtn.className = 'flex items-center gap-2 px-3.5 py-2 text-xs font-medium rounded-lg transition text-slate-600 hover:text-slate-900 border border-transparent cursor-pointer';
+            panelLink.classList.remove('hidden');
+            panelAddress.classList.add('hidden');
+            document.getElementById('mapLinkInput').focus();
+        } else {
+            tabAddressBtn.className = 'flex items-center gap-2 px-3.5 py-2 text-xs font-semibold rounded-lg transition shadow-xs bg-white text-slate-900 border border-slate-200 cursor-pointer';
+            tabLinkBtn.className = 'flex items-center gap-2 px-3.5 py-2 text-xs font-medium rounded-lg transition text-slate-600 hover:text-slate-900 border border-transparent cursor-pointer';
+            panelAddress.classList.remove('hidden');
+            panelLink.classList.add('hidden');
+            document.getElementById('storeSearchInput').focus();
+        }
+    }
+
+    tabLinkBtn.addEventListener('click', function() { switchTab('link'); });
+    tabAddressBtn.addEventListener('click', function() { switchTab('address'); });
+
+    // Status banner helpers
+    var statusBox = document.getElementById('fetchStatusBox');
+    var statusMsg = document.getElementById('fetchStatusMsg');
+    var closeStatusBtn = document.getElementById('closeFetchStatus');
+
+    if(closeStatusBtn) {
+        closeStatusBtn.addEventListener('click', function() {
+            statusBox.classList.add('hidden');
+        });
+    }
+
+    function showStatus(type, messageHtml) {
+        statusBox.classList.remove('hidden', 'bg-emerald-50', 'border-emerald-200', 'text-emerald-800', 'bg-red-50', 'border-red-200', 'text-red-800', 'bg-sky-50', 'border-sky-200', 'text-sky-800');
+        
+        var icon = '';
+        if(type === 'success') {
+            statusBox.classList.add('bg-emerald-50', 'border', 'border-emerald-200', 'text-emerald-800');
+            icon = '<svg class="w-4 h-4 text-emerald-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>';
+        } else if(type === 'error') {
+            statusBox.classList.add('bg-red-50', 'border', 'border-red-200', 'text-red-800');
+            icon = '<svg class="w-4 h-4 text-red-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>';
+        } else {
+            statusBox.classList.add('bg-sky-50', 'border', 'border-sky-200', 'text-sky-800');
+            icon = '<svg class="w-4 h-4 text-sky-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>';
+        }
+
+        statusMsg.innerHTML = icon + '<span>' + messageHtml + '</span>';
+    }
+
+    function escapeHtml(str) {
+        var div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+    }
+
+    // Google Maps Link Resolver
+    var fetchLinkBtn = document.getElementById('fetchLinkBtn');
+    var fetchLinkIcon = document.getElementById('fetchLinkIcon');
+    var fetchLinkText = document.getElementById('fetchLinkText');
+    var mapLinkInput = document.getElementById('mapLinkInput');
+
+    function resolveLocation(link) {
+        if(!link) {
+            showStatus('error', 'Please enter or paste a Google Maps link or coordinates.');
+            return;
+        }
+
+        // Set Loading State
+        fetchLinkBtn.disabled = true;
+        fetchLinkText.textContent = 'Resolving...';
+        fetchLinkIcon.innerHTML = '<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>';
+        fetchLinkIcon.classList.add('animate-spin');
+
+        var csrfToken = document.querySelector('meta[name="csrf-token"]') ? document.querySelector('meta[name="csrf-token"]').getAttribute('content') : '{{ csrf_token() }}';
+
+        fetch('{{ route("admin.settings.delivery.resolve-link") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken,
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ url: link })
+        })
+        .then(function(res) {
+            return res.json().then(function(data) {
+                return { status: res.status, ok: res.ok, data: data };
+            });
+        })
+        .then(function(result) {
+            if(result.ok && result.data.success) {
+                var lat = parseFloat(result.data.lat);
+                var lng = parseFloat(result.data.lng);
+                var placeName = result.data.name || 'Store Central Hub';
+
+                updateCoordinates(lat, lng);
+                map.setView([lat, lng], 16);
+                marker.setLatLng([lat, lng]);
+
+                marker.bindPopup(
+                    '<b>' + escapeHtml(placeName) + '</b><br>' +
+                    '<span style="font-size:11px;color:#16a34a;font-weight:600;">✓ Fetched from Google Maps</span><br>' +
+                    '<span style="font-size:11px;color:#6b7280;">' + lat.toFixed(6) + ', ' + lng.toFixed(6) + '</span>'
+                ).openPopup();
+
+                showStatus('success', 'Location successfully fetched: <strong>' + escapeHtml(placeName) + '</strong> (' + lat.toFixed(6) + ', ' + lng.toFixed(6) + ')');
+            } else {
+                var errMsg = (result.data && result.data.message) ? result.data.message : 'Could not resolve location from this link.';
+                showStatus('error', escapeHtml(errMsg));
+            }
+        })
+        .catch(function(err) {
+            showStatus('error', 'Error connecting to map resolver. Please check your internet connection.');
+        })
+        .finally(function() {
+            fetchLinkBtn.disabled = false;
+            fetchLinkText.textContent = 'Fetch Location';
+            fetchLinkIcon.classList.remove('animate-spin');
+            fetchLinkIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>';
+        });
+    }
+
+    fetchLinkBtn.addEventListener('click', function() {
+        resolveLocation(mapLinkInput.value.trim());
+    });
+
+    mapLinkInput.addEventListener('keydown', function(e) {
+        if(e.key === 'Enter') {
+            e.preventDefault();
+            resolveLocation(mapLinkInput.value.trim());
+        }
+    });
+
+    // Paste from clipboard helper
+    var pasteClipboardBtn = document.getElementById('pasteClipboardBtn');
+    if(pasteClipboardBtn) {
+        pasteClipboardBtn.addEventListener('click', function() {
+            if(navigator.clipboard && navigator.clipboard.readText) {
+                navigator.clipboard.readText().then(function(clipText) {
+                    if(clipText) {
+                        mapLinkInput.value = clipText.trim();
+                        resolveLocation(clipText.trim());
+                    }
+                }).catch(function() {
+                    alert('Clipboard access denied. Please paste directly using Ctrl+V or right-click.');
+                });
+            } else {
+                alert('Clipboard API not supported in this browser. Please paste directly using Ctrl+V.');
+            }
+        });
+    }
+
+    // Address search with smart URL auto-detection
+    var storeSearchBtn = document.getElementById('storeSearchBtn');
+    var storeSearchInput = document.getElementById('storeSearchInput');
+
+    function searchAddress() {
+        var query = storeSearchInput.value.trim();
         if(!query) return;
+
+        // If user accidentally or deliberately pasted a map link into the address box
+        if(query.match(/^https?:\/\//i) || query.includes('maps.app.goo.gl') || query.includes('goo.gl') || query.includes('google.com/maps')) {
+            switchTab('link');
+            mapLinkInput.value = query;
+            resolveLocation(query);
+            return;
+        }
+
+        storeSearchBtn.disabled = true;
+        storeSearchBtn.classList.add('opacity-75');
 
         fetch('https://nominatim.openstreetmap.org/search?format=json&q=' + encodeURIComponent(query))
             .then(res => res.json())
@@ -202,17 +427,37 @@ document.addEventListener('DOMContentLoaded', function() {
                 if(data && data.length > 0) {
                     var lat = parseFloat(data[0].lat);
                     var lon = parseFloat(data[0].lon);
+                    var displayName = data[0].display_name || query;
+
+                    updateCoordinates(lat, lon);
                     map.setView([lat, lon], 14);
                     marker.setLatLng([lat, lon]);
-                    latInput.value = lat.toFixed(8);
-                    lngInput.value = lon.toFixed(8);
+
+                    marker.bindPopup(
+                        '<b>' + escapeHtml(displayName.split(',')[0]) + '</b><br>' +
+                        '<span style="font-size:11px;color:#6b7280;">' + lat.toFixed(6) + ', ' + lon.toFixed(6) + '</span>'
+                    ).openPopup();
+
+                    showStatus('success', 'Found: <strong>' + escapeHtml(displayName.split(',')[0]) + '</strong> (' + lat.toFixed(6) + ', ' + lon.toFixed(6) + ')');
                 } else {
-                    alert('Location not found. Please try another address.');
+                    showStatus('error', 'Location not found. Please try another address or use Google Maps Link.');
                 }
             })
             .catch(err => {
-                alert('Geocoding search failed. You can click anywhere directly on the map.');
+                showStatus('error', 'Geocoding search failed. You can click anywhere directly on the map.');
+            })
+            .finally(function() {
+                storeSearchBtn.disabled = false;
+                storeSearchBtn.classList.remove('opacity-75');
             });
+    }
+
+    storeSearchBtn.addEventListener('click', searchAddress);
+    storeSearchInput.addEventListener('keydown', function(e) {
+        if(e.key === 'Enter') {
+            e.preventDefault();
+            searchAddress();
+        }
     });
 });
 </script>

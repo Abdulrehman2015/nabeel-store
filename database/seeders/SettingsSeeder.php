@@ -12,7 +12,7 @@ class SettingsSeeder extends Seeder
         $settings = [
             // General & Store
             ['key' => 'site_name', 'value' => '99 Bulk Sales', 'group' => 'general', 'type' => 'text'],
-            ['key' => 'site_tagline', 'value' => 'Wholesale Carton Groceries & Household Essentials', 'group' => 'general', 'type' => 'text'],
+            ['key' => 'site_tagline', 'value' => 'Groceries & Mart Groceries & Household Essentials', 'group' => 'general', 'type' => 'text'],
             ['key' => 'store_email', 'value' => 'orders@99bulksales.my', 'group' => 'general', 'type' => 'text'],
             ['key' => 'store_phone', 'value' => '+60 12-889 9900', 'group' => 'general', 'type' => 'text'],
             ['key' => 'store_address', 'value' => 'Lot 45, Jalan Industri 3/1, Kawasan Perindustrian Puchong, 47100 Puchong, Selangor', 'group' => 'general', 'type' => 'text'],
@@ -58,9 +58,9 @@ class SettingsSeeder extends Seeder
 
             // Phase 5: Master SEO Settings
             ['key' => 'seo_meta_title_template', 'value' => '%title% | %site_name%', 'group' => 'seo', 'type' => 'text'],
-            ['key' => 'seo_default_title', 'value' => 'Wholesale Carton Bulk Sales & Household Supplies', 'group' => 'seo', 'type' => 'text'],
-            ['key' => 'seo_default_description', 'value' => 'Shop groceries, drinks, canned food, cooking oil, detergent and paper goods in wholesale cartons with fast delivery direct to your doorstep.', 'group' => 'seo', 'type' => 'textarea'],
-            ['key' => 'seo_default_keywords', 'value' => 'bulk groceries, wholesale carton drinks, fanta 12x1.25L, 100plus bulk, milo carton, cooking oil bulk, wholesale grocery puchong', 'group' => 'seo', 'type' => 'text'],
+            ['key' => 'seo_default_title', 'value' => 'Groceries & Mart Bulk Sales & Household Supplies', 'group' => 'seo', 'type' => 'text'],
+            ['key' => 'seo_default_description', 'value' => 'Shop groceries, drinks, canned food, cooking oil, detergent and paper goods in Groceries & Marts with fast delivery direct to your doorstep.', 'group' => 'seo', 'type' => 'textarea'],
+            ['key' => 'seo_default_keywords', 'value' => 'bulk groceries, Groceries & Mart drinks, fanta 12x1.25L, 100plus bulk, milo carton, cooking oil bulk, Mart grocery puchong', 'group' => 'seo', 'type' => 'text'],
             ['key' => 'seo_default_robots', 'value' => 'index, follow', 'group' => 'seo', 'type' => 'text'],
             ['key' => 'google_search_console_tag', 'value' => '', 'group' => 'seo', 'type' => 'text'],
             ['key' => 'bing_verification_tag', 'value' => '', 'group' => 'seo', 'type' => 'text'],

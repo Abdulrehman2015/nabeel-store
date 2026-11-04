@@ -6,7 +6,7 @@
     {{-- Search Results Header --}}
     <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-            <span class="text-xs font-bold text-sky-600 uppercase tracking-wider">Wholesale Search</span>
+            <span class="text-xs font-bold text-sky-600 uppercase tracking-wider">Store Search</span>
             <h1 class="text-xl sm:text-3xl font-black text-slate-900 tracking-tight">
                 Results for "<span class="text-sky-600">{{ $search }}</span>"
             </h1>
@@ -44,7 +44,7 @@
             <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto text-2xl mb-3">
                 🔍
             </div>
-            <h3 class="text-base font-bold text-slate-900">No matching wholesale cartons</h3>
+            <h3 class="text-base font-bold text-slate-900">No matching products found</h3>
             <p class="text-xs text-slate-500 mt-1">
                 We couldn't find any products matching "{{ $search }}". Try searching for general terms like "Fanta", "Milo", or "Cooking Oil".
             </p>

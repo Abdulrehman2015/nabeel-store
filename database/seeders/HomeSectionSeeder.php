@@ -12,15 +12,15 @@ class HomeSectionSeeder extends Seeder
         $sections = [
             [
                 'key' => 'categories',
-                'title' => 'Shop Wholesale by Category',
-                'subtitle' => 'Select a category to browse full carton listings and wholesale prices',
+                'title' => 'Shop Mart by Category',
+                'subtitle' => 'Select a category to browse full carton listings and Mart prices',
                 'sort_order' => 1,
                 'is_active' => true,
             ],
             [
                 'key' => 'promo',
                 'title' => 'Hot Promotions & Carton Deals',
-                'subtitle' => 'Special discounted prices on high-demand wholesale supplies',
+                'subtitle' => 'Special discounted prices on high-demand Mart supplies',
                 'sort_order' => 2,
                 'is_active' => true,
             ],
@@ -33,7 +33,7 @@ class HomeSectionSeeder extends Seeder
             ],
             [
                 'key' => 'featured',
-                'title' => 'Featured Wholesale Staples',
+                'title' => 'Featured Mart Staples',
                 'subtitle' => 'Everyday essential carton cartons trusted by local businesses and homes',
                 'sort_order' => 4,
                 'is_active' => true,
@@ -48,7 +48,7 @@ class HomeSectionSeeder extends Seeder
             [
                 'key' => 'benefits',
                 'title' => 'Why Choose 99 Bulk Sales?',
-                'subtitle' => 'Built for wholesale volume, reliable service, and transparent pricing',
+                'subtitle' => 'Built for Mart volume, reliable service, and transparent pricing',
                 'sort_order' => 6,
                 'is_active' => true,
             ],

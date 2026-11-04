@@ -60,6 +60,21 @@ class AdminDashboardController extends Controller
             $chartOrders[] = $cnt;
         }
 
+        $sevenDayRevenueTotal = array_sum($chartRevenue);
+        $sevenDayOrdersTotal = array_sum($chartOrders);
+
+        // Wholesale fulfillment pipeline counts
+        $pipelineCounts = [
+            'pending_verification' => Order::where('order_status', 'pending_payment_verification')->count(),
+            'confirmed' => Order::where('order_status', 'confirmed')->count(),
+            'processing' => Order::where('order_status', 'processing')->count(),
+            'out_for_delivery' => Order::where('order_status', 'out_for_delivery')->count(),
+            'delivered' => Order::where('order_status', 'delivered')->count(),
+        ];
+
+        $totalActiveProducts = Product::where('is_active', true)->count();
+        $totalOrdersCount = Order::count();
+
         return view('admin.dashboard', compact(
             'todayOrdersCount',
             'todayRevenue',
@@ -70,7 +85,12 @@ class AdminDashboardController extends Controller
             'recentOrders',
             'chartDates',
             'chartRevenue',
-            'chartOrders'
+            'chartOrders',
+            'sevenDayRevenueTotal',
+            'sevenDayOrdersTotal',
+            'pipelineCounts',
+            'totalActiveProducts',
+            'totalOrdersCount'
         ));
     }
 

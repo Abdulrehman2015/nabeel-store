@@ -40,7 +40,7 @@
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Tagline</label>
-                    <input type="text" name="site_tagline" value="{{ old('site_tagline', setting('site_tagline', 'Direct Wholesale Groceries & Household Essentials in Bulk')) }}" class="w-full text-sm border-gray-300 rounded-lg focus:ring-primary focus:border-primary">
+                    <input type="text" name="site_tagline" value="{{ old('site_tagline', setting('site_tagline', 'Groceries & Daily Essentials')) }}" class="w-full text-sm border-gray-300 rounded-lg focus:ring-primary focus:border-primary">
                 </div>
             </div>
 
@@ -52,18 +52,18 @@
 
             <div>
                 <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Default Fallback Meta Title *</label>
-                <input type="text" name="seo_default_title" required value="{{ old('seo_default_title', setting('seo_default_title', '99BulkSales — Wholesale Grocery Cartons & Commercial Supplies')) }}" class="w-full text-sm border-gray-300 rounded-lg focus:ring-primary focus:border-primary">
+                <input type="text" name="seo_default_title" required value="{{ old('seo_default_title', setting('seo_default_title', '99BulkSales — Grocery Essentials & Commercial Supplies')) }}" class="w-full text-sm border-gray-300 rounded-lg focus:ring-primary focus:border-primary">
             </div>
 
             <div>
                 <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Default Fallback Meta Description *</label>
-                <textarea name="seo_default_description" rows="2" required class="w-full text-sm border-gray-300 rounded-lg focus:ring-primary focus:border-primary">{{ old('seo_default_description', setting('seo_default_description', 'Buy groceries, beverages, snacks and household cleaning goods in wholesale bulk cartons directly from 99BulkSales Malaysia.')) }}</textarea>
+                <textarea name="seo_default_description" rows="2" required class="w-full text-sm border-gray-300 rounded-lg focus:ring-primary focus:border-primary">{{ old('seo_default_description', setting('seo_default_description', 'Buy groceries, beverages, snacks and household cleaning goods in groceries and home items directly from 99BulkSales Malaysia.')) }}</textarea>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                     <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Default Meta Keywords</label>
-                    <input type="text" name="seo_default_keywords" value="{{ old('seo_default_keywords', setting('seo_default_keywords', 'bulk grocery, wholesale drinks malaysia, commercial groceries')) }}" class="w-full text-sm border-gray-300 rounded-lg focus:ring-primary focus:border-primary">
+                    <input type="text" name="seo_default_keywords" value="{{ old('seo_default_keywords', setting('seo_default_keywords', 'bulk grocery, grocery drinks malaysia, commercial groceries')) }}" class="w-full text-sm border-gray-300 rounded-lg focus:ring-primary focus:border-primary">
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Default Robots Tag *</label>

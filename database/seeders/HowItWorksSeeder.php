@@ -13,7 +13,7 @@ class HowItWorksSeeder extends Seeder
             [
                 'step_number' => 1,
                 'title' => 'Browse Cartons & Add to Cart',
-                'description' => 'Explore wholesale cartons of drinks, dairy, staples, and supplies. Add items to your cart with no complicated registration.',
+                'description' => 'Explore Groceries & Marts of drinks, dairy, staples, and supplies. Add items to your cart with no complicated registration.',
                 'icon' => 'cart',
                 'sort_order' => 1,
             ],

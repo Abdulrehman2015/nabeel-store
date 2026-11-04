@@ -13,12 +13,21 @@
             </div>
             <h1 class="text-2xl font-bold text-gray-900 mt-1">{{ $user->name }}</h1>
         </div>
-        <form action="{{ route('admin.customers.toggle-status', $user) }}" method="POST">
-            @csrf
-            <button type="submit" class="px-4 py-2 text-sm font-semibold rounded-lg shadow-sm {{ $user->is_active ? 'bg-red-50 text-red-700 hover:bg-red-100 border border-red-200' : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200' }}">
-                {{ $user->is_active ? 'Suspend Account' : 'Activate Account' }}
-            </button>
-        </form>
+        <div class="flex items-center gap-2">
+            <form action="{{ route('admin.customers.toggle-status', $user) }}" method="POST" onsubmit="return confirm('{{ $user->is_active ? 'Suspend this customer account?' : 'Unlock customer ' . addslashes($user->name) . '? A new login password will be generated and emailed to them immediately.' }}');">
+                @csrf
+                <button type="submit" class="px-3.5 py-2 text-xs font-semibold rounded-lg shadow-2xs {{ $user->is_active ? 'bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200' : 'bg-emerald-600 text-white hover:bg-emerald-700 border border-emerald-600 font-bold' }} transition">
+                    {{ $user->is_active ? 'Suspend Account' : 'Unlock Account & Email Password' }}
+                </button>
+            </form>
+            <form action="{{ route('admin.customers.destroy', $user) }}" method="POST" onsubmit="return confirm('Are you sure you want to permanently delete customer {{ addslashes($user->name) }}? All customer addresses will be removed. Past orders will be retained for bookkeeping.');">
+                @csrf
+                @method('DELETE')
+                <button type="submit" class="px-3.5 py-2 text-xs font-semibold rounded-lg shadow-2xs bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 transition">
+                    Delete Customer
+                </button>
+            </form>
+        </div>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">

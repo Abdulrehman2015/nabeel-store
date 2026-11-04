@@ -1,16 +1,22 @@
 @extends('layouts.storefront')
 
 @section('content')
-<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
+<div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-8">
 
-    {{-- Header --}}
-    <div class="text-center max-w-xl mx-auto space-y-2">
-        <span class="text-xs font-bold text-sky-600 uppercase tracking-wider">Order Transparency</span>
-        <h1 class="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight">Live Order Tracking</h1>
-        <p class="text-xs sm:text-sm text-slate-500">
-            Enter your unique Order Number and telephone number to view live verification, packing, and dispatch progress.
-        </p>
-    </div>
+    {{-- Universal Hero Section --}}
+    <x-storefront-hero 
+        title="Live Order Tracking"
+        description="Enter your unique Order Number and telephone number to view live verification, packing, doorstep dispatch progress, and delivery floor status."
+        badge="Order Transparency"
+        subBadge="📍 Real-time Dispatch"
+        :breadcrumbs="['Track Order' => null]"
+    >
+        <x-slot:icon>
+            <svg class="w-10 h-10 text-lime-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+            </svg>
+        </x-slot:icon>
+    </x-storefront-hero>
 
     {{-- Tracking Lookup Form --}}
     <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm max-w-2xl mx-auto">

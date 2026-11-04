@@ -34,9 +34,8 @@
                     @forelse($categories as $category)
                         <tr class="hover:bg-gray-50/75 transition">
                             <td class="px-6 py-4 flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-xl flex items-center justify-center text-white p-2 shrink-0 shadow-xs"
-                                     style="background: {{ $category->icon_style_gradient }}; box-shadow: 0 4px 10px -2px {{ $category->icon_shadow_color }};">
-                                    {!! $category->renderIcon('w-5 h-5 text-white') !!}
+                                <div class="w-10 h-10 rounded-xl overflow-hidden flex items-center justify-center p-0.5 shrink-0 border border-gray-200 bg-gray-50 shadow-2xs">
+                                    {!! $category->renderIcon('w-full h-full object-cover rounded-lg') !!}
                                 </div>
                                 <div>
                                     <span class="font-semibold text-gray-900 block">{{ $category->name }}</span>

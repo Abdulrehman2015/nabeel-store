@@ -1,11 +1,11 @@
 @extends('layouts.storefront')
 
 @section('content')
-<div class="space-y-12 pb-16">
+<div class="space-y-12 sm:space-y-16 pb-20">
 
-    {{-- Hero Banner Slider (Dynamic from Admin) --}}
+    {{-- 1. Modern Hero Section --}}
     @if($banners->count() > 0)
-        <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+        <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2 sm:pt-4">
             <div 
                 x-data="{
                     activeSlide: 0,
@@ -21,7 +21,7 @@
                 x-init="start()" 
                 @mouseenter="stop()" 
                 @mouseleave="start()"
-                class="relative rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl bg-slate-950 border border-slate-800 text-white aspect-[16/9] sm:aspect-[21/8] lg:aspect-[24/9] max-h-[520px] flex items-center group"
+                class="relative rounded-3xl overflow-hidden shadow-2xl bg-slate-950 border border-slate-800 text-white min-h-[360px] sm:min-h-[460px] lg:min-h-[500px] flex items-center group select-none"
             >
                 @foreach($banners as $index => $banner)
                     @php
@@ -38,78 +38,124 @@
                     <div 
                         x-show="activeSlide === {{ $index }}" 
                         x-transition:enter="transition ease-out duration-700"
-                        x-transition:enter-start="opacity-0 scale-95"
+                        x-transition:enter-start="opacity-0 scale-102"
                         x-transition:enter-end="opacity-100 scale-100"
                         x-transition:leave="transition ease-in duration-500"
                         x-transition:leave-start="opacity-100 scale-100"
-                        x-transition:leave-end="opacity-0 scale-95"
+                        x-transition:leave-end="opacity-0 scale-98"
                         class="absolute inset-0 w-full h-full"
                     >
-                        <a href="{{ $banner->link ?: route('category.index') }}" class="block w-full h-full relative group/banner overflow-hidden">
+                        {{-- Background Image with Cinematic Gradient --}}
+                        <div class="relative w-full h-full overflow-hidden">
                             @if($banner->desktop_image)
                                 <img 
                                     src="{{ $imageSrc }}" 
                                     onerror="this.onerror=null; this.src='{{ $publicFallback }}'" 
                                     alt="{{ $banner->title }}" 
-                                    class="w-full h-full object-cover object-center transform group-hover/banner:scale-105 transition-transform duration-1000 ease-out"
+                                    class="w-full h-full object-cover object-center transform group-hover:scale-104 transition-transform duration-1000 ease-out"
                                 >
-                                {{-- High-Contrast Dark Gradient Overlays --}}
-                                <div class="absolute inset-0 pointer-events-none" style="background: linear-gradient(90deg, rgba(2, 6, 23, 0.92) 0%, rgba(2, 6, 23, 0.72) 48%, rgba(2, 6, 23, 0.25) 75%, rgba(2, 6, 23, 0.05) 100%);"></div>
-                                <div class="absolute inset-0 pointer-events-none sm:hidden" style="background: linear-gradient(0deg, rgba(2, 6, 23, 0.9) 0%, rgba(2, 6, 23, 0.4) 60%, transparent 100%);"></div>
+                                {{-- Multi-stop dynamic gradient: Deep dark on left for text legibility, subtle fade to right --}}
+                                <div class="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/85 to-slate-950/30 sm:to-transparent"></div>
+                                <div class="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-transparent to-transparent sm:hidden"></div>
                             @else
-                                <div class="w-full h-full bg-gradient-to-r from-slate-950 via-slate-900 to-emerald-950"></div>
+                                <div class="w-full h-full bg-gradient-to-br from-slate-950 via-slate-900 to-sky-950"></div>
                             @endif
 
-                            {{-- High-Contrast Floating Promotional Content Card --}}
-                            <div class="absolute inset-0 flex items-center px-4 sm:px-10 lg:px-14 z-10">
-                                <div class="max-w-xl sm:max-w-2xl p-5 sm:p-7 rounded-2xl sm:rounded-3xl shadow-2xl space-y-3 sm:space-y-4" style="background: rgba(15, 23, 42, 0.88); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.2); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.9);">
-                                    @if($banner->badge)
-                                        <div>
-                                            <span style="display: inline-flex; align-items: center; gap: 6px; padding: 5px 14px; border-radius: 9999px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; background-color: #facc15; color: #000000; box-shadow: 0 4px 12px rgba(250, 204, 21, 0.4); border: 1px solid #fde047;">
-                                                {{ $banner->badge }}
-                                            </span>
-                                        </div>
-                                    @endif
+                            {{-- Hero Content Layout --}}
+                            <div class="absolute inset-0 flex items-center px-6 sm:px-12 lg:px-16 z-10">
+                                <div class="max-w-xl lg:max-w-2xl space-y-4 sm:space-y-5 text-left">
+                                    
+                                    {{-- Badge / Tagline --}}
+                                    <div class="flex items-center gap-2">
+                                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider bg-sky-500/20 text-sky-300 border border-sky-400/30 backdrop-blur-md">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-sky-400 animate-ping"></span>
+                                            {{ $banner->badge ?: 'Fresh Groceries & Essentials' }}
+                                        </span>
+                                        <span class="hidden sm:inline-flex items-center gap-1 text-[11px] font-bold text-slate-300 bg-white/10 px-2.5 py-1 rounded-full backdrop-blur-xs">
+                                            <span>🏢 Floor 0 & 1 Free</span>
+                                        </span>
+                                    </div>
 
-                                    <h2 class="text-2xl sm:text-3xl lg:text-4xl leading-tight tracking-tight" style="color: #ffffff !important; text-shadow: 0 2px 10px rgba(0,0,0,0.95); font-weight: 900;">
+                                    {{-- Main Title --}}
+                                    <h1 class="text-2xl sm:text-4xl lg:text-5xl font-black text-white leading-tight tracking-tight drop-shadow-md">
                                         {{ $banner->title }}
-                                    </h2>
+                                    </h1>
 
+                                    {{-- Subtitle --}}
                                     @if($banner->subtitle)
-                                        <p class="text-xs sm:text-sm lg:text-base line-clamp-2 max-w-lg" style="color: #f1f5f9 !important; text-shadow: 0 1px 6px rgba(0,0,0,0.9); font-weight: 500;">
+                                        <p class="text-xs sm:text-base text-slate-200 font-medium line-clamp-3 sm:line-clamp-2 max-w-lg leading-relaxed drop-shadow-sm">
                                             {{ $banner->subtitle }}
                                         </p>
                                     @endif
 
-                                    <div class="pt-1 sm:pt-2">
-                                        <span style="display: inline-flex; align-items: center; gap: 8px; padding: 11px 24px; border-radius: 12px; background: #0284c7; color: #ffffff !important; font-weight: 700; font-size: 14px; text-decoration: none; box-shadow: 0 6px 20px rgba(2, 132, 199, 0.55); border: 1px solid rgba(255, 255, 255, 0.25);">
-                                            <span>{{ $banner->button_text ?: 'Shop Wholesale Now' }}</span>
-                                            <svg style="width: 16px; height: 16px; stroke-width: 2.5; stroke: #ffffff;" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                                    {{-- Micro-Pill Feature Highlights --}}
+                                    <div class="hidden sm:flex flex-wrap items-center gap-2 pt-1 text-[11px] text-slate-300">
+                                        <span class="inline-flex items-center gap-1 bg-slate-900/60 px-2.5 py-1 rounded-lg border border-slate-700/60">
+                                            <svg class="w-3.5 h-3.5 text-emerald-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                                            100% Sealed Original Cases
+                                        </span>
+                                        <span class="inline-flex items-center gap-1 bg-slate-900/60 px-2.5 py-1 rounded-lg border border-slate-700/60">
+                                            <svg class="w-3.5 h-3.5 text-emerald-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                                            10% QR Advance Booking
+                                        </span>
+                                        <span class="inline-flex items-center gap-1 bg-slate-900/60 px-2.5 py-1 rounded-lg border border-slate-700/60">
+                                            <svg class="w-3.5 h-3.5 text-emerald-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                                            Zero MOQ Friction
                                         </span>
                                     </div>
+
+                                    {{-- CTA Action Buttons --}}
+                                    <div class="pt-2 sm:pt-3 flex flex-wrap items-center gap-3">
+                                        <a 
+                                            href="{{ $banner->link ?: route('category.index') }}" 
+                                            class="inline-flex items-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3.5 rounded-xl bg-sky-500 hover:bg-sky-400 active:scale-95 text-slate-950 font-black text-xs sm:text-sm shadow-lg shadow-sky-500/30 transition-all border border-sky-300"
+                                        >
+                                            <span>{{ $banner->button_text ?: 'Shop Groceries Now' }}</span>
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                                        </a>
+
+                                        <a 
+                                            href="{{ route('category.index') }}" 
+                                            class="inline-flex items-center gap-1.5 px-4 sm:px-5 py-2.5 sm:py-3.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs sm:text-sm border border-white/20 backdrop-blur-md transition-all"
+                                        >
+                                            <span>Explore Aisles</span>
+                                            <svg class="w-3.5 h-3.5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                                        </a>
+                                    </div>
+
                                 </div>
                             </div>
-                        </a>
+                        </div>
                     </div>
                 @endforeach
 
-                {{-- Left & Right Slider Arrows --}}
-                <button type="button" @click="prev()" aria-label="Previous slide" class="absolute left-3 sm:left-5 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full bg-slate-900/70 hover:bg-slate-900 text-white backdrop-blur-md border border-white/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 shadow-xl cursor-pointer">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
+                {{-- Left & Right Arrows --}}
+                <button 
+                    type="button" 
+                    @click="prev()" 
+                    aria-label="Previous slide" 
+                    class="absolute left-3 sm:left-5 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-slate-900/70 hover:bg-slate-900 text-white backdrop-blur-md border border-white/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 shadow-xl cursor-pointer"
+                >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
                 </button>
-                <button type="button" @click="next()" aria-label="Next slide" class="absolute right-3 sm:right-5 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full bg-slate-900/70 hover:bg-slate-900 text-white backdrop-blur-md border border-white/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 shadow-xl cursor-pointer">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+                <button 
+                    type="button" 
+                    @click="next()" 
+                    aria-label="Next slide" 
+                    class="absolute right-3 sm:right-5 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-slate-900/70 hover:bg-slate-900 text-white backdrop-blur-md border border-white/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 shadow-xl cursor-pointer"
+                >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
                 </button>
 
-                {{-- Slider Nav Indicators --}}
+                {{-- Slider Dots --}}
                 <div class="absolute bottom-4 left-0 right-0 z-20 flex justify-center gap-2">
                     @foreach($banners as $index => $banner)
                         <button 
                             type="button" 
                             @click="activeSlide = {{ $index }}" 
-                            aria-label="Go to slide {{ $index + 1 }}"
+                            aria-label="Slide {{ $index + 1 }}"
                             class="h-2 rounded-full transition-all duration-300 cursor-pointer"
-                            :class="activeSlide === {{ $index }} ? 'w-8 bg-lime-400 shadow-lg shadow-lime-400/50' : 'w-2.5 bg-white/40 hover:bg-white/75'"
+                            :class="activeSlide === {{ $index }} ? 'w-8 bg-sky-400 shadow-md shadow-sky-400/50' : 'w-2 bg-white/40 hover:bg-white/70'"
                         ></button>
                     @endforeach
                 </div>
@@ -117,204 +163,424 @@
         </section>
     @endif
 
-    {{-- Value Props Bar --}}
+    {{-- 2. Store Value Props (Refined Modern Trust Strip) --}}
     <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 p-5 bg-white rounded-2xl border border-slate-200 shadow-sm divide-y sm:divide-y-0 sm:divide-x divide-slate-100">
-            <div class="flex items-center gap-3.5 p-2">
-                <div class="w-11 h-11 rounded-xl bg-sky-100 text-sky-700 flex items-center justify-center text-xl flex-shrink-0">
-                    🚚
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 p-4 sm:p-5 bg-white rounded-2xl border border-slate-200/90 shadow-2xs">
+            
+            {{-- Prop 1: Delivery --}}
+            <div class="flex items-center gap-3 p-2 rounded-xl hover:bg-slate-50 transition-colors">
+                <div class="w-11 h-11 rounded-xl bg-sky-50 text-sky-600 border border-sky-100 flex items-center justify-center shrink-0">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0"/></svg>
                 </div>
                 <div>
-                    <h4 class="text-xs sm:text-sm font-bold text-slate-900">Free Local Delivery</h4>
-                    <p class="text-[11px] sm:text-xs text-slate-500">Within {{ setting('free_delivery_radius', 5) }} km radius</p>
+                    <h4 class="text-xs sm:text-sm font-bold text-slate-900 leading-snug">Free Local Delivery</h4>
+                    <p class="text-[11px] text-slate-500">Within {{ setting('free_delivery_radius', 2) }} km radius</p>
                 </div>
             </div>
-            <div class="flex items-center gap-3.5 p-2">
-                <div class="w-11 h-11 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center text-xl flex-shrink-0">
-                    🏢
+
+            {{-- Prop 2: Floor --}}
+            <div class="flex items-center gap-3 p-2 rounded-xl hover:bg-slate-50 transition-colors">
+                <div class="w-11 h-11 rounded-xl bg-amber-50 text-amber-600 border border-amber-100 flex items-center justify-center shrink-0">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
                 </div>
                 <div>
-                    <h4 class="text-xs sm:text-sm font-bold text-slate-900">Free Floor 0 & 1</h4>
-                    <p class="text-[11px] sm:text-xs text-slate-500">Up to Floor {{ setting('free_floor_limit', 1) }} completely free</p>
+                    <h4 class="text-xs sm:text-sm font-bold text-slate-900 leading-snug">Free Floor 0 & 1</h4>
+                    <p class="text-[11px] text-slate-500">Up to Floor {{ setting('free_floor_limit', 1) }} zero extra charges</p>
                 </div>
             </div>
-            <div class="flex items-center gap-3.5 p-2">
-                <div class="w-11 h-11 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center text-xl flex-shrink-0">
-                    📦
+
+            {{-- Prop 3: Sealed Cases --}}
+            <div class="flex items-center gap-3 p-2 rounded-xl hover:bg-slate-50 transition-colors">
+                <div class="w-11 h-11 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center shrink-0">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
                 </div>
                 <div>
-                    <h4 class="text-xs sm:text-sm font-bold text-slate-900">Factory Carton Prices</h4>
-                    <p class="text-[11px] sm:text-xs text-slate-500">Unopened bulk case wholesale</p>
+                    <h4 class="text-xs sm:text-sm font-bold text-slate-900 leading-snug">Factory Sealed Cases</h4>
+                    <p class="text-[11px] text-slate-500">100% genuine original packaging</p>
                 </div>
             </div>
-            <div class="flex items-center gap-3.5 p-2">
-                <div class="w-11 h-11 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center text-xl flex-shrink-0">
-                    🛡️
+
+            {{-- Prop 4: QR Advance --}}
+            <div class="flex items-center gap-3 p-2 rounded-xl hover:bg-slate-50 transition-colors">
+                <div class="w-11 h-11 rounded-xl bg-purple-50 text-purple-600 border border-purple-100 flex items-center justify-center shrink-0">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
                 </div>
                 <div>
-                    <h4 class="text-xs sm:text-sm font-bold text-slate-900">Secure QR Advance</h4>
-                    <p class="text-[11px] sm:text-xs text-slate-500">10% deposit, balance on delivery</p>
+                    <h4 class="text-xs sm:text-sm font-bold text-slate-900 leading-snug">Secure 10% QR Advance</h4>
+                    <p class="text-[11px] text-slate-500">Pay deposit now, balance on arrival</p>
                 </div>
             </div>
+
         </div>
     </section>
 
-    {{-- Category Grid Section --}}
+    {{-- 3. Curated Mart Categories Grid --}}
     @if(!isset($sections['categories']) || $sections['categories']->is_active)
         <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex items-end justify-between mb-6">
+            <div class="flex flex-col sm:flex-row sm:items-end justify-between mb-5 sm:mb-6 gap-2">
                 <div>
-                    <span class="text-xs font-bold text-sky-600 uppercase tracking-wider">Wholesale Catalog</span>
-                    <h2 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-                        {{ $sections['categories']->title ?? 'Shop Wholesale by Category' }}
+                    <div class="flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-sky-600"></span>
+                        <span class="text-xs font-bold text-sky-600 uppercase tracking-wider">Mart Aisles</span>
+                    </div>
+                    <h2 class="text-xl sm:text-2xl lg:text-3xl font-black text-slate-900 tracking-tight mt-0.5">
+                        {{ $sections['categories']->title ?? 'Shop by Category' }}
                     </h2>
                 </div>
-                <a href="{{ route('category.index') }}" class="text-xs sm:text-sm font-bold text-sky-600 hover:text-sky-700 flex items-center gap-1">
+                <a href="{{ route('category.index') }}" class="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-sky-600 hover:text-sky-700 hover:underline">
                     <span>View All ({{ $categories->count() }})</span>
                     <span>&rarr;</span>
                 </a>
             </div>
 
-            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-5">
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4">
                 @foreach($categories as $category)
-                    <a href="{{ route('category.show', $category->slug) }}" class="group bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/90 hover:border-sky-500 hover:shadow-xl hover:shadow-sky-500/10 transition-all duration-300 text-center flex flex-col items-center">
-                        {{-- Dynamic Category Icon Badge with Guaranteed Rich Inline Gradients --}}
-                        <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl flex items-center justify-center p-3 sm:p-4 mb-3.5 shadow-md group-hover:scale-110 group-hover:rotate-2 transition-all duration-300"
-                             style="background: {{ $category->icon_style_gradient }}; box-shadow: 0 10px 20px -5px {{ $category->icon_shadow_color }};">
-                            {!! $category->renderIcon('w-8 h-8 sm:w-10 sm:h-10 text-white') !!}
+                    <a 
+                        href="{{ route('category.show', $category->slug) }}" 
+                        class="group bg-white rounded-2xl p-4 border border-slate-200/90 hover:border-sky-500 hover:shadow-lg hover:shadow-sky-500/10 transition-all duration-300 text-center flex flex-col items-center justify-between"
+                    >
+                        {{-- Visual Icon / Thumbnail --}}
+                        <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden mb-3 bg-slate-50 border border-slate-100 flex items-center justify-center p-2 group-hover:scale-108 transition-transform duration-300">
+                            {!! $category->renderIcon('w-full h-full object-contain rounded-xl') !!}
                         </div>
-                        <h3 class="text-xs sm:text-sm font-bold text-slate-900 group-hover:text-sky-700 transition leading-snug line-clamp-2">
-                            {{ $category->name }}
-                        </h3>
-                        <span class="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-500 mt-1.5 px-2 py-0.5 bg-slate-100 rounded-md">
-                            <span>📦</span>
-                            <span>{{ $category->products_count }} {{ Str::plural('Carton', $category->products_count) }}</span>
-                        </span>
+                        
+                        <div>
+                            <h3 class="text-xs sm:text-sm font-bold text-slate-900 group-hover:text-sky-600 transition leading-snug line-clamp-2">
+                                {{ $category->name }}
+                            </h3>
+                            <span class="text-[10px] font-semibold text-slate-400 mt-1 block">
+                                {{ $category->products_count }} {{ Str::plural('Carton', $category->products_count) }}
+                            </span>
+                        </div>
                     </a>
                 @endforeach
             </div>
         </section>
     @endif
 
-    {{-- Hot Promotions / Bulk Deals --}}
-    @if((!isset($sections['promo']) || $sections['promo']->is_active) && $promoProducts->count() > 0)
+    {{-- 4. Featured Flash Carton Deals (If Promo Products Exist) --}}
+    @if($promoProducts->count() > 0)
         <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex items-end justify-between mb-6">
-                <div>
-                    <span class="inline-flex items-center gap-1 text-xs font-bold text-amber-600 uppercase tracking-wider bg-amber-100 px-2.5 py-0.5 rounded-full mb-1">
-                        🔥 SPECIAL OFFERS
-                    </span>
-                    <h2 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-                        {{ $sections['promo']->title ?? 'Hot Promotions & Carton Deals' }}
-                    </h2>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                @foreach($promoProducts as $product)
-                    @include('storefront.partials.product_card', ['product' => $product])
-                @endforeach
-            </div>
-        </section>
-    @endif
-
-    {{-- New Bulk Arrivals --}}
-    @if((!isset($sections['new_arrivals']) || $sections['new_arrivals']->is_active) && $newArrivalProducts->count() > 0)
-        <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex items-end justify-between mb-6">
-                <div>
-                    <span class="text-xs font-bold text-emerald-600 uppercase tracking-wider">Fresh In Warehouse</span>
-                    <h2 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-                        {{ $sections['new_arrivals']->title ?? 'New Bulk Arrivals' }}
-                    </h2>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                @foreach($newArrivalProducts as $product)
-                    @include('storefront.partials.product_card', ['product' => $product])
-                @endforeach
-            </div>
-        </section>
-    @endif
-
-    {{-- Featured Wholesale Staples --}}
-    @if((!isset($sections['featured']) || $sections['featured']->is_active) && $featuredProducts->count() > 0)
-        <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex items-end justify-between mb-6">
-                <div>
-                    <span class="text-xs font-bold text-sky-600 uppercase tracking-wider">Top Commercial Staples</span>
-                    <h2 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-                        {{ $sections['featured']->title ?? 'Featured Wholesale Staples' }}
-                    </h2>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                @foreach($featuredProducts as $product)
-                    @include('storefront.partials.product_card', ['product' => $product])
-                @endforeach
-            </div>
-        </section>
-    @endif
-
-    {{-- How It Works Section (Editable from Admin) --}}
-    @if(!isset($sections['how_it_works']) || $sections['how_it_works']->is_active)
-        <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="bg-gradient-to-br from-slate-900 to-slate-950 rounded-3xl p-8 sm:p-12 text-white border border-slate-800 shadow-2xl">
-                <div class="text-center max-w-2xl mx-auto mb-10">
-                    <span class="text-xs font-bold text-sky-400 uppercase tracking-wider">Simple Logistics</span>
-                    <h2 class="text-2xl sm:text-4xl font-black tracking-tight mt-1">
-                        {{ $sections['how_it_works']->title ?? 'How Ordering Works' }}
-                    </h2>
-                    <p class="text-slate-400 text-sm mt-2">
-                        {{ $sections['how_it_works']->subtitle ?? 'Streamlined wholesale carton ordering with guaranteed door-to-door delivery.' }}
-                    </p>
-                </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                    @foreach($steps as $step)
-                        <div class="bg-slate-800/60 backdrop-blur rounded-2xl p-6 border border-slate-700/60 relative flex flex-col justify-between">
-                            <div>
-                                <div class="w-10 h-10 rounded-xl bg-sky-500/20 text-sky-400 border border-sky-500/30 font-black text-sm flex items-center justify-center mb-4">
-                                    0{{ $step->step_number }}
-                                </div>
-                                <h3 class="text-base font-bold text-white mb-2">{{ $step->title }}</h3>
-                                <p class="text-xs text-slate-300 leading-relaxed">{{ $step->description }}</p>
-                            </div>
+            <div class="relative rounded-3xl overflow-hidden bg-gradient-to-br from-rose-950 via-slate-950 to-slate-900 border border-rose-900/50 p-5 sm:p-8 text-white shadow-xl">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-rose-600 text-white shadow-xs">
+                                🔥 Limited Store Deals
+                            </span>
+                            <span class="text-xs font-bold text-rose-300">Special Price Drops</span>
                         </div>
+                        <h2 class="text-xl sm:text-3xl font-black tracking-tight text-white mt-1">
+                            Featured Store Specials
+                        </h2>
+                    </div>
+
+                    <a href="{{ route('category.index') }}" class="inline-flex items-center gap-1 text-xs font-bold text-rose-300 hover:text-white transition">
+                        <span>See All Discounted Items</span>
+                        <span>&rarr;</span>
+                    </a>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+                    @foreach($promoProducts->take(4) as $product)
+                        @include('storefront.partials.product_card', ['product' => $product])
                     @endforeach
                 </div>
             </div>
         </section>
     @endif
 
-    {{-- Why Choose Us (Benefits - Editable from Admin) --}}
+    {{-- 5. Interactive Merchandise Showcase (Tabs) --}}
+    <section 
+        class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" 
+        x-data="{
+            currentTab: 'featured',
+            switchTab(tab) { this.currentTab = tab; }
+        }"
+    >
+        {{-- Showcase Header & Filter Tabs --}}
+        <div class="flex flex-col md:flex-row md:items-end justify-between pb-4 mb-6 border-b border-slate-200/80 gap-4">
+            <div>
+                <div class="flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span class="text-xs font-bold text-emerald-600 uppercase tracking-wider">Live Store Catalog</span>
+                </div>
+                <h2 class="text-xl sm:text-2xl lg:text-3xl font-black text-slate-900 tracking-tight mt-0.5">
+                    Groceries, Drinks & Daily Essentials
+                </h2>
+                <p class="text-xs text-slate-500 mt-1">Fresh groceries, snacks, household essentials and drinks ready for fast delivery.</p>
+            </div>
+
+            {{-- Modern Switcher Tabs --}}
+            <div class="inline-flex p-1 bg-slate-100 rounded-xl border border-slate-200 self-start md:self-end text-xs font-bold">
+                <button 
+                    type="button" 
+                    @click="switchTab('featured')" 
+                    :class="currentTab === 'featured' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-600 hover:text-slate-900'" 
+                    class="px-3.5 py-1.5 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer"
+                >
+                    <span>⭐</span>
+                    <span>Featured</span>
+                </button>
+                @if($newArrivalProducts->count() > 0)
+                    <button 
+                        type="button" 
+                        @click="switchTab('new')" 
+                        :class="currentTab === 'new' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-600 hover:text-slate-900'" 
+                        class="px-3.5 py-1.5 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer"
+                    >
+                        <span>✨</span>
+                        <span>New Arrivals</span>
+                    </button>
+                @endif
+                @if($bestSellers->count() > 0)
+                    <button 
+                        type="button" 
+                        @click="switchTab('bestsellers')" 
+                        :class="currentTab === 'bestsellers' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-600 hover:text-slate-900'" 
+                        class="px-3.5 py-1.5 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer"
+                    >
+                        <span>🏆</span>
+                        <span>Best Sellers</span>
+                    </button>
+                @endif
+            </div>
+        </div>
+
+        {{-- Tab 1: Featured Products --}}
+        <div x-show="currentTab === 'featured'" x-cloak>
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+                @foreach($featuredProducts as $product)
+                    @include('storefront.partials.product_card', ['product' => $product])
+                @endforeach
+            </div>
+        </div>
+
+        {{-- Tab 2: New Arrivals --}}
+        @if($newArrivalProducts->count() > 0)
+            <div x-show="currentTab === 'new'" x-cloak>
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+                    @foreach($newArrivalProducts as $product)
+                        @include('storefront.partials.product_card', ['product' => $product])
+                    @endforeach
+                </div>
+            </div>
+        @endif
+
+        {{-- Tab 3: Best Sellers --}}
+        @if($bestSellers->count() > 0)
+            <div x-show="currentTab === 'bestsellers'" x-cloak>
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+                    @foreach($bestSellers as $product)
+                        @include('storefront.partials.product_card', ['product' => $product])
+                    @endforeach
+                </div>
+            </div>
+        @endif
+
+        <div class="mt-8 text-center">
+            <a href="{{ route('category.index') }}" class="inline-flex items-center gap-2 px-6 py-3 bg-white hover:bg-slate-50 text-slate-800 font-bold text-xs sm:text-sm rounded-xl border border-slate-200 shadow-2xs hover:border-sky-300 transition-all">
+                <span>View All Products & Prices</span>
+                <span>&rarr;</span>
+            </a>
+        </div>
+    </section>
+
+    {{-- 6. "Who We Supply" Solutions Grid --}}
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center max-w-xl mx-auto mb-8">
+            <span class="text-xs font-bold text-sky-600 uppercase tracking-wider">Everything for Your Home & Family</span>
+            <h2 class="text-xl sm:text-3xl font-black text-slate-900 tracking-tight mt-1">
+                Your Complete Neighbourhood Mart
+            </h2>
+            <p class="text-slate-500 text-xs sm:text-sm mt-1">
+                From fresh pantry staples to household cleaning goods, we deliver straight to your door.
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+            {{-- Segment 1 --}}
+            <div class="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-2xs hover:border-sky-400 hover:shadow-md transition-all flex flex-col justify-between">
+                <div>
+                    <div class="w-12 h-12 rounded-xl bg-sky-50 text-sky-600 border border-sky-100 flex items-center justify-center text-xl mb-3">
+                        🛒
+                    </div>
+                    <h3 class="text-sm font-bold text-slate-900 mb-1">Daily Pantry Staples</h3>
+                    <p class="text-xs text-slate-500 leading-relaxed">
+                        Cooking oils, premium rice, instant noodles, flour, and daily cooking essentials at everyday low prices.
+                    </p>
+                </div>
+                <div class="mt-4 pt-3 border-t border-slate-100">
+                    <span class="text-[11px] font-bold text-sky-600">Fresh daily stock &rarr;</span>
+                </div>
+            </div>
+
+            {{-- Segment 2 --}}
+            <div class="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-2xs hover:border-sky-400 hover:shadow-md transition-all flex flex-col justify-between">
+                <div>
+                    <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 border border-amber-100 flex items-center justify-center text-xl mb-3">
+                        🥤
+                    </div>
+                    <h3 class="text-sm font-bold text-slate-900 mb-1">Chilled & Ambient Drinks</h3>
+                    <p class="text-xs text-slate-500 leading-relaxed">
+                        Soft drinks, 100 Plus, Milo, UHT milk, mineral water, tea, and coffee sachets ready for your kitchen.
+                    </p>
+                </div>
+                <div class="mt-4 pt-3 border-t border-slate-100">
+                    <span class="text-[11px] font-bold text-amber-600">Great family packs &rarr;</span>
+                </div>
+            </div>
+
+            {{-- Segment 3 --}}
+            <div class="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-2xs hover:border-sky-400 hover:shadow-md transition-all flex flex-col justify-between">
+                <div>
+                    <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center text-xl mb-3">
+                        🧼
+                    </div>
+                    <h3 class="text-sm font-bold text-slate-900 mb-1">Laundry & Home Cleaning</h3>
+                    <p class="text-xs text-slate-500 leading-relaxed">
+                        Detergent liquids, fabric softeners, dishwashing refills, floor cleaners, and disinfectants.
+                    </p>
+                </div>
+                <div class="mt-4 pt-3 border-t border-slate-100">
+                    <span class="text-[11px] font-bold text-emerald-600">Floor 0 & 1 Free delivery &rarr;</span>
+                </div>
+            </div>
+
+            {{-- Segment 4 --}}
+            <div class="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-2xs hover:border-sky-400 hover:shadow-md transition-all flex flex-col justify-between">
+                <div>
+                    <div class="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 border border-purple-100 flex items-center justify-center text-xl mb-3">
+                        🍪
+                    </div>
+                    <h3 class="text-sm font-bold text-slate-900 mb-1">Biscuits & Family Snacks</h3>
+                    <p class="text-xs text-slate-500 leading-relaxed">
+                        Crispy crackers, sandwich cookies, wafer rolls, and kid-favorite snacks for tea-time and celebrations.
+                    </p>
+                </div>
+                <div class="mt-4 pt-3 border-t border-slate-100">
+                    <span class="text-[11px] font-bold text-purple-600">Snack bundles &rarr;</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    {{-- 7. Customer Inquiries & Orders Callout Banner --}}
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="relative rounded-3xl overflow-hidden bg-gradient-to-r from-slate-900 via-slate-950 to-sky-950 border border-slate-800 p-6 sm:p-10 text-white shadow-xl">
+            <div class="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-6">
+                <div class="max-w-2xl text-center lg:text-left space-y-2">
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-sky-500/20 text-sky-300 border border-sky-400/30">
+                        💬 Customer Support Desk
+                    </span>
+                    <h3 class="text-xl sm:text-3xl font-black tracking-tight text-white">
+                        Have Questions or Need Help with Your Order?
+                    </h3>
+                    <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                        Need help finding an item, checking delivery areas, or asking about stock? Contact our friendly mart team anytime.
+                    </p>
+                </div>
+
+                <div class="flex flex-col sm:flex-row items-center gap-3 shrink-0">
+                    @php
+                        $adminPhone = setting('admin_phone', setting('store_phone', '+60128899900'));
+                        $cleanPhone = preg_replace('/[^0-9]/', '', $adminPhone);
+                    @endphp
+                    @if($cleanPhone)
+                        <a 
+                            href="https://wa.me/{{ $cleanPhone }}?text=Hello%20Store%20Team,%20I%20have%20an%20inquiry%20regarding%20products%20and%20orders." 
+                            target="_blank" 
+                            class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-extrabold text-xs transition shadow-lg shadow-emerald-500/30 cursor-pointer"
+                        >
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z"/></svg>
+                            <span>WhatsApp Customer Care</span>
+                        </a>
+                    @endif
+
+                    <a 
+                        href="{{ route('page.contact') }}" 
+                        class="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs border border-slate-700 transition"
+                    >
+                        <span>Contact Information</span>
+                        <span>&rarr;</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    {{-- 8. How Ordering Works (Illustrated Process Timeline) --}}
+    @if(!isset($sections['how_it_works']) || $sections['how_it_works']->is_active)
+        <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="bg-white rounded-3xl p-6 sm:p-10 border border-slate-200/90 shadow-2xs">
+                
+                <div class="text-center max-w-xl mx-auto mb-8 sm:mb-10">
+                    <span class="text-xs font-bold text-sky-600 uppercase tracking-wider">Simple & Convenient</span>
+                    <h2 class="text-xl sm:text-3xl font-black text-slate-900 tracking-tight mt-1">
+                        {{ $sections['how_it_works']->title ?? 'How Online Ordering Works' }}
+                    </h2>
+                    <p class="text-slate-500 text-xs sm:text-sm mt-1">
+                        From browsing your groceries straight to your door or floor.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 relative">
+                    @foreach($steps as $step)
+                        <div class="bg-slate-50 rounded-2xl p-5 border border-slate-200/80 hover:border-sky-300 transition-colors relative flex flex-col justify-between">
+                            <div>
+                                <div class="w-9 h-9 rounded-xl bg-sky-600 text-white font-black text-xs flex items-center justify-center mb-3 shadow-xs">
+                                    0{{ $step->step_number }}
+                                </div>
+                                <h3 class="text-sm font-bold text-slate-900 mb-1.5">{{ $step->title }}</h3>
+                                <p class="text-xs text-slate-600 leading-relaxed">{{ $step->description }}</p>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+
+            </div>
+        </section>
+    @endif
+
+    {{-- 9. Why Choose Us --}}
     @if(!isset($sections['benefits']) || $sections['benefits']->is_active)
         <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center max-w-xl mx-auto mb-10">
-                <span class="text-xs font-bold text-sky-600 uppercase tracking-wider">The Wholesale Advantage</span>
-                <h2 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight mt-1">
-                    {{ $sections['benefits']->title ?? 'Why Choose 99 Bulk Sales?' }}
+            <div class="text-center max-w-xl mx-auto mb-8 sm:mb-10">
+                <span class="text-xs font-bold text-sky-600 uppercase tracking-wider">The Mart Advantage</span>
+                <h2 class="text-xl sm:text-3xl font-black text-slate-900 tracking-tight mt-1">
+                    {{ $sections['benefits']->title ?? 'Why Shop at N&J Mini Mart?' }}
                 </h2>
+                <p class="text-slate-500 text-xs sm:text-sm mt-1">
+                    Genuine products, reliable local delivery, and transparent pricing.
+                </p>
+            </div>
                 <p class="text-slate-500 text-xs sm:text-sm mt-1">
                     Direct factory cases, reliable logistics, and full price transparency.
                 </p>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
                 @foreach($benefits as $benefit)
-                    <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm text-center">
-                        <div class="w-12 h-12 rounded-2xl bg-sky-50 text-sky-600 text-2xl flex items-center justify-center mx-auto mb-4">
+                    <div class="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200/90 shadow-2xs hover:shadow-xs hover:border-sky-300 transition-all text-center flex flex-col items-center">
+                        <div class="w-12 h-12 rounded-2xl bg-sky-50 text-sky-600 border border-sky-100 flex items-center justify-center mb-3.5">
                             @switch($benefit->icon)
-                                @case('tag') 🏷️ @break
-                                @case('truck') 🚚 @break
-                                @case('building') 🏢 @break
-                                @case('shield-check') 🛡️ @break
-                                @default ⭐
+                                @case('tag')
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
+                                    @break
+                                @case('truck')
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0"/></svg>
+                                    @break
+                                @case('building')
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                                    @break
+                                @case('shield-check')
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                                    @break
+                                @default
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                             @endswitch
                         </div>
-                        <h3 class="text-sm font-bold text-slate-900 mb-2">{{ $benefit->title }}</h3>
+                        <h3 class="text-sm font-bold text-slate-900 mb-1.5">{{ $benefit->title }}</h3>
                         <p class="text-xs text-slate-500 leading-relaxed">{{ $benefit->description }}</p>
                     </div>
                 @endforeach
@@ -322,27 +588,27 @@
         </section>
     @endif
 
-    {{-- FAQ Accordion (Editable from Admin) --}}
+    {{-- 10. Frequently Asked Questions (Clean Accordion) --}}
     @if(!isset($sections['faqs']) || $sections['faqs']->is_active)
         <section class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center mb-10">
-                <span class="text-xs font-bold text-sky-600 uppercase tracking-wider">Got Questions?</span>
-                <h2 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight mt-1">
+            <div class="text-center mb-8">
+                <span class="text-xs font-bold text-sky-600 uppercase tracking-wider">Help & Clarifications</span>
+                <h2 class="text-xl sm:text-3xl font-black text-slate-900 tracking-tight mt-1">
                     {{ $sections['faqs']->title ?? 'Frequently Asked Questions' }}
                 </h2>
             </div>
 
-            <div class="space-y-3" x-data="{ activeFaq: null }">
+            <div class="space-y-2.5" x-data="{ activeFaq: 0 }">
                 @foreach($faqs as $index => $faq)
-                    <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+                    <div class="bg-white rounded-xl border border-slate-200/90 overflow-hidden shadow-2xs">
                         <button 
                             type="button" 
                             @click="activeFaq = activeFaq === {{ $index }} ? null : {{ $index }}" 
-                            class="w-full px-5 py-4 text-left flex justify-between items-center text-sm font-bold text-slate-900 hover:text-sky-600 transition"
+                            class="w-full px-4 sm:px-5 py-3.5 text-left flex justify-between items-center text-xs sm:text-sm font-bold text-slate-900 hover:text-sky-600 transition cursor-pointer"
                         >
                             <span>{{ $faq->question }}</span>
                             <svg 
-                                class="w-5 h-5 text-slate-400 transition-transform duration-200"
+                                class="w-4 h-4 text-slate-400 transition-transform duration-200 shrink-0 ml-2"
                                 :class="activeFaq === {{ $index }} ? 'transform rotate-180 text-sky-600' : ''"
                                 fill="none" stroke="currentColor" viewBox="0 0 24 24"
                             >
@@ -352,7 +618,7 @@
                         <div 
                             x-show="activeFaq === {{ $index }}" 
                             x-collapse 
-                            class="px-5 pb-5 text-xs sm:text-sm text-slate-600 leading-relaxed border-t border-slate-100 pt-3"
+                            class="px-4 sm:px-5 pb-4 text-xs text-slate-600 leading-relaxed border-t border-slate-100 pt-3"
                         >
                             {{ $faq->answer }}
                         </div>
@@ -362,7 +628,7 @@
 
             <div class="text-center mt-6">
                 <a href="{{ route('page.faqs') }}" class="text-xs font-bold text-sky-600 hover:underline">
-                    View More FAQs &rarr;
+                    View More Questions & Delivery Details &rarr;
                 </a>
             </div>
         </section>
@@ -370,4 +636,3 @@
 
 </div>
 @endsection
-

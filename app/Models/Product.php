@@ -138,7 +138,7 @@ class Product extends Model
 
     public function getSeoDescriptionAttribute(): string
     {
-        return $this->meta_description ?: ($this->short_description ?: 'Buy ' . $this->name . ' in wholesale cartons at unbeatable prices.');
+        return $this->meta_description ?: ($this->short_description ?: 'Buy ' . $this->name . ' at unbeatable prices.');
     }
 }
 

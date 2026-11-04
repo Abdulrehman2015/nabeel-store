@@ -111,7 +111,7 @@ class AdminProductController extends Controller
 
         ActivityLog::log('product.created', $product, ['name' => $product->name, 'sku' => $product->sku]);
 
-        return redirect()->route('admin.products.index')->with('success', 'Wholesale product created successfully.');
+        return redirect()->route('admin.products.index')->with('success', 'Product created successfully.');
     }
 
     public function edit(Product $product)

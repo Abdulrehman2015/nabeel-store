@@ -23,7 +23,7 @@ class PageSeeder extends Seeder
 <p>{store_name} (Company Registration No: {company_registration_no}) is committed to safeguarding the personal data of our customers and visitors in compliance with applicable Personal Data Protection laws.</p>
 
 <h3>1. Data We Collect</h3>
-<p>To process wholesale bulk orders and arrange doorstep carton logistics, we collect:</p>
+<p>To process Mart bulk orders and arrange doorstep carton logistics, we collect:</p>
 <ul>
     <li><strong>Identity & Contact Information:</strong> Full name, phone number, and email address.</li>
     <li><strong>Delivery Information:</strong> Physical delivery address, city, floor level, landmarks, and geographic coordinates selected on our interactive map.</li>
@@ -55,7 +55,7 @@ HTML
 <p><strong>Effective Date: {last_updated}</strong></p>
 <p>Welcome to {store_name}. By accessing our bulk ordering platform or placing an order, you agree to comply with and be bound by the following Terms and Conditions.</p>
 
-<h3>1. Wholesale Carton Supply</h3>
+<h3>1. Groceries & Mart Supply</h3>
 <p>Products on {store_name} are sold in manufacturer carton or case packaging as indicated in each product description (e.g., "12*1.25L", "24*320ML"). Individual unit splitting is not supported unless explicitly noted.</p>
 
 <h3>2. Minimum Order Value</h3>
@@ -65,7 +65,7 @@ HTML
 <p>Orders are officially placed only upon submission of valid advance payment proof (representing {advance_percentage} of the total order value). Submitting a falsified or duplicated payment receipt constitutes breach of terms and may lead to cancellation and blacklisting.</p>
 
 <h3>4. Price & Availability</h3>
-<p>While we make every endeavor to maintain accurate live inventory and wholesale pricing, we reserve the right to correct manifest clerical errors and notify you prior to dispatch.</p>
+<p>While we make every endeavor to maintain accurate live inventory and Mart pricing, we reserve the right to correct manifest clerical errors and notify you prior to dispatch.</p>
 
 <h3>5. Governing Law</h3>
 <p>These terms shall be governed by and construed in accordance with the laws of Malaysia, and parties submit to the exclusive jurisdiction of the competent courts.</p>
@@ -80,7 +80,7 @@ HTML
                 'content' => <<<HTML
 <h2>Refund and Return Policy</h2>
 <p><strong>Last Updated: {last_updated}</strong></p>
-<p>At {store_name}, customer satisfaction with our wholesale goods is our highest priority.</p>
+<p>At {store_name}, customer satisfaction with our Mart goods is our highest priority.</p>
 
 <h3>1. Inspection Upon Delivery</h3>
 <p>Because bulk goods are delivered via dedicated ground delivery, customers or their authorized representatives must inspect outer carton seals upon receipt before settling the final cash or transfer balance.</p>
@@ -104,7 +104,7 @@ HTML
                 'content' => <<<HTML
 <h2>Shipping and Delivery Policy</h2>
 <p><strong>Last Updated: {last_updated}</strong></p>
-<p>{store_name} operates specialized logistics vehicles suited for transporting heavy wholesale food and grocery cartons.</p>
+<p>{store_name} operates specialized logistics vehicles suited for transporting heavy Mart food and grocery cartons.</p>
 
 <h3>1. Delivery Zones & Distance Calculations</h3>
 <p>Delivery distance is calculated dynamically using straight-line geographical coordinates from our central fulfillment hub at {store_address}:</p>
@@ -115,7 +115,7 @@ HTML
 </ul>
 
 <h3>2. Floor Level Policy & Charges</h3>
-<p>Due to the heavy physical weight of wholesale cartons, floor level rules apply:</p>
+<p>Due to the heavy physical weight of Groceries & Marts, floor level rules apply:</p>
 <ul>
     <li><strong>Up to {free_floor_limit}:</strong> Completely <strong>FREE delivery</strong>.</li>
     <li><strong>Above {free_floor_limit}:</strong> Surcharge of <strong>{extra_floor_charge}</strong> per extra floor level.</li>
@@ -134,7 +134,7 @@ HTML
                 'content' => <<<HTML
 <h2>Payment Policy</h2>
 <p><strong>Last Updated: {last_updated}</strong></p>
-<p>To provide high wholesale value and eliminate third-party gateway fee markups, {store_name} utilizes a streamlined QR advance payment model.</p>
+<p>To provide high Mart value and eliminate third-party gateway fee markups, {store_name} utilizes a streamlined QR advance payment model.</p>
 
 <h3>1. Advance Deposit Requirement</h3>
 <p>Customers are required to transfer an advance deposit of <strong>{advance_percentage}</strong> of the grand total at the time of checkout. This deposit confirms your booking and reserves heavy warehouse inventory.</p>
@@ -231,10 +231,10 @@ HTML
                 'sort_order' => 10,
                 'content' => <<<HTML
 <h2>About {store_name}</h2>
-<p>{store_name} is a premier bulk grocery and household supplies distributor headquartered in Puchong, Selangor. Established to bridge the gap between heavy FMCG manufacturers and end-users, we empower small eateries, sundry grocers, offices, and large households to acquire everyday carton essentials at direct wholesale volume pricing.</p>
+<p>{store_name} is a premier bulk grocery and household supplies distributor headquartered in Puchong, Selangor. Established to bridge the gap between heavy FMCG manufacturers and end-users, we empower small eateries, sundry grocers, offices, and large households to acquire everyday carton essentials at direct Mart volume pricing.</p>
 
 <h3>Our Mission</h3>
-<p>To make wholesale bulk grocery shopping effortless, transparent, and economical through streamlined digital ordering and reliable local fleet delivery.</p>
+<p>To make Mart bulk grocery shopping effortless, transparent, and economical through streamlined digital ordering and reliable local fleet delivery.</p>
 
 <h3>Visit or Contact Our Distribution Center</h3>
 <p>

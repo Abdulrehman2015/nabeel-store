@@ -65,8 +65,8 @@
             <div class="space-y-3">
                 <div class="flex items-center gap-3 text-xs text-slate-500 font-medium">
                     <a href="{{ route('category.show', $product->category->slug) }}" class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-50 hover:bg-slate-100 text-slate-800 font-bold border border-slate-200 transition shadow-xs">
-                        <span class="w-5 h-5 rounded-md inline-flex items-center justify-center p-0.5 text-white shrink-0 shadow-xs" style="background: {{ $product->category->icon_style_gradient }};">
-                            {!! $product->category->renderIcon('w-3.5 h-3.5 text-white') !!}
+                        <span class="w-5 h-5 rounded-md inline-flex items-center justify-center overflow-hidden shrink-0 border border-slate-200">
+                            {!! $product->category->renderIcon('w-full h-full object-cover') !!}
                         </span>
                         <span>{{ $product->category->name }}</span>
                     </a>
@@ -86,7 +86,7 @@
                         📦
                     </div>
                     <div>
-                        <div class="text-xs text-slate-500 font-semibold uppercase tracking-wider">Wholesale Packaging</div>
+                        <div class="text-xs text-slate-500 font-semibold uppercase tracking-wider">Packaging Details</div>
                         <div class="text-sm font-extrabold text-slate-900">{{ $product->pack_size }}</div>
                         @if($product->unit_description)
                             <div class="text-xs text-slate-500">{{ $product->unit_description }}</div>
@@ -108,7 +108,7 @@
                             </span>
                         @endif
                     </div>
-                    <p class="text-xs text-slate-400 mt-1">Direct wholesale carton pricing. No hidden retail markups.</p>
+                    <p class="text-xs text-slate-400 mt-1">Direct mart pricing. Transparent and affordable.</p>
                 </div>
 
                 {{-- Stock Status --}}
@@ -159,7 +159,7 @@
                             class="w-full sm:flex-1 py-3 px-6 bg-sky-600 hover:bg-sky-700 text-white font-black text-sm rounded-xl shadow-lg transition flex items-center justify-center gap-2"
                         >
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
-                            <span>Add to Wholesale Cart</span>
+                            <span>Add to Cart</span>
                         </button>
                     </div>
                 @else
@@ -239,7 +239,7 @@
     @if($relatedProducts->count() > 0)
         <div class="space-y-6">
             <h2 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
-                Related Wholesale Cartons
+                Related Products
             </h2>
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
                 @foreach($relatedProducts as $related)

@@ -35,7 +35,7 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
                 <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Banner Title *</label>
-                <input type="text" name="title" required value="{{ old('title') }}" placeholder="e.g. Bulk F&B Wholesale Direct" class="w-full text-sm border-gray-300 rounded-lg focus:ring-primary focus:border-primary">
+                <input type="text" name="title" required value="{{ old('title') }}" placeholder="e.g. Fresh Groceries & Essentials" class="w-full text-sm border-gray-300 rounded-lg focus:ring-primary focus:border-primary">
             </div>
             <div>
                 <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Promo Badge</label>
@@ -45,7 +45,7 @@
 
         <div>
             <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Subtitle / Description</label>
-            <input type="text" name="subtitle" value="{{ old('subtitle') }}" placeholder="Order full cartons at wholesale prices delivered directly to your store or home." class="w-full text-sm border-gray-300 rounded-lg focus:ring-primary focus:border-primary">
+            <input type="text" name="subtitle" value="{{ old('subtitle') }}" placeholder="Order full cartons at everyday prices delivered directly to your store or home." class="w-full text-sm border-gray-300 rounded-lg focus:ring-primary focus:border-primary">
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">

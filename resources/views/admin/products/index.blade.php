@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Wholesale Products')
+@section('title', 'Products')
 
 @section('content')
 <div class="space-y-6" x-data="{ importModal: false }">
@@ -8,7 +8,7 @@
     {{-- Top Header --}}
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-            <h1 class="text-2xl font-black text-slate-900 tracking-tight">Wholesale Products (Cartons)</h1>
+            <h1 class="text-2xl font-black text-slate-900 tracking-tight">Products Catalog</h1>
             <p class="text-xs text-slate-500 mt-1">Manage bulk catalog, pack sizes, stock quantities, and bulk CSV import/export.</p>
         </div>
         <div class="flex items-center gap-2">
@@ -79,7 +79,7 @@
                         <th class="py-3 px-4">Product / Carton</th>
                         <th class="py-3 px-4">SKU</th>
                         <th class="py-3 px-4">Category</th>
-                        <th class="py-3 px-4">Wholesale Price</th>
+                        <th class="py-3 px-4">Price</th>
                         <th class="py-3 px-4">Stock (Cartons)</th>
                         <th class="py-3 px-4">Badges</th>
                         <th class="py-3 px-4">Status</th>
@@ -139,7 +139,7 @@
                     @empty
                         <tr>
                             <td colspan="8" class="py-12 text-center text-slate-400">
-                                No wholesale products found.
+                                No products found.
                             </td>
                         </tr>
                     @endforelse
@@ -156,7 +156,7 @@
     <div x-show="importModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4" style="display: none;">
         <div class="fixed inset-0 bg-slate-900/60" @click="importModal = false"></div>
         <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full relative z-10 shadow-2xl space-y-4">
-            <h3 class="text-lg font-black text-slate-900">Bulk Import Wholesale Cartons</h3>
+            <h3 class="text-lg font-black text-slate-900">Bulk Import Products</h3>
             <p class="text-xs text-slate-500 leading-relaxed">
                 Upload a CSV or Excel spreadsheet containing your carton catalog. Products with matching SKUs will be automatically updated, and new products will be created.
             </p>

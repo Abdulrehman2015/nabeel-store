@@ -206,7 +206,7 @@
     </nav>
 
     <div class="mb-8">
-        <span class="text-xs font-bold text-sky-600 uppercase tracking-wider">Direct Wholesale Delivery</span>
+        <span class="text-xs font-bold text-sky-600 uppercase tracking-wider">Direct Mart Delivery</span>
         <h1 class="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight">Checkout & Advance Payment</h1>
     </div>
 
@@ -619,7 +619,7 @@
                     </div>
 
                     <p class="text-[11px] text-slate-400 text-center">
-                        🔒 Safe & Verified Wholesale Transaction. Order is confirmed upon admin verification of your payment receipt.
+                        🔒 Safe & Verified Transaction. Order is confirmed upon admin verification of your payment receipt.
                     </p>
                 </div>
             </div>

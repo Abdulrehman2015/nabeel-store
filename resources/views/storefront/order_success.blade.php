@@ -17,7 +17,7 @@
             Order Submitted Successfully!
         </h1>
         <p class="text-xs sm:text-sm text-slate-500 max-w-md mx-auto">
-            Thank you, <strong>{{ $order->customer_name }}</strong>. Your wholesale carton order has been registered and your payment receipt is currently under verification.
+            Thank you, <strong>{{ $order->customer_name }}</strong>. Your order has been registered and your payment receipt is currently under verification.
         </p>
 
         <div class="p-4 bg-slate-50 rounded-2xl border border-slate-200 inline-block text-left text-xs space-y-1">

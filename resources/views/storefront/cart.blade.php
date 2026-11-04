@@ -7,7 +7,7 @@
     <div class="flex items-center justify-between pb-4 border-b border-slate-200">
         <div>
             <span class="text-xs font-bold text-sky-600 uppercase tracking-wider">Shopping Basket</span>
-            <h1 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Wholesale Cart</h1>
+            <h1 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Shopping Cart</h1>
         </div>
         @if(!empty($summary['items']))
             <form action="{{ route('cart.clear') }}" method="POST">
@@ -25,7 +25,7 @@
                 🛒
             </div>
             <h2 class="text-lg font-bold text-slate-900">Your cart is currently empty</h2>
-            <p class="text-xs text-slate-500 mt-1">Explore our wholesale catalog to discover bulk beverages, cooking oil, rice and household goods.</p>
+            <p class="text-xs text-slate-500 mt-1">Explore our store to discover drinks, snacks, cooking essentials, and household goods.</p>
             <div class="mt-6">
                 <a href="{{ route('category.index') }}" class="inline-flex items-center gap-2 px-6 py-3 bg-sky-600 hover:bg-sky-700 text-white font-bold text-sm rounded-xl shadow transition">
                     <span>Browse All Categories</span>

@@ -50,7 +50,7 @@ class RegisteredUserController extends Controller
             ],
             'terms' => ['accepted'],
         ], [
-            'terms.accepted' => 'You must accept the Wholesale Terms and Privacy Policy to create an account.',
+            'terms.accepted' => 'You must accept the Terms and Privacy Policy to create an account.',
             'password.min' => 'Password must be at least 8 characters long.',
             'password.letters' => 'Password must contain at least one letter.',
             'password.mixed' => 'Password must contain both uppercase and lowercase letters.',
@@ -78,6 +78,7 @@ class RegisteredUserController extends Controller
 
         // Log the user in so their session is established
         Auth::login($user);
+        $request->session()->regenerate();
 
         return redirect()->route('otp.verify.notice')
             ->with('status', 'Account created! Enter the 6-digit verification code to complete activation.');

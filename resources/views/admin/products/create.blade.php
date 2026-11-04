@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Add Wholesale Product')
+@section('title', 'Add Product')
 
 @section('content')
 <div class="max-w-6xl mx-auto space-y-6" x-data="{
@@ -22,7 +22,7 @@
                 <span>/</span>
                 <span class="text-gray-900 font-medium">Create New</span>
             </div>
-            <h1 class="text-2xl font-bold text-gray-900 mt-1">Add Bulk Wholesale Product</h1>
+            <h1 class="text-2xl font-bold text-gray-900 mt-1">Add Product</h1>
         </div>
         <div class="flex items-center gap-2">
             <a href="{{ route('admin.products.index') }}" class="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition">Cancel</a>
@@ -84,7 +84,7 @@
 
                     <div>
                         <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Short Description</label>
-                        <textarea name="short_description" rows="2" placeholder="Brief wholesale carton summary..." class="w-full text-sm border-gray-300 rounded-lg focus:ring-primary focus:border-primary">{{ old('short_description') }}</textarea>
+                        <textarea name="short_description" rows="2" placeholder="Brief product summary..." class="w-full text-sm border-gray-300 rounded-lg focus:ring-primary focus:border-primary">{{ old('short_description') }}</textarea>
                     </div>
 
                     <div>
@@ -123,8 +123,8 @@
                         <div class="text-xs text-gray-500 truncate flex items-center gap-1">
                             <span>{{ url('/') }}/product/</span><span class="font-semibold text-gray-700" x-text="slug || 'product-slug'"></span>
                         </div>
-                        <h4 class="text-base text-blue-700 font-medium hover:underline truncate" x-text="metaTitle || title || 'Product Title — Wholesale Bulk Grocery'"></h4>
-                        <p class="text-xs text-gray-600 line-clamp-2" x-text="metaDesc || 'Buy bulk groceries and household goods at wholesale prices. Fast commercial delivery in carton packaging.'"></p>
+                        <h4 class="text-base text-blue-700 font-medium hover:underline truncate" x-text="metaTitle || title || 'Product Title — Groceries'"></h4>
+                        <p class="text-xs text-gray-600 line-clamp-2" x-text="metaDesc || 'Buy groceries and household goods. Fast delivery.'"></p>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -152,7 +152,7 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Meta Keywords</label>
-                            <input type="text" name="meta_keywords" value="{{ old('meta_keywords') }}" placeholder="bulk fanta, wholesale drinks, fanta 1.25L" class="w-full text-sm border-gray-300 rounded-lg focus:ring-primary focus:border-primary">
+                            <input type="text" name="meta_keywords" value="{{ old('meta_keywords') }}" placeholder="drinks, pantry, snacks" class="w-full text-sm border-gray-300 rounded-lg focus:ring-primary focus:border-primary">
                         </div>
                         <div>
                             <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Robots Tag</label>
@@ -185,7 +185,7 @@
                     <h3 class="text-base font-semibold text-gray-900 border-b border-gray-100 pb-3">Pricing & Tax</h3>
 
                     <div>
-                        <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Wholesale Price ({{ setting('currency_symbol', 'RM') }}) *</label>
+                        <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Price ({{ setting('currency_symbol', 'RM') }}) *</label>
                         <input type="number" step="0.01" name="price" x-model="price" required value="{{ old('price') }}" placeholder="0.00" class="w-full text-sm border-gray-300 rounded-lg focus:ring-primary focus:border-primary">
                     </div>
 

@@ -197,7 +197,7 @@
                                     required 
                                     value="{{ old('banners.'.$banner->id.'.title', $banner->title) }}" 
                                     class="w-full text-sm font-semibold border-gray-300 rounded-xl focus:ring-primary focus:border-primary px-3.5 py-2.5"
-                                    placeholder="e.g. Direct Wholesale Groceries in Bulk Cartons"
+                                    placeholder="e.g. Groceries, Drinks & Daily Essentials"
                                 >
                             </div>
 

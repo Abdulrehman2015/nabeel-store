@@ -64,7 +64,7 @@ class Page extends Model
             '{admin_email}' => setting('admin_email', setting('store_email', 'support@bulkmart.my')),
             '{store_phone}' => setting('store_phone', setting('admin_phone', '+60 12-345 6789')),
             '{admin_phone}' => setting('admin_phone', setting('store_phone', '+60 12-345 6789')),
-            '{store_address}' => setting('store_address', '123 Bulk Wholesale Way, 50000 Kuala Lumpur, Malaysia'),
+            '{store_address}' => setting('store_address', 'Puchong, Selangor, Malaysia'),
             '{company_registration_no}' => setting('company_registration_no', '202601009988 (123456-X)'),
             '{free_delivery_radius}' => setting('free_delivery_radius', 5) . ' km',
             '{paid_delivery_radius}' => setting('paid_delivery_radius', 2) . ' km',

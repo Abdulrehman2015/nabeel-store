@@ -70,7 +70,7 @@ Route::get('/data-request', [PageController::class, 'dataRequest'])->name('page.
 Route::post('/data-request', [PageController::class, 'submitDataRequest'])->middleware('throttle:5,1')->name('page.data-request.submit');
 
 // Customer Account Protected Routes
-Route::middleware(['auth'])->prefix('account')->name('account.')->group(function () {
+Route::middleware(['auth', 'customer.verified'])->prefix('account')->name('account.')->group(function () {
     Route::get('/orders', [CustomerAccountController::class, 'orders'])->name('orders');
     Route::get('/orders/{order_number}', [CustomerAccountController::class, 'orderDetails'])->name('orders.details');
     Route::get('/addresses', [CustomerAccountController::class, 'addresses'])->name('addresses');
@@ -80,7 +80,7 @@ Route::middleware(['auth'])->prefix('account')->name('account.')->group(function
 });
 
 // Profile Management & Generic Dashboard Redirect
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'customer.verified'])->group(function () {
     Route::get('/dashboard', function () {
         if (auth()->check() && (auth()->user()->role === 'admin' || auth()->user()->role === 'staff')) {
             return redirect()->route('admin.dashboard');

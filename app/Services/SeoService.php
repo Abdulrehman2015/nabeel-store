@@ -57,15 +57,15 @@ class SeoService
 
         // Apply Master SEO fallbacks
         if (empty($rawTitle)) {
-            $rawTitle = setting('seo_default_title', 'Wholesale Bulk Groceries & Household Essentials');
+            $rawTitle = setting('seo_default_title', 'Groceries & Household Essentials - N&J Mini Mart');
         }
 
         if (empty($rawDescription)) {
-            $rawDescription = setting('seo_default_description', 'Buy groceries, beverages, and household goods in bulk cartons at direct wholesale prices with fast delivery.');
+            $rawDescription = setting('seo_default_description', 'Buy groceries, beverages, snacks and household goods with fast local delivery.');
         }
 
         if (empty($rawKeywords)) {
-            $rawKeywords = setting('seo_default_keywords', 'bulk groceries, wholesale cartons, wholesale food, online grocery malaysia');
+            $rawKeywords = setting('seo_default_keywords', 'groceries, mini mart, food staples, beverages, puchong mart');
         }
 
         if (empty($ogImage)) {
@@ -155,15 +155,15 @@ class SeoService
     {
         $schema = [
             '@context' => 'https://schema.org',
-            '@type' => 'WholesaleStore',
-            'name' => setting('site_name', 'Bulk Mart'),
+            '@type' => 'GroceryStore',
+            'name' => setting('site_name', 'N&J Mini Mart'),
             'url' => url('/'),
             'logo' => setting('site_logo') ? asset('storage/' . setting('site_logo')) : asset('images/logo.png'),
             'telephone' => setting('store_phone', '+60 12-345 6789'),
-            'email' => setting('store_email', 'support@bulkmart.my'),
+            'email' => setting('store_email', 'support@nabeelstore.my'),
             'address' => [
                 '@type' => 'PostalAddress',
-                'streetAddress' => setting('store_address', '123 Bulk Wholesale Way'),
+                'streetAddress' => setting('store_address', 'Puchong, Selangor'),
                 'addressLocality' => 'Kuala Lumpur',
                 'addressCountry' => 'MY',
             ],

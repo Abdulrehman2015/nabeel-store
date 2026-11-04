@@ -7,7 +7,7 @@
     <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
             <h1 class="text-2xl font-bold text-gray-900">Customers</h1>
-            <p class="text-xs text-gray-500 mt-1">Manage registered wholesale buyers, business accounts, and purchase history.</p>
+            <p class="text-xs text-gray-500 mt-1">Manage registered customers, accounts, and purchase history.</p>
         </div>
         <form method="GET" action="{{ route('admin.customers.index') }}" class="flex gap-2">
             <input type="text" name="search" value="{{ request('search') }}" placeholder="Search customer, email, phone..." class="text-sm border-gray-300 rounded-lg focus:ring-primary focus:border-primary w-64">
@@ -53,12 +53,19 @@
                                     <span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-red-100 text-red-800">Suspended</span>
                                 @endif
                             </td>
-                            <td class="px-6 py-4 text-right space-x-2">
-                                <a href="{{ route('admin.customers.show', $c) }}" class="text-primary hover:text-primary-hover font-semibold text-xs">View Profile</a>
-                                <form action="{{ route('admin.customers.toggle-status', $c) }}" method="POST" class="inline" onsubmit="return confirm('Change status for this customer?');">
+                            <td class="px-6 py-4 text-right space-x-2.5 whitespace-nowrap">
+                                <a href="{{ route('admin.customers.show', $c) }}" class="text-sky-600 hover:text-sky-700 font-semibold text-xs">View Profile</a>
+                                <form action="{{ route('admin.customers.toggle-status', $c) }}" method="POST" class="inline" onsubmit="return confirm('{{ $c->is_active ? 'Suspend this customer account?' : 'Unlock customer ' . addslashes($c->name) . '? A new login password will be generated and emailed to them immediately.' }}');">
                                     @csrf
-                                    <button type="submit" class="text-xs font-semibold {{ $c->is_active ? 'text-red-600 hover:text-red-800' : 'text-emerald-600 hover:text-emerald-800' }}">
-                                        {{ $c->is_active ? 'Suspend' : 'Activate' }}
+                                    <button type="submit" class="text-xs font-semibold {{ $c->is_active ? 'text-amber-600 hover:text-amber-700' : 'text-emerald-600 hover:text-emerald-700 font-bold' }}">
+                                        {{ $c->is_active ? 'Suspend' : 'Unlock Account' }}
+                                    </button>
+                                </form>
+                                <form action="{{ route('admin.customers.destroy', $c) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to permanently delete customer {{ addslashes($c->name) }}? All customer addresses will be removed. Past orders will be retained for bookkeeping.');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="text-xs font-semibold text-rose-600 hover:text-rose-800 transition">
+                                        Delete
                                     </button>
                                 </form>
                             </td>

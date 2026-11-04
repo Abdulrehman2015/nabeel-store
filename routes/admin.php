@@ -51,6 +51,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('customers', [AdminCustomerController::class, 'index'])->name('customers.index');
     Route::get('customers/{user}', [AdminCustomerController::class, 'show'])->name('customers.show');
     Route::post('customers/{user}/toggle-status', [AdminCustomerController::class, 'toggleStatus'])->name('customers.toggle-status');
+    Route::delete('customers/{user}', [AdminCustomerController::class, 'destroy'])->name('customers.destroy');
 
     // Banners / Slider
     Route::resource('banners', AdminBannerController::class);
@@ -74,6 +75,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::prefix('settings')->name('settings.')->group(function () {
         Route::get('/delivery', [AdminSettingsController::class, 'delivery'])->name('delivery');
         Route::post('/delivery', [AdminSettingsController::class, 'saveDelivery'])->name('delivery.save');
+        Route::post('/delivery/resolve-link', [AdminSettingsController::class, 'resolveMapLink'])->name('delivery.resolve-link');
 
         Route::get('/payment', [AdminSettingsController::class, 'payment'])->name('payment');
         Route::post('/payment', [AdminSettingsController::class, 'savePayment'])->name('payment.save');

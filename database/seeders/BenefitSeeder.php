@@ -11,7 +11,7 @@ class BenefitSeeder extends Seeder
     {
         $benefits = [
             [
-                'title' => 'Factory Carton Wholesale Pricing',
+                'title' => 'Factory Carton Mart Pricing',
                 'description' => 'Unbeatable bulk carton savings direct from primary manufacturers and distributors without retail markups.',
                 'icon' => 'tag',
                 'sort_order' => 1,

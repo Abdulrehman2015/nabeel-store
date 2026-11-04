@@ -161,8 +161,8 @@
                 <div class="text-xs text-gray-500 truncate flex items-center gap-1">
                     <span>{{ url('/') }}/category/</span><span class="font-semibold text-gray-700" x-text="slug || 'category-slug'"></span>
                 </div>
-                <h4 class="text-base text-blue-700 font-medium hover:underline truncate" x-text="metaTitle || name || 'Category Name — Wholesale Grocery Cartons'"></h4>
-                <p class="text-xs text-gray-600 line-clamp-2" x-text="metaDesc || 'Shop wholesale bulk groceries and carton supplies with fast local delivery.'"></p>
+                <h4 class="text-base text-blue-700 font-medium hover:underline truncate" x-text="metaTitle || name || 'Category Name — Grocery Essentials'"></h4>
+                <p class="text-xs text-gray-600 line-clamp-2" x-text="metaDesc || 'Shop groceries and daily items and carton supplies with fast local delivery.'"></p>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -172,7 +172,7 @@
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Focus Keyword</label>
-                    <input type="text" name="focus_keyword" value="{{ old('focus_keyword', $category->focus_keyword) }}" placeholder="e.g. wholesale soft drinks puchong" class="w-full text-sm border-gray-300 rounded-lg focus:ring-primary focus:border-primary">
+                    <input type="text" name="focus_keyword" value="{{ old('focus_keyword', $category->focus_keyword) }}" placeholder="e.g. soft drinks puchong" class="w-full text-sm border-gray-300 rounded-lg focus:ring-primary focus:border-primary">
                 </div>
             </div>
 

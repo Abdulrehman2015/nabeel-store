@@ -1,15 +1,22 @@
 @extends('layouts.storefront')
 
 @section('content')
-<div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-8">
 
-    <div class="text-center max-w-xl mx-auto space-y-2">
-        <span class="text-xs font-bold text-sky-600 uppercase tracking-wider">Get in Touch</span>
-        <h1 class="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight">Contact Wholesale Distribution</h1>
-        <p class="text-xs sm:text-sm text-slate-500">
-            Have questions about container bulk purchasing, floor logistics, or custom quotations? Our sales team is ready to assist.
-        </p>
-    </div>
+    {{-- Universal Hero Section --}}
+    <x-storefront-hero 
+        title="Contact Customer Support"
+        description="Have questions about commercial cartons, bulk container supply, delivery floor logistics, or custom quotations? Our dedicated sales team is ready to assist."
+        badge="Direct Support"
+        subBadge="📞 Hotline: +60 12-889 9900"
+        :breadcrumbs="['Contact Us' => null]"
+    >
+        <x-slot:icon>
+            <svg class="w-10 h-10 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+            </svg>
+        </x-slot:icon>
+    </x-storefront-hero>
 
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
         
@@ -53,7 +60,7 @@
                 </div>
 
                 <button type="submit" class="w-full py-3.5 bg-sky-600 hover:bg-sky-700 text-white font-extrabold text-sm rounded-xl shadow-lg transition">
-                    Send Wholesale Inquiry
+                    Send Inquiry
                 </button>
             </form>
         </div>
@@ -99,7 +106,7 @@
 
                 <div class="pt-4 border-t border-slate-800">
                     <a 
-                        href="https://wa.me/{{ preg_replace('/[^0-9]/', '', setting('admin_phone', '+60128899900')) }}?text=Hello%2099BulkSales,%20I%20have%20an%20inquiry%20regarding%20wholesale%20orders." 
+                        href="https://wa.me/{{ preg_replace('/[^0-9]/', '', setting('admin_phone', '+60128899900')) }}?text=Hello,%20I%20have%20an%20inquiry%20regarding%20products%20and%20orders." 
                         target="_blank"
                         class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl transition flex items-center justify-center gap-2"
                     >

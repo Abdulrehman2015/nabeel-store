@@ -1,21 +1,26 @@
 <x-guest-layout title="Set New Password">
-    <div class="w-full max-w-md">
-        <!-- Auth Card -->
-        <div class="bg-white rounded-2xl shadow-xl shadow-slate-200/60 border border-slate-200/80 overflow-hidden">
-            <!-- Header Banner -->
-            <div class="bg-slate-900 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 px-6 py-6 text-white text-center relative overflow-hidden">
-                <div class="absolute -right-6 -bottom-6 w-24 h-24 rounded-full bg-emerald-500/10 blur-xl"></div>
-                <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 backdrop-blur-xs text-emerald-400 text-xs font-semibold uppercase tracking-wider mb-2">
-                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-                    Verified OTP Reset
-                </div>
-                <h1 class="text-2xl font-bold tracking-tight">Set New Password</h1>
-                <p class="text-xs text-slate-300 mt-1">
-                    Resetting password for <span class="font-semibold text-white">{{ $email }}</span>
-                </p>
-            </div>
+    <div class="w-full max-w-5xl space-y-6">
+        {{-- Hero Header Section --}}
+        <x-storefront-hero 
+            title="Set New Password"
+            :description="'Resetting password for registered email ' . $email . '. Please choose a strong, secure new password.'"
+            badge="Security Verification"
+            subBadge="🔐 256-Bit SSL Encrypted"
+            :breadcrumbs="['Set New Password' => null]"
+        >
+            <x-slot:icon>
+                <svg class="w-10 h-10 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                </svg>
+            </x-slot:icon>
+        </x-storefront-hero>
 
-            <div class="p-6 sm:p-8">
+        {{-- Auth Form Box --}}
+        <div class="flex justify-center">
+            <div class="w-full max-w-md">
+                <!-- Auth Card -->
+                <div class="bg-white rounded-3xl shadow-xl shadow-slate-200/60 border border-slate-200/80 overflow-hidden">
+                    <div class="p-6 sm:p-8">
                 <!-- Errors Header if any -->
                 @if ($errors->any())
                     <div class="mb-5 p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-800 text-xs font-medium">
@@ -160,6 +165,8 @@
                 </form>
             </div>
         </div>
+    </div>
+    </div>
     </div>
 </x-guest-layout>
 

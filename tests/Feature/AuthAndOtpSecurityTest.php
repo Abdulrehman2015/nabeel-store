@@ -100,6 +100,19 @@ class AuthAndOtpSecurityTest extends TestCase
         $this->assertNotNull($user->email_verified_at);
     }
 
+    public function test_unverified_customers_cannot_bypass_otp_to_access_account(): void
+    {
+        $user = User::factory()->create([
+            'role' => 'customer',
+            'email_verified_at' => null,
+        ]);
+
+        $response = $this->actingAs($user)->get(route('account.orders'));
+
+        $response->assertRedirect(route('otp.verify.notice'));
+        $response->assertSessionHas('pending_verification_email', $user->email);
+    }
+
     public function test_forgot_password_flow_with_otp_and_reset(): void
     {
         $user = User::factory()->create([

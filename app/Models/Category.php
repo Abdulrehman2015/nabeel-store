@@ -208,17 +208,35 @@ class Category extends Model
         return $presets[$key]['style_shadow'] ?? 'rgba(16, 185, 129, 0.4)';
     }
 
-    public function renderIcon(string $sizeClass = 'w-8 h-8', ?string $color = null): string
+    public function getImageUrlAttribute(): ?string
     {
-        $colorStyle = $color ? "color: {$color};" : "color: #ffffff;";
-
-        // 1. If category has an uploaded icon file
-        if ($this->icon && (str_contains($this->icon, '/') || str_contains($this->icon, '.'))) {
-            $raw = ltrim($this->icon, '/');
-            $url = (str_starts_with($raw, 'storage/') || str_starts_with($raw, 'images/')) ? asset($raw) : asset('storage/' . $raw);
-            return "<img src=\"{$url}\" alt=\"{$this->name}\" class=\"{$sizeClass} object-contain\">";
+        $path = $this->icon ?: $this->image;
+        if ($path && (str_contains($path, '/') || str_contains($path, '.'))) {
+            $raw = ltrim($path, '/');
+            return (str_starts_with($raw, 'storage/') || str_starts_with($raw, 'images/')) ? asset($raw) : asset('storage/' . $raw);
         }
 
+        if ($this->image && (str_contains($this->image, '/') || str_contains($this->image, '.'))) {
+            $raw = ltrim($this->image, '/');
+            return (str_starts_with($raw, 'storage/') || str_starts_with($raw, 'images/')) ? asset($raw) : asset('storage/' . $raw);
+        }
+
+        if (file_exists(public_path("images/categories/{$this->slug}.png"))) {
+            return asset("images/categories/{$this->slug}.png");
+        }
+
+        return null;
+    }
+
+    public function renderIcon(string $sizeClass = 'w-8 h-8', ?string $color = null): string
+    {
+        // 1. Prefer real product image
+        if ($url = $this->image_url) {
+            $fitClass = str_contains($sizeClass, 'object-') ? '' : 'object-cover';
+            return "<img src=\"{$url}\" alt=\"{$this->name}\" class=\"{$sizeClass} {$fitClass}\" loading=\"lazy\">";
+        }
+
+        $colorStyle = $color ? "color: {$color};" : "color: #ffffff;";
         $key = strtolower(trim($this->icon ?? ''));
         $presets = self::presetIcons();
 
@@ -232,14 +250,7 @@ class Category extends Model
             return "<span style=\"font-size: 1.75rem; line-height: 1;\">{$this->icon}</span>";
         }
 
-        // 4. Fallback to category image if set
-        if ($this->image) {
-            $raw = ltrim($this->image, '/');
-            $url = (str_starts_with($raw, 'storage/') || str_starts_with($raw, 'images/')) ? asset($raw) : asset('storage/' . $raw);
-            return "<img src=\"{$url}\" alt=\"{$this->name}\" class=\"{$sizeClass} object-contain\">";
-        }
-
-        // 5. Default carton box icon
+        // 4. Default carton box icon
         return "<div class=\"{$sizeClass}\" style=\"{$colorStyle}\">" . $presets['box']['svg'] . "</div>";
     }
 
@@ -280,6 +291,6 @@ class Category extends Model
 
     public function getSeoDescriptionAttribute(): string
     {
-        return $this->meta_description ?: ($this->description ?: 'Shop ' . $this->name . ' in bulk at wholesale carton prices.');
+        return $this->meta_description ?: ($this->description ?: 'Shop ' . $this->name . ' at great mart prices.');
     }
 }

@@ -27,10 +27,27 @@ class OtpVerificationController extends Controller
     public function showNotice(Request $request): View|RedirectResponse
     {
         $user = Auth::user();
-        $email = $user ? $user->email : session('pending_verification_email');
+        $email = $user ? $user->email : session('pending_verification_email') ?? session('blocked_email');
 
         if (! $email) {
             return redirect()->route('login')->with('warning', 'Please sign in to verify your account.');
+        }
+
+        $contact = $this->otpService->getAdminContact();
+        $dbUser = User::where('email', strtolower($email))->first();
+        $isBlocked = ($user && ! $user->is_active) || ($dbUser && ! $dbUser->is_active) || session('account_blocked');
+
+        if ($isBlocked) {
+            if (Auth::check()) {
+                Auth::logout();
+            }
+            return view('auth.verify-otp', [
+                'email' => $email,
+                'isReset' => false,
+                'isBlocked' => true,
+                'adminEmail' => $contact['email'],
+                'adminPhone' => $contact['phone'],
+            ]);
         }
 
         if ($user && $user->email_verified_at) {
@@ -55,6 +72,9 @@ class OtpVerificationController extends Controller
         return view('auth.verify-otp', [
             'email' => $email,
             'isReset' => false,
+            'isBlocked' => false,
+            'adminEmail' => $contact['email'],
+            'adminPhone' => $contact['phone'],
         ]);
     }
 
@@ -71,13 +91,21 @@ class OtpVerificationController extends Controller
         ]);
 
         $user = Auth::user();
-        $email = $user ? $user->email : session('pending_verification_email');
+        $email = $user ? $user->email : session('pending_verification_email') ?? session('blocked_email');
 
         if (! $email) {
             return redirect()->route('login')->withErrors(['email' => 'Session expired. Please sign in again.']);
         }
 
-        $this->otpService->verify($email, $request->otp, 'email_verification');
+        try {
+            $this->otpService->verify($email, $request->otp, 'email_verification');
+        } catch (ValidationException $e) {
+            $dbUser = User::where('email', strtolower($email))->first();
+            if (($dbUser && ! $dbUser->is_active) || session('account_blocked')) {
+                Auth::logout();
+            }
+            throw $e;
+        }
 
         if ($user) {
             $user->email_verified_at = now();
@@ -92,8 +120,16 @@ class OtpVerificationController extends Controller
             }
         }
 
-        session()->forget('pending_verification_email');
-        session()->forget('dev_otp_code');
+        session()->forget([
+            'pending_verification_email',
+            'dev_otp_code',
+            'account_blocked',
+            'blocked_email',
+            'blocked_admin_email',
+            'blocked_admin_phone',
+            'otp_failed_resend_required',
+        ]);
+        $request->session()->regenerate();
 
         return redirect()->intended(route('home'))
             ->with('status', 'Account successfully verified! Welcome to 99 Bulk Sales.');
@@ -105,7 +141,7 @@ class OtpVerificationController extends Controller
     public function resend(Request $request): RedirectResponse
     {
         $user = Auth::user();
-        $email = $user ? $user->email : session('pending_verification_email') ?? session('reset_password_email');
+        $email = $user ? $user->email : session('pending_verification_email') ?? session('reset_password_email') ?? session('blocked_email');
 
         if (! $email) {
             return redirect()->route('login')->withErrors(['email' => 'Session expired. Please start over.']);
@@ -126,14 +162,31 @@ class OtpVerificationController extends Controller
      */
     public function showResetOtpNotice(Request $request): View|RedirectResponse
     {
-        $email = session('reset_password_email');
+        $email = session('reset_password_email') ?? session('blocked_email');
         if (! $email) {
             return redirect()->route('password.request')->withErrors(['email' => 'Please enter your account email first.']);
+        }
+
+        $contact = $this->otpService->getAdminContact();
+        $dbUser = User::where('email', strtolower($email))->first();
+        $isBlocked = ($dbUser && ! $dbUser->is_active) || session('account_blocked');
+
+        if ($isBlocked) {
+            return view('auth.verify-otp', [
+                'email' => $email,
+                'isReset' => true,
+                'isBlocked' => true,
+                'adminEmail' => $contact['email'],
+                'adminPhone' => $contact['phone'],
+            ]);
         }
 
         return view('auth.verify-otp', [
             'email' => $email,
             'isReset' => true,
+            'isBlocked' => false,
+            'adminEmail' => $contact['email'],
+            'adminPhone' => $contact['phone'],
         ]);
     }
 
@@ -149,17 +202,25 @@ class OtpVerificationController extends Controller
             'otp.required' => 'Please enter the 6-digit verification code.',
         ]);
 
-        $email = session('reset_password_email');
+        $email = session('reset_password_email') ?? session('blocked_email');
         if (! $email) {
             return redirect()->route('password.request')->withErrors(['email' => 'Session expired. Please start over.']);
         }
 
-        $this->otpService->verify($email, $request->otp, 'password_reset');
+        try {
+            $this->otpService->verify($email, $request->otp, 'password_reset');
+        } catch (ValidationException $e) {
+            $dbUser = User::where('email', strtolower($email))->first();
+            if (($dbUser && ! $dbUser->is_active) || session('account_blocked')) {
+                Auth::logout();
+            }
+            throw $e;
+        }
 
         // Mark OTP as verified for reset flow and generate secure reset token
         $token = Str::random(64);
         session()->put('reset_verified_token', $token);
-        session()->forget('dev_otp_code');
+        session()->forget(['dev_otp_code', 'account_blocked', 'blocked_email']);
 
         return redirect()->route('password.reset.form', ['token' => $token]);
     }
@@ -221,4 +282,3 @@ class OtpVerificationController extends Controller
         return redirect()->route('home')->with('status', 'Your password has been securely updated!');
     }
 }
-

@@ -31,6 +31,7 @@ class AuthenticatedSessionController extends Controller
     public function store(LoginRequest $request): RedirectResponse
     {
         $request->authenticate();
+        $request->session()->regenerate();
 
         $user = Auth::user();
 
@@ -40,13 +41,15 @@ class AuthenticatedSessionController extends Controller
             $request->session()->invalidate();
             $request->session()->regenerateToken();
 
+            $contact = $this->otpService->getAdminContact();
+
             throw ValidationException::withMessages([
-                'email' => 'This account has been deactivated. Please contact support for assistance.',
+                'email' => "This account has been blocked. Please contact the administrator at {$contact['email']}" . ($contact['phone'] ? " or {$contact['phone']}" : "") . " for assistance.",
             ]);
         }
 
         // Security Check 2: OTP Verification for Customer Accounts
-        if ($user->isCustomer() && is_null($user->email_verified_at)) {
+        if (! $user->isAdmin() && ! $user->isStaff() && is_null($user->email_verified_at)) {
             // Generate OTP for verification
             try {
                 $this->otpService->generate($user->email, 'email_verification', $user);
@@ -59,8 +62,6 @@ class AuthenticatedSessionController extends Controller
             return redirect()->route('otp.verify.notice')
                 ->with('status', 'Please enter your 6-digit verification code to complete sign in.');
         }
-
-        $request->session()->regenerate();
 
         if ($user->isAdmin() || $user->isStaff()) {
             return redirect()->intended(route('admin.dashboard'));

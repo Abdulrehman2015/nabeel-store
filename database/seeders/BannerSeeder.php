@@ -11,7 +11,7 @@ class BannerSeeder extends Seeder
     {
         $banners = [
             [
-                'title' => 'Direct Wholesale Groceries in Bulk Cartons',
+                'title' => 'Direct Mart Groceries in Bulk Cartons',
                 'subtitle' => 'Save up to 35% on genuine carton drinks, dairy, cooking oil, rice & cleaning supplies.',
                 'badge' => '⚡ DIRECT BULK DISCOUNTS',
                 'link' => '/category/beverages-soft-drinks',

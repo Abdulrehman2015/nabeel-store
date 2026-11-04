@@ -71,7 +71,7 @@
 
             <div>
                 <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Bank Account Transfer Details *</label>
-                <textarea name="bank_account_details" rows="4" required class="w-full text-sm border-gray-300 rounded-lg font-mono focus:ring-primary focus:border-primary">{{ old('bank_account_details', setting('bank_account_details', "Bank: Maybank Berhad\nAccount Name: Nabeel Bulk Wholesale Sdn Bhd\nAccount No: 5140 1234 5678\nReference: Order ID")) }}</textarea>
+                <textarea name="bank_account_details" rows="4" required class="w-full text-sm border-gray-300 rounded-lg font-mono focus:ring-primary focus:border-primary">{{ old('bank_account_details', setting('bank_account_details', "Bank: Maybank Berhad\nAccount Name: N&J Mini Mart Sdn Bhd\nAccount No: 5140 1234 5678\nReference: Order ID")) }}</textarea>
                 <p class="text-[11px] text-gray-500 mt-1">Displayed to customer at checkout alongside the QR code.</p>
             </div>
 

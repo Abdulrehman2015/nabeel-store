@@ -8,7 +8,7 @@
     {{-- Header --}}
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-            <h1 class="text-2xl font-black text-slate-900 tracking-tight">Wholesale Orders</h1>
+            <h1 class="text-2xl font-black text-slate-900 tracking-tight">Customer Orders</h1>
             <p class="text-xs text-slate-500 mt-1">Review orders, verify DuitNow QR screenshots, manage delivery dispatch and print PDF invoices.</p>
         </div>
     </div>
@@ -134,7 +134,7 @@
                     @empty
                         <tr>
                             <td colspan="8" class="py-12 text-center text-slate-400">
-                                No wholesale orders found matching criteria.
+                                No orders found matching criteria.
                             </td>
                         </tr>
                     @endforelse

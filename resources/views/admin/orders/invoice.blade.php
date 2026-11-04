@@ -34,7 +34,7 @@
         <tr>
             <td>
                 <h1 class="title">{{ setting('site_name', '99 Bulk Sales') }}</h1>
-                <div class="tagline">Wholesale Carton Groceries & Household Essentials</div>
+                <div class="tagline">Groceries & Household Essentials</div>
                 <div style="font-size: 10px; color: #64748b; margin-top: 4px;">
                     {{ setting('store_address') }}<br>
                     Phone: {{ setting('store_phone') }} &bull; Email: {{ setting('store_email') }}<br>
@@ -150,7 +150,7 @@
 
     <div class="footer">
         Thank you for choosing {{ setting('site_name', '99 Bulk Sales') }} for your bulk grocery needs.<br>
-        This document serves as an official computer-generated wholesale tax invoice.
+        This document serves as an official computer-generated tax invoice.
     </div>
 
 </body>

@@ -67,16 +67,42 @@ class CategoryController extends Controller
         $products = $query->paginate(12)->withQueryString();
 
         // Available brands in this category for the sidebar filter
-        $brandIds = Product::where('category_id', $category->id)
-            ->whereNotNull('brand_id')
-            ->distinct()
-            ->pluck('brand_id');
+        $availableBrands = Brand::whereHas('products', function ($q) use ($category) {
+            $q->where('category_id', $category->id)->where('is_active', true);
+        })->withCount(['products' => function ($q) use ($category) {
+            $q->where('category_id', $category->id)->where('is_active', true);
+        }])->orderBy('name')->get();
 
-        $availableBrands = Brand::whereIn('id', $brandIds)->get();
+        // Fallback if no brands relation matched directly
+        if ($availableBrands->isEmpty()) {
+            $brandIds = Product::where('category_id', $category->id)
+                ->whereNotNull('brand_id')
+                ->distinct()
+                ->pluck('brand_id');
+            $availableBrands = Brand::whereIn('id', $brandIds)->orderBy('name')->get();
+        }
 
         // Price min/max for category
-        $minPrice = Product::where('category_id', $category->id)->min('price') ?? 0;
-        $maxPrice = Product::where('category_id', $category->id)->max('price') ?? 500;
+        $minPrice = Product::where('category_id', $category->id)->where('is_active', true)->min('price') ?? 0;
+        $maxPrice = Product::where('category_id', $category->id)->where('is_active', true)->max('price') ?? 500;
+
+        // All active categories with active product counts for sidebar & navigation
+        $allCategories = Category::active()
+            ->withCount(['products' => function ($q) {
+                $q->where('is_active', true);
+            }])
+            ->orderBy('sort_order')
+            ->get();
+
+        // Total active products across catalog
+        $totalWholesaleProducts = Product::where('is_active', true)->count();
+
+        // Count of applied active filters
+        $activeFiltersCount = 0;
+        if ($request->filled('brand')) $activeFiltersCount++;
+        if ($request->filled('min_price')) $activeFiltersCount++;
+        if ($request->filled('max_price')) $activeFiltersCount++;
+        if ($request->boolean('in_stock')) $activeFiltersCount++;
 
         // SEO & Schema
         $seo = $this->seoService->resolveMetadata($category, 'category');
@@ -89,11 +115,14 @@ class CategoryController extends Controller
 
         return view('storefront.category', compact(
             'category',
+            'allCategories',
+            'totalWholesaleProducts',
             'products',
             'availableBrands',
             'minPrice',
             'maxPrice',
             'sort',
+            'activeFiltersCount',
             'seo',
             'breadcrumbs',
             'breadcrumbsJsonLd'
@@ -110,8 +139,8 @@ class CategoryController extends Controller
             ->get();
 
         $seo = $this->seoService->resolveMetadata(null, 'categories', [
-            'title' => 'All Wholesale Grocery Categories',
-            'description' => 'Browse our complete catalog of wholesale food, drink, and household supply categories in bulk cartons.',
+            'title' => 'All Categories',
+            'description' => 'Browse our complete catalog of food essentials, beverages, snacks, and household supply categories.',
         ]);
 
         return view('storefront.categories_index', compact('categories', 'seo'));

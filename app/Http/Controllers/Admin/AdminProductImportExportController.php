@@ -14,7 +14,7 @@ class AdminProductImportExportController extends Controller
     public function export()
     {
         ActivityLog::log('products.exported');
-        $fileName = 'wholesale-products-' . date('Y-m-d') . '.csv';
+        $fileName = 'products-' . date('Y-m-d') . '.csv';
         return Excel::download(new ProductsExport, $fileName);
     }
 
@@ -27,7 +27,7 @@ class AdminProductImportExportController extends Controller
         try {
             Excel::import(new ProductsImport, $request->file('file'));
             ActivityLog::log('products.imported');
-            return redirect()->back()->with('success', 'Wholesale products imported and synchronized successfully.');
+            return redirect()->back()->with('success', 'Products imported and synchronized successfully.');
         } catch (\Throwable $e) {
             return redirect()->back()->with('error', 'Import failed: ' . $e->getMessage());
         }

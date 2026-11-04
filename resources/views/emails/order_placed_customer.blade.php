@@ -97,7 +97,7 @@
             </div>
         </div>
         <div class="footer">
-            <p>{{ setting('site_name', 'Bulk Mart') }} &bull; {{ setting('store_address', 'Wholesale Grocery Mart') }}</p>
+            <p>{{ setting('site_name', 'N&J Mini Mart') }} &bull; {{ setting('store_address', 'Puchong, Selangor') }}</p>
             <p>Questions? Call us at {{ setting('store_phone', '+60 12-345 6789') }} or email {{ setting('store_email', 'support@bulkmart.my') }}</p>
         </div>
     </div>

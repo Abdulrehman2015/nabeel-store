@@ -46,6 +46,126 @@ class AdminSettingsController extends Controller
     }
 
     /**
+     * Resolve Google Maps or map link to latitude & longitude coordinates.
+     */
+    public function resolveMapLink(Request $request)
+    {
+        $input = trim((string) $request->input('url', ''));
+
+        if (empty($input)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Please provide a valid map link or coordinates.'
+            ], 422);
+        }
+
+        // 1. Direct coordinates check: "42.91542, -78.89305"
+        if (preg_match('/^\s*(-?\d{1,2}(?:\.\d+)?)\s*,\s*(-?\d{1,3}(?:\.\d+)?)\s*$/', $input, $m)) {
+            $lat = (float) $m[1];
+            $lng = (float) $m[2];
+            if ($lat >= -90 && $lat <= 90 && $lng >= -180 && $lng <= 180) {
+                return response()->json([
+                    'success' => true,
+                    'lat' => $lat,
+                    'lng' => $lng,
+                    'name' => 'Coordinates (' . $lat . ', ' . $lng . ')'
+                ]);
+            }
+        }
+
+        $url = $input;
+        if (!preg_match('/^https?:\/\//i', $url)) {
+            $url = 'https://' . $url;
+        }
+
+        if (!filter_var($url, FILTER_VALIDATE_URL)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'The provided text is not a valid URL or coordinate pair.'
+            ], 422);
+        }
+
+        $lat = null;
+        $lng = null;
+        $placeName = null;
+
+        try {
+            $ch = curl_init($url);
+            curl_setopt_array($ch, [
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_FOLLOWLOCATION => true,
+                CURLOPT_MAXREDIRS => 10,
+                CURLOPT_CONNECTTIMEOUT => 8,
+                CURLOPT_TIMEOUT => 12,
+                CURLOPT_SSL_VERIFYPEER => false,
+                CURLOPT_SSL_VERIFYHOST => false,
+                CURLOPT_USERAGENT => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                CURLOPT_HTTPHEADER => [
+                    'Accept-Language: en-US,en;q=0.9',
+                    'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
+                ],
+            ]);
+            $body = curl_exec($ch);
+            $effectiveUrl = curl_getinfo($ch, CURLINFO_EFFECTIVE_URL) ?: $url;
+            curl_close($ch);
+
+            // Extract place name if present in URL
+            if (preg_match('#/maps/place/([^/@?]+)#i', $effectiveUrl, $pm)) {
+                $placeName = rawurldecode(str_replace('+', ' ', $pm[1]));
+            }
+
+            // Priority A: Google Maps protobuf pin coordinates (!3d... !4d...)
+            if (preg_match('/!3d(-?\d{1,2}(?:\.\d+)+)!4d(-?\d{1,3}(?:\.\d+)+)/', $effectiveUrl, $m) ||
+                ($body && preg_match('/!3d(-?\d{1,2}(?:\.\d+)+)!4d(-?\d{1,3}(?:\.\d+)+)/', $body, $m))) {
+                $lat = (float) $m[1];
+                $lng = (float) $m[2];
+            }
+            // Priority B: URL @lat,lng format
+            elseif (preg_match('/@(-?\d{1,2}(?:\.\d+)+),(-?\d{1,3}(?:\.\d+)+)/', $effectiveUrl, $m)) {
+                $lat = (float) $m[1];
+                $lng = (float) $m[2];
+            }
+            // Priority C: Query parameter ?q=lat,lng or ll=lat,lng
+            elseif (preg_match('/[?&](?:q|query|ll|sll)=(-?\d{1,2}(?:\.\d+)+)(?:%2C|,)(-?\d{1,3}(?:\.\d+)+)/i', $effectiveUrl, $m) ||
+                    ($body && preg_match('/[?&](?:q|query|ll|sll)=(-?\d{1,2}(?:\.\d+)+)(?:%2C|,)(-?\d{1,3}(?:\.\d+)+)/i', $body, $m))) {
+                $lat = (float) $m[1];
+                $lng = (float) $m[2];
+            }
+            // Priority D: Static map center in HTML (center=lat%2Clng)
+            elseif ($body && preg_match('/center=(-?\d{1,2}(?:\.\d+)+)(?:%2C|,)(-?\d{1,3}(?:\.\d+)+)/i', $body, $m)) {
+                $lat = (float) $m[1];
+                $lng = (float) $m[2];
+            }
+            // Priority E: OpenStreetMap link format
+            elseif (preg_match('#(?:#map=\d+/|mlat=)(-?\d{1,2}(?:\.\d+)+)(?:&mlon=|/)(-?\d{1,3}(?:\.\d+)+)#i', $effectiveUrl, $m)) {
+                $lat = (float) $m[1];
+                $lng = (float) $m[2];
+            }
+
+            if ($lat !== null && $lng !== null && $lat >= -90 && $lat <= 90 && $lng >= -180 && $lng <= 180) {
+                return response()->json([
+                    'success' => true,
+                    'lat' => $lat,
+                    'lng' => $lng,
+                    'name' => $placeName ?: 'Resolved Location',
+                    'effective_url' => $effectiveUrl,
+                ]);
+            }
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Could not detect geographic coordinates from this link. Please ensure it is a valid Google Maps or map location URL, or drag the pin directly on the map.'
+            ], 422);
+
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to resolve map link: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * Phase 3.6: Payment Settings
      */
     public function payment()
@@ -309,7 +429,7 @@ class AdminSettingsController extends Controller
                     'subtitle' => $newBannerData['subtitle'] ?? null,
                     'badge' => $newBannerData['badge'] ?? null,
                     'link' => $newBannerData['link'] ?? null,
-                    'button_text' => $newBannerData['button_text'] ?? 'Shop Wholesale Now',
+                    'button_text' => $newBannerData['button_text'] ?? 'Shop Now',
                     'sort_order' => isset($newBannerData['sort_order']) ? (int)$newBannerData['sort_order'] : (Banner::max('sort_order') + 1),
                     'is_active' => isset($newBannerData['is_active']) ? (bool)$newBannerData['is_active'] : true,
                     'desktop_image' => $imagePath,

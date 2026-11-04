@@ -6,7 +6,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     {{-- Dynamic SEO Metadata (Phase 5) --}}
-    <title>{{ $seo['title'] ?? (setting('site_name', '99 Bulk Sales') . ' - Wholesale Cartons') }}</title>
+    <title>{{ $seo['title'] ?? (setting('site_name', 'N&J Mini Mart') . ' - Online Mart & Groceries') }}</title>
     <meta name="description" content="{{ $seo['description'] ?? setting('seo_default_description') }}">
     <meta name="keywords" content="{{ $seo['keywords'] ?? setting('seo_default_keywords') }}">
     <meta name="robots" content="{{ $seo['robots'] ?? 'index, follow' }}">
@@ -259,8 +259,8 @@
                             <img src="{{ asset('images/logo.png') }}" alt="{{ setting('site_name', 'N&J mini mart') }}" class="h-9 sm:h-11 w-auto object-contain">
                         </div>
                         <div class="hidden xl:block">
-                            <span class="block text-xs font-black text-slate-900 uppercase tracking-tight">Wholesale Direct</span>
-                            <span class="block text-[10px] font-semibold text-lime-600">Pallet & Carton Supply</span>
+                            <span class="block text-xs font-black text-slate-900 uppercase tracking-tight">Mini Mart</span>
+                            <span class="block text-[10px] font-semibold text-lime-600">Daily Groceries & Essentials</span>
                         </div>
                     </a>
                 </div>
@@ -297,7 +297,7 @@
                         style="display: none;"
                     >
                         <div x-show="searchLoading" class="p-4 text-center text-sm text-slate-500">
-                            Searching wholesale catalog...
+                            Searching store catalog...
                         </div>
                         <template x-for="item in liveSearchResults" :key="item.id">
                             <a :href="item.url" class="flex items-center gap-3 p-3 hover:bg-slate-50 transition group">
@@ -319,7 +319,7 @@
                             </a>
                         </template>
                         <div x-show="!searchLoading && liveSearchResults.length === 0" class="p-4 text-center text-sm text-slate-500">
-                            No wholesale products matching "<span x-text="liveSearchQuery"></span>"
+                            No products matching "<span x-text="liveSearchQuery"></span>"
                         </div>
                     </div>
                 </div>
@@ -351,9 +351,8 @@
                                 @foreach($headerCategories as $cat)
                                     <a href="{{ route('category.show', $cat->slug) }}" class="flex items-center justify-between px-3 py-2 rounded-xl text-sm text-slate-700 hover:bg-sky-50 hover:text-sky-700 transition">
                                         <div class="flex items-center gap-2.5">
-                                            <div class="w-6 h-6 rounded-lg flex items-center justify-center p-1 text-white shrink-0 shadow-xs"
-                                                 style="background: {{ $cat->icon_style_gradient }};">
-                                                {!! $cat->renderIcon('w-3.5 h-3.5 text-white') !!}
+                                            <div class="w-7 h-7 rounded-lg overflow-hidden flex items-center justify-center p-0.5 shrink-0 border border-slate-200 bg-slate-100 shadow-2xs">
+                                                {!! $cat->renderIcon('w-full h-full object-cover rounded-md') !!}
                                             </div>
                                             <span class="font-medium text-xs">{{ $cat->name }}</span>
                                         </div>
@@ -395,10 +394,12 @@
                             </div>
                         </div>
                     @else
-                        <a href="{{ route('login') }}" class="hidden sm:inline-flex items-center gap-1.5 text-sm font-semibold text-slate-700 hover:text-sky-600 py-2 px-3 rounded-lg hover:bg-slate-50 transition">
-                            <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
-                            <span>Sign In</span>
-                        </a>
+                        <div class="hidden sm:inline-flex items-center text-sm font-semibold text-slate-700 hover:text-sky-600 py-2 px-3 rounded-xl hover:bg-slate-50 transition border border-transparent hover:border-slate-200">
+                            <svg class="w-4 h-4 text-slate-400 mr-1.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                            <a href="{{ route('login') }}" class="hover:text-sky-600 transition">Sign In</a>
+                            <span class="mx-1 text-slate-300 font-normal">/</span>
+                            <a href="{{ route('register') }}" class="hover:text-sky-600 transition">Sign Up</a>
+                        </div>
                     @endauth
 
                     {{-- Mini-Cart Trigger Button --}}
@@ -470,7 +471,7 @@
                 <div class="p-5 border-b border-slate-200 flex items-center justify-between bg-slate-50">
                     <div class="flex items-center gap-2">
                         <svg class="w-6 h-6 text-sky-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
-                        <h2 class="text-lg font-bold text-slate-900">Wholesale Cart (<span x-text="cartCount"></span>)</h2>
+                        <h2 class="text-lg font-bold text-slate-900">Shopping Cart (<span x-text="cartCount"></span>)</h2>
                     </div>
                     <button type="button" @click="cartOpen = false" class="text-slate-400 hover:text-slate-600 p-1">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
@@ -500,7 +501,7 @@
                             <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto text-slate-400 mb-3">
                                 <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
                             </div>
-                            <p class="text-slate-600 font-semibold">Your wholesale cart is empty</p>
+                            <p class="text-slate-600 font-semibold">Your shopping cart is empty</p>
                             <a href="{{ route('category.index') }}" @click="cartOpen = false" class="inline-block mt-4 px-4 py-2 bg-sky-600 text-white text-xs font-bold rounded-lg hover:bg-sky-700 transition">
                                 Start Shopping
                             </a>
@@ -584,7 +585,10 @@
                     <div class="text-xs text-slate-500 mb-2">Signed in as {{ auth()->user()->name }}</div>
                     <a href="{{ route('account.orders') }}" class="block py-2 text-sm font-bold text-sky-600">My Account &bull; Orders</a>
                 @else
-                    <a href="{{ route('login') }}" class="block w-full py-2.5 text-center bg-sky-600 text-white rounded-xl text-sm font-bold">Sign In / Register</a>
+                    <div class="grid grid-cols-2 gap-2">
+                        <a href="{{ route('login') }}" class="py-2.5 text-center bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl text-sm font-bold transition">Sign In</a>
+                        <a href="{{ route('register') }}" class="py-2.5 text-center bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-sm font-bold transition">Sign Up</a>
+                    </div>
                 @endauth
             </div>
         </div>
@@ -623,7 +627,7 @@
                 <div class="flex-1 text-xs">
                     <h4 class="font-bold text-sm text-white">{{ setting('cookie_consent_title', 'Cookie Preferences') }}</h4>
                     <p class="text-slate-300 mt-1">
-                        {{ setting('cookie_consent_message', 'We use essential cookies to make our wholesale store work. Analytics cookies are loaded only with your approval.') }}
+                        {{ setting('cookie_consent_message', 'We use essential cookies to make our store work. Analytics cookies are loaded only with your approval.') }}
                         <a href="{{ route('page.show', 'cookie-policy') }}" class="underline hover:text-sky-400">Cookie Policy</a>.
                     </p>
                     <div class="mt-3 flex items-center gap-2">
@@ -652,7 +656,7 @@
                         </div>
                     </div>
                     <p class="text-xs text-slate-400 leading-relaxed max-w-sm">
-                        {{ setting('site_tagline', 'Direct wholesale carton groceries, beverages, cooking oil, and cleaning supplies delivered to your doorstep.') }}
+                        {{ setting('site_tagline', 'Your neighbourhood mart for groceries, beverages, daily food essentials, and household supplies.') }}
                     </p>
                     <div class="text-xs space-y-1.5 text-slate-300 pt-2">
                         <p class="flex items-start gap-2">

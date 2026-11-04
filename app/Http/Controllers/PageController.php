@@ -29,8 +29,8 @@ class PageController extends Controller
     public function contact()
     {
         $seo = $this->seoService->resolveMetadata(null, 'contact', [
-            'title' => 'Contact Us & Wholesale Inquiries',
-            'description' => 'Get in touch with 99 Bulk Sales customer support and distribution warehouse team.',
+            'title' => 'Contact Us & Customer Support',
+            'description' => 'Get in touch with N&J Mini Mart customer support and store team.',
         ]);
 
         return view('storefront.contact', compact('seo'));

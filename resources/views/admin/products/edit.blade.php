@@ -19,7 +19,7 @@
                 <span>/</span>
                 <span class="text-gray-900 font-medium truncate max-w-xs">{{ $product->name }}</span>
             </div>
-            <h1 class="text-2xl font-bold text-gray-900 mt-1">Edit Wholesale Product</h1>
+            <h1 class="text-2xl font-bold text-gray-900 mt-1">Edit Product</h1>
         </div>
         <div class="flex items-center gap-2">
             <a href="{{ route('product.show', $product->slug) }}" target="_blank" class="px-3.5 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 flex items-center gap-1.5 transition">
@@ -137,7 +137,7 @@
                             <span>{{ url('/') }}/product/</span><span class="font-semibold text-gray-700" x-text="slug || 'product-slug'"></span>
                         </div>
                         <h4 class="text-base text-blue-700 font-medium hover:underline truncate" x-text="metaTitle || title || '{{ $product->name }}'"></h4>
-                        <p class="text-xs text-gray-600 line-clamp-2" x-text="metaDesc || 'Buy bulk groceries and household goods at wholesale prices. Fast commercial delivery in carton packaging.'"></p>
+                        <p class="text-xs text-gray-600 line-clamp-2" x-text="metaDesc || 'Buy groceries and household goods. Fast delivery.'"></p>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -198,7 +198,7 @@
                     <h3 class="text-base font-semibold text-gray-900 border-b border-gray-100 pb-3">Pricing & Tax</h3>
 
                     <div>
-                        <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Wholesale Price ({{ setting('currency_symbol', 'RM') }}) *</label>
+                        <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Price ({{ setting('currency_symbol', 'RM') }}) *</label>
                         <input type="number" step="0.01" name="price" x-model="price" required value="{{ old('price', $product->price) }}" class="w-full text-sm border-gray-300 rounded-lg focus:ring-primary focus:border-primary">
                     </div>
 

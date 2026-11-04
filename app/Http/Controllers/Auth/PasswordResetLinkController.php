@@ -40,13 +40,14 @@ class PasswordResetLinkController extends Controller
 
         if (! $user) {
             throw ValidationException::withMessages([
-                'email' => 'We could not find a wholesale account registered with this email address.',
+                'email' => 'We could not find an account registered with this email address.',
             ]);
         }
 
         if (! $user->is_active) {
+            $contact = $this->otpService->getAdminContact();
             throw ValidationException::withMessages([
-                'email' => 'This account has been deactivated. Please contact customer support.',
+                'email' => "This account has been blocked. Please contact the administrator at {$contact['email']}" . ($contact['phone'] ? " or {$contact['phone']}" : "") . ".",
             ]);
         }
 

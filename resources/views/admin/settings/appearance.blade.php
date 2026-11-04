@@ -68,7 +68,7 @@
                 </div>
                 <div>
                     <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded" :style="{ backgroundColor: accent, color: '#ffffff' }">Promo</span>
-                    <h5 class="text-sm font-bold text-gray-900 mt-1">FANTA Orange Wholesale Carton</h5>
+                    <h5 class="text-sm font-bold text-gray-900 mt-1">FANTA Orange Family Pack</h5>
                     <p class="text-base font-extrabold mt-0.5" :style="{ color: primary }">RM 42.50</p>
                 </div>
                 <button type="button" class="w-full py-2 text-xs font-bold uppercase tracking-wider shadow" :style="{ backgroundColor: primary, color: btnText, borderRadius: radius }">
@@ -79,7 +79,7 @@
             <!-- Mock Footer -->
             <div class="p-4 rounded-lg text-white text-xs flex justify-between" :style="{ backgroundColor: footerBg }">
                 <span>© 2026 Nabeel Bulk Sales Store</span>
-                <span class="text-gray-400">Halal Certified Wholesale</span>
+                <span class="text-gray-400">Halal Certified Groceries</span>
             </div>
         </div>
     </div>

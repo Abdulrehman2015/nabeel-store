@@ -64,7 +64,7 @@
                     <span>{{ url('/') }}/{{ $selectedPage === 'home' ? '' : $selectedPage }}</span>
                 </div>
                 <h4 class="text-base text-blue-700 font-medium hover:underline truncate" x-text="metaTitle || '{{ $availablePages[$selectedPage] ?? 'Page Title' }} — {{ setting('site_name') }}'"></h4>
-                <p class="text-xs text-gray-600 line-clamp-2" x-text="metaDesc || 'Wholesale bulk groceries and household essentials delivered in carton quantities.'"></p>
+                <p class="text-xs text-gray-600 line-clamp-2" x-text="metaDesc || 'groceries and daily items and household essentials delivered in carton quantities.'"></p>
             </div>
 
             <div>
