@@ -451,9 +451,9 @@
                 </div>
             </div>
 
-            {{-- Products Grid: Mobile (1-col), Tablet (2-col), Desktop (3-col) --}}
+            {{-- Products Grid: Mobile (2-col), Tablet (2-col), Desktop (3-col) --}}
             @if($products->count() > 0)
-                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
+                <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
                     @foreach($products as $product)
                         @include('storefront.partials.product_card', ['product' => $product])
                     @endforeach
@@ -580,7 +580,7 @@
                             <label class="flex items-center justify-between cursor-pointer">
                                 <div>
                                     <span class="text-xs font-bold text-slate-900 block">In-Stock Only</span>
-                                    <span class="text-[10px] text-slate-500">Only show dispatch-ready cartons</span>
+                                    <span class="text-[10px] text-slate-500">Only show in-stock products</span>
                                 </div>
                                 <input 
                                     type="checkbox" 

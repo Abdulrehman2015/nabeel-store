@@ -30,7 +30,7 @@
                             </span>
                         </div>
                         <p class="text-xs text-slate-500">
-                            Placed on {{ $order->created_at->format('M d, Y h:i A') }} &bull; {{ $order->items->sum('quantity') }} cartons
+                            Placed on {{ $order->created_at->format('M d, Y h:i A') }} &bull; {{ $order->items->sum('quantity') }} items
                         </p>
                         <p class="text-xs text-slate-600">
                             Delivery to: {{ $order->delivery_city }} (Floor {{ $order->floor }})
@@ -60,10 +60,10 @@
         <div class="bg-white rounded-3xl p-12 text-center border border-slate-200 max-w-md mx-auto shadow-sm">
             <div class="text-3xl mb-2">📦</div>
             <h3 class="text-base font-bold text-slate-900">No orders placed yet</h3>
-            <p class="text-xs text-slate-500 mt-1">When you place wholesale carton orders, they will appear here with live tracking.</p>
+            <p class="text-xs text-slate-500 mt-1">When you place orders, they will appear here with live tracking.</p>
             <div class="mt-4">
                 <a href="{{ route('category.index') }}" class="inline-block px-4 py-2 bg-sky-600 text-white rounded-xl text-xs font-bold hover:bg-sky-700 transition">
-                    Browse Wholesale Store
+                    Browse Mart Products
                 </a>
             </div>
         </div>

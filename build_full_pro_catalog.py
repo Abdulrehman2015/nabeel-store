@@ -36,14 +36,17 @@ def apply_badges(canvas, pack_text, claim_text, theme_color=(15, 23, 42)):
     overlay = Image.new('RGBA', canvas.size, (0, 0, 0, 0))
     odraw = ImageDraw.Draw(overlay)
     
-    pill_w = max(310, int(len(pack_text) * 11) + 45)
-    odraw.rounded_rectangle([(30, 30), (pill_w, 85)], radius=12, fill=theme_color + (240,), outline=(255, 255, 255), width=2)
-    odraw.text((45, 38), "WHOLESALE CASE", fill=(255, 255, 255), font=FONT_TITLE)
-    odraw.text((47, 64), pack_text.upper(), fill=(255, 255, 255), font=FONT_SUB)
+    # Modern N&J Mini Mart Brand badge with lime accent
+    clean_pack = pack_text.replace("WHOLESALE CASE", "VALUE PACK").replace("WHOLESALE", "MART VALUE").replace("COMMERCIAL", "VALUE")
+    pill_w = max(310, int(len(clean_pack) * 11) + 45)
+    odraw.rounded_rectangle([(30, 30), (pill_w, 85)], radius=12, fill=theme_color + (245,), outline=(174, 237, 4), width=2)
+    odraw.text((45, 38), "N&J MINI MART", fill=(174, 237, 4), font=FONT_TITLE)
+    odraw.text((47, 64), clean_pack.upper(), fill=(255, 255, 255), font=FONT_SUB)
     
-    odraw.rounded_rectangle([(550, 715), (770, 765)], radius=25, fill=(15, 23, 42, 235), outline=theme_color + (200,), width=2)
-    odraw.text((570, 723), "100% FACTORY SEALED", fill=(255, 255, 255), font=FONT_BADGE)
-    odraw.text((585, 742), claim_text.upper(), fill=(203, 213, 225), font=FONT_BADGE)
+    clean_claim = claim_text.replace("FACTORY SEALED", "AUTHENTIC STOCK").replace("WHOLESALE", "MART SAVINGS")
+    odraw.rounded_rectangle([(530, 715), (770, 765)], radius=25, fill=(15, 23, 42, 240), outline=(174, 237, 4, 220), width=2)
+    odraw.text((550, 723), "100% ORIGINAL & FRESH", fill=(174, 237, 4), font=FONT_BADGE)
+    odraw.text((565, 742), clean_claim.upper(), fill=(255, 255, 255), font=FONT_BADGE)
     
     canvas.paste(overlay, (0, 0), overlay)
 
@@ -803,11 +806,11 @@ def gen_product_39():
         draw.text((x + 38, ly + 10), "SUNLIGHT", fill=(185, 28, 28), font=FONT_HERO)
         draw.text((x + 32, ly + 72), "DISHWASHING LIME", fill=(101, 163, 13), font=FONT_TITLE)
         draw.text((x + 32, ly + 104), "100x FASTER DEGREASING", fill=(71, 85, 105), font=FONT_SUB)
-        draw.text((x + 32, ly + 135), "4.0 LITRES COMMERCIAL JUG", fill=(15, 23, 42), font=FONT_BADGE)
+        draw.text((x + 32, ly + 135), "4.0 LITRES VALUE JUG", fill=(15, 23, 42), font=FONT_BADGE)
     jug(170, 190, 270, 480)
     jug(340, 160, 290, 520)
     canvas.paste(layer, (0, 0), layer)
-    apply_badges(canvas, "6 x 4L COMMERCIAL GALLON", "REAL LIME GREASE CUTTER", (101, 163, 13))
+    apply_badges(canvas, "6 x 4L VALUE PACK", "REAL LIME GREASE CUTTER", (101, 163, 13))
     canvas.save(f"{OUTPUT_DIR}/product-39.png", 'PNG')
 
 # Product 40: MR MUSCLE MULTI-SURFACE FLOOR CLEANER 6*3.7L

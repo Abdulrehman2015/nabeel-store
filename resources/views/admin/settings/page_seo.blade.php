@@ -20,7 +20,10 @@
             </div>
             <h1 class="text-2xl font-bold text-gray-900 mt-1">Page-Level SEO Customization</h1>
         </div>
-        <button type="submit" form="pageSeoForm" class="px-5 py-2 bg-primary hover:bg-primary-hover text-white rounded-lg text-sm font-semibold shadow">Save Page SEO</button>
+        <button type="submit" form="pageSeoForm" class="px-5 py-2.5 bg-sky-600 hover:bg-sky-500 active:scale-98 text-white rounded-xl text-xs font-bold shadow-md shadow-sky-600/25 flex items-center gap-2 transition cursor-pointer">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+            <span>Save Page SEO</span>
+        </button>
     </div>
 
     <!-- Page Selector Dropdown Card -->
@@ -59,28 +62,107 @@
             </h3>
 
             <!-- Google Snippet Preview -->
-            <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 font-sans text-left space-y-1">
-                <div class="text-xs text-gray-500 truncate flex items-center gap-1">
+            <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 font-sans text-left space-y-1">
+                <div class="text-xs text-slate-500 truncate flex items-center gap-1">
                     <span>{{ url('/') }}/{{ $selectedPage === 'home' ? '' : $selectedPage }}</span>
                 </div>
-                <h4 class="text-base text-blue-700 font-medium hover:underline truncate" x-text="metaTitle || '{{ $availablePages[$selectedPage] ?? 'Page Title' }} — {{ setting('site_name') }}'"></h4>
-                <p class="text-xs text-gray-600 line-clamp-2" x-text="metaDesc || 'groceries and daily items and household essentials delivered in carton quantities.'"></p>
+                <h4 class="text-base text-blue-700 font-medium hover:underline truncate" x-text="metaTitle || '{{ $availablePages[$selectedPage] ?? 'Page Title' }} — {{ setting('site_name', 'N&J Mini Mart') }}'"></h4>
+                <p class="text-xs text-slate-600 line-clamp-2" x-text="metaDesc || 'Shop groceries, fresh essentials, snacks, and daily household items at N&J Mini Mart.'"></p>
             </div>
 
+            {{-- Meta Title with Google 50-60 Limit --}}
             <div>
-                <div class="flex justify-between items-center mb-1">
-                    <label class="text-xs font-semibold text-gray-700 uppercase">Meta Title</label>
-                    <span class="text-[10px] text-gray-400" :class="metaTitle.length > 60 ? 'text-red-500 font-bold' : ''" x-text="metaTitle.length + '/60 chars'"></span>
+                <div class="flex justify-between items-center mb-1.5">
+                    <div class="flex items-center gap-2">
+                        <label class="text-xs font-bold text-slate-700 uppercase tracking-wider">Meta Title</label>
+                        <span class="text-[10px] text-slate-400 font-medium">(Google SERP)</span>
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <span 
+                            class="text-[10px] font-bold px-2 py-0.5 rounded-md"
+                            :class="{
+                                'bg-amber-100 text-amber-700 border border-amber-200': metaTitle.length < 30,
+                                'bg-slate-100 text-slate-600 border border-slate-200': metaTitle.length >= 30 && metaTitle.length < 50,
+                                'bg-emerald-100 text-emerald-700 border border-emerald-300 ring-1 ring-emerald-400/30 font-bold': metaTitle.length >= 50 && metaTitle.length <= 60,
+                                'bg-rose-100 text-rose-700 border border-rose-300': metaTitle.length > 60
+                            }"
+                            x-text="metaTitle.length < 30 ? 'Too Short (<30)' : (metaTitle.length <= 60 ? (metaTitle.length >= 50 ? '✓ Optimal (50-60)' : 'Acceptable (30-49)') : '⚠ Truncated (>60)')"
+                        ></span>
+                        <span 
+                            class="text-xs font-mono font-bold"
+                            :class="metaTitle.length >= 50 && metaTitle.length <= 60 ? 'text-emerald-600' : (metaTitle.length > 60 ? 'text-rose-600' : 'text-slate-500')"
+                            x-text="metaTitle.length + '/60'"
+                        ></span>
+                    </div>
                 </div>
-                <input type="text" name="meta_title" x-model="metaTitle" value="{{ old('meta_title', $savedData['meta_title'] ?? '') }}" placeholder="Custom SERP Title" class="w-full text-sm border-gray-300 rounded-lg focus:ring-primary focus:border-primary">
+                <input 
+                    type="text" 
+                    name="meta_title" 
+                    maxlength="70"
+                    x-model="metaTitle" 
+                    value="{{ old('meta_title', $savedData['meta_title'] ?? '') }}" 
+                    placeholder="Custom SERP Title" 
+                    class="w-full text-xs sm:text-sm border-slate-300 rounded-xl focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 py-2.5 px-3.5 bg-slate-50/50"
+                >
+                <div class="w-full bg-slate-100 h-1 rounded-full overflow-hidden mt-1.5">
+                    <div 
+                        class="h-full transition-all duration-300 rounded-full"
+                        :class="{
+                            'bg-amber-400': metaTitle.length < 30,
+                            'bg-sky-400': metaTitle.length >= 30 && metaTitle.length < 50,
+                            'bg-emerald-500': metaTitle.length >= 50 && metaTitle.length <= 60,
+                            'bg-rose-500': metaTitle.length > 60
+                        }"
+                        :style="'width: ' + Math.min(100, (metaTitle.length / 60) * 100) + '%'"
+                    ></div>
+                </div>
             </div>
 
+            {{-- Meta Description with Google 140-160 Limit --}}
             <div>
-                <div class="flex justify-between items-center mb-1">
-                    <label class="text-xs font-semibold text-gray-700 uppercase">Meta Description</label>
-                    <span class="text-[10px] text-gray-400" :class="metaDesc.length > 160 ? 'text-red-500 font-bold' : ''" x-text="metaDesc.length + '/160 chars'"></span>
+                <div class="flex justify-between items-center mb-1.5">
+                    <div class="flex items-center gap-2">
+                        <label class="text-xs font-bold text-slate-700 uppercase tracking-wider">Meta Description</label>
+                        <span class="text-[10px] text-slate-400 font-medium">(SERP Snippet)</span>
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <span 
+                            class="text-[10px] font-bold px-2 py-0.5 rounded-md"
+                            :class="{
+                                'bg-amber-100 text-amber-700 border border-amber-200': metaDesc.length < 70,
+                                'bg-slate-100 text-slate-600 border border-slate-200': metaDesc.length >= 70 && metaDesc.length < 140,
+                                'bg-emerald-100 text-emerald-700 border border-emerald-300 ring-1 ring-emerald-400/30 font-bold': metaDesc.length >= 140 && metaDesc.length <= 160,
+                                'bg-rose-100 text-rose-700 border border-rose-300': metaDesc.length > 160
+                            }"
+                            x-text="metaDesc.length < 70 ? 'Too Short (<70)' : (metaDesc.length <= 160 ? (metaDesc.length >= 140 ? '✓ Optimal (140-160)' : 'Acceptable (70-139)') : '⚠ Truncated (>160)')"
+                        ></span>
+                        <span 
+                            class="text-xs font-mono font-bold"
+                            :class="metaDesc.length >= 140 && metaDesc.length <= 160 ? 'text-emerald-600' : (metaDesc.length > 160 ? 'text-rose-600' : 'text-slate-500')"
+                            x-text="metaDesc.length + '/160'"
+                        ></span>
+                    </div>
                 </div>
-                <textarea name="meta_description" x-model="metaDesc" rows="3" placeholder="Targeted description for search results" class="w-full text-sm border-gray-300 rounded-lg focus:ring-primary focus:border-primary">{{ old('meta_description', $savedData['meta_description'] ?? '') }}</textarea>
+                <textarea 
+                    name="meta_description" 
+                    maxlength="200"
+                    x-model="metaDesc" 
+                    rows="3" 
+                    placeholder="Targeted description for search results" 
+                    class="w-full text-xs sm:text-sm border-slate-300 rounded-xl focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 p-3.5 bg-slate-50/50 leading-relaxed"
+                >{{ old('meta_description', $savedData['meta_description'] ?? '') }}</textarea>
+                <div class="w-full bg-slate-100 h-1 rounded-full overflow-hidden mt-1.5">
+                    <div 
+                        class="h-full transition-all duration-300 rounded-full"
+                        :class="{
+                            'bg-amber-400': metaDesc.length < 70,
+                            'bg-sky-400': metaDesc.length >= 70 && metaDesc.length < 140,
+                            'bg-emerald-500': metaDesc.length >= 140 && metaDesc.length <= 160,
+                            'bg-rose-500': metaDesc.length > 160
+                        }"
+                        :style="'width: ' + Math.min(100, (metaDesc.length / 160) * 100) + '%'"
+                    ></div>
+                </div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">

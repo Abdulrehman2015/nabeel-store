@@ -89,10 +89,10 @@
         {{-- Left Column (8 cols): Items, Payment Screenshot, Internal Notes --}}
         <div class="lg:col-span-8 space-y-8">
             
-            {{-- Cartons Line Items Table --}}
+            {{-- Ordered Line Items Table --}}
             <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-4">
                 <h3 class="text-base font-bold text-slate-900 pb-3 border-b border-slate-100">
-                    Carton Items ({{ $order->items->sum('quantity') }} Total)
+                    Ordered Items ({{ $order->items->sum('quantity') }} Total)
                 </h3>
 
                 <div class="overflow-x-auto">

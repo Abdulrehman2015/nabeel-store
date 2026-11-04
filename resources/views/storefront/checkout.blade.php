@@ -441,7 +441,7 @@
                         <span class="w-7 h-7 rounded-lg bg-sky-100 text-sky-700 font-black text-xs flex items-center justify-center">4</span>
                         <div>
                             <h2 class="text-lg font-bold text-slate-900">Advance Deposit via DuitNow QR</h2>
-                            <p class="text-xs text-slate-500">To reserve carton inventory, submit proof of your {{ $advancePercentage }}% advance payment</p>
+                            <p class="text-xs text-slate-500">To reserve product inventory, submit proof of your {{ $advancePercentage }}% advance payment</p>
                         </div>
                     </div>
 

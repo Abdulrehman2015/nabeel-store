@@ -30,7 +30,7 @@
 
         {{-- Items List --}}
         <div>
-            <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4">Carton Line Items</h3>
+            <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4">Order Items</h3>
             <div class="border border-slate-200 rounded-2xl overflow-hidden divide-y divide-slate-100">
                 @foreach($order->items as $item)
                     <div class="p-4 flex items-center justify-between gap-4 text-xs">

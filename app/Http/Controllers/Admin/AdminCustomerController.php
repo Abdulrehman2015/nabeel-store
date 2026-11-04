@@ -21,6 +21,15 @@ class AdminCustomerController extends Controller
             ->withCount('orders')
             ->latest();
 
+        $status = $request->query('status');
+        if ($status === 'active') {
+            $query->where('is_active', true);
+        } elseif ($status === 'suspended') {
+            $query->where('is_active', false);
+        } elseif ($status === 'with_orders') {
+            $query->has('orders');
+        }
+
         if ($request->filled('search')) {
             $s = trim($request->query('search'));
             $query->where(function ($q) use ($s) {
@@ -32,7 +41,14 @@ class AdminCustomerController extends Controller
 
         $customers = $query->paginate(15)->withQueryString();
 
-        return view('admin.customers.index', compact('customers'));
+        $stats = [
+            'total' => User::where('role', 'customer')->count(),
+            'active' => User::where('role', 'customer')->where('is_active', true)->count(),
+            'suspended' => User::where('role', 'customer')->where('is_active', false)->count(),
+            'with_orders' => User::where('role', 'customer')->has('orders')->count(),
+        ];
+
+        return view('admin.customers.index', compact('customers', 'stats'));
     }
 
     public function show(User $user)

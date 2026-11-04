@@ -25,7 +25,7 @@ class FaqSeeder extends Seeder
             [
                 'category' => 'Payment',
                 'question' => 'Why is an advance payment required?',
-                'answer' => 'Because bulk cartons are heavy, high-value goods reserved specifically for your order, we require a small 10% advance deposit via DuitNow QR. This secures your inventory allocation and delivery slot. The remaining 90% balance is paid on delivery.',
+                'answer' => 'To confirm your order and schedule prompt delivery, an advance payment or deposit is requested via DuitNow QR or online transfer. This guarantees your fresh items and secures your delivery slot.',
                 'sort_order' => 3,
             ],
             [
@@ -43,7 +43,7 @@ class FaqSeeder extends Seeder
             [
                 'category' => 'Ordering',
                 'question' => 'What is the minimum order value?',
-                'answer' => 'The minimum order value for bulk sales is RM 100.00 per order to ensure carton logistics viability.',
+                'answer' => 'There is no strict minimum order limit — shop for what you need and enjoy convenient neighbourhood delivery!',
                 'sort_order' => 6,
             ],
         ];

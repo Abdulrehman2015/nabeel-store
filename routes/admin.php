@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\AdminCustomerController;
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AdminOrderController;
 use App\Http\Controllers\Admin\AdminPolicyController;
+use App\Http\Controllers\Admin\AdminPosController;
 use App\Http\Controllers\Admin\AdminProductController;
 use App\Http\Controllers\Admin\AdminProductImportExportController;
 use App\Http\Controllers\Admin\AdminSettingsController;
@@ -25,6 +26,12 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     // Dashboard
     Route::get('/', [AdminDashboardController::class, 'index'])->name('dashboard');
     Route::get('/notifications/poll', [AdminDashboardController::class, 'pollNotifications'])->name('notifications.poll');
+
+    // Point of Sale (POS) Cashier Register
+    Route::get('pos', [AdminPosController::class, 'index'])->name('pos.index');
+    Route::post('pos/checkout', [AdminPosController::class, 'checkout'])->name('pos.checkout');
+    Route::get('pos/receipt/{order}', [AdminPosController::class, 'receipt'])->name('pos.receipt');
+    Route::post('pos/customer', [AdminPosController::class, 'quickCustomer'])->name('pos.customer');
 
     // Categories
     Route::resource('categories', AdminCategoryController::class);

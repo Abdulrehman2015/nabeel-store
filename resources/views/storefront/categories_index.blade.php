@@ -34,7 +34,7 @@
                     </p>
                 </div>
                 <div class="pt-6 border-t border-slate-100 flex items-center justify-between text-xs mt-4">
-                    <span class="font-bold text-slate-400">{{ $category->products_count }} {{ Str::plural('Carton', $category->products_count) }}</span>
+                    <span class="font-bold text-slate-400">{{ $category->products_count }} {{ Str::plural('Product', $category->products_count) }}</span>
                     <span class="text-sky-600 font-bold group-hover:translate-x-1 transition-transform">Browse &rarr;</span>
                 </div>
             </a>

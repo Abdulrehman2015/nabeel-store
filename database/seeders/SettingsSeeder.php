@@ -11,9 +11,9 @@ class SettingsSeeder extends Seeder
     {
         $settings = [
             // General & Store
-            ['key' => 'site_name', 'value' => '99 Bulk Sales', 'group' => 'general', 'type' => 'text'],
-            ['key' => 'site_tagline', 'value' => 'Groceries & Mart Groceries & Household Essentials', 'group' => 'general', 'type' => 'text'],
-            ['key' => 'store_email', 'value' => 'orders@99bulksales.my', 'group' => 'general', 'type' => 'text'],
+            ['key' => 'site_name', 'value' => 'N&J Mini Mart', 'group' => 'general', 'type' => 'text'],
+            ['key' => 'site_tagline', 'value' => 'Daily Groceries & Essentials', 'group' => 'general', 'type' => 'text'],
+            ['key' => 'store_email', 'value' => 'orders@njminimart.my', 'group' => 'general', 'type' => 'text'],
             ['key' => 'store_phone', 'value' => '+60 12-889 9900', 'group' => 'general', 'type' => 'text'],
             ['key' => 'store_address', 'value' => 'Lot 45, Jalan Industri 3/1, Kawasan Perindustrian Puchong, 47100 Puchong, Selangor', 'group' => 'general', 'type' => 'text'],
             ['key' => 'company_registration_no', 'value' => '202401019988 (1458923-M)', 'group' => 'general', 'type' => 'text'],
@@ -21,7 +21,7 @@ class SettingsSeeder extends Seeder
             ['key' => 'currency_symbol', 'value' => 'RM', 'group' => 'general', 'type' => 'text'],
             ['key' => 'currency_code', 'value' => 'MYR', 'group' => 'general', 'type' => 'text'],
             ['key' => 'currency_decimals', 'value' => '2', 'group' => 'general', 'type' => 'number'],
-            ['key' => 'order_number_prefix', 'value' => 'BS', 'group' => 'general', 'type' => 'text'],
+            ['key' => 'order_number_prefix', 'value' => 'NJ', 'group' => 'general', 'type' => 'text'],
             ['key' => 'return_window_days', 'value' => '7', 'group' => 'general', 'type' => 'number'],
             ['key' => 'order_cutoff_time', 'value' => '4:00 PM', 'group' => 'general', 'type' => 'text'],
 
@@ -42,12 +42,12 @@ class SettingsSeeder extends Seeder
             ['key' => 'require_advance_payment', 'value' => '1', 'group' => 'payment', 'type' => 'boolean'],
             ['key' => 'advance_percentage', 'value' => '10', 'group' => 'payment', 'type' => 'number'],
             ['key' => 'qr_code_image', 'value' => 'images/demo-qr.png', 'group' => 'payment', 'type' => 'image'],
-            ['key' => 'bank_account_details', 'value' => "Bank: Maybank Berhad\nAccount Name: 99 Bulk Sales Sdn Bhd\nAccount No: 5148 7921 6890\nDuitNow QR ID: 202401019988", 'group' => 'payment', 'type' => 'textarea'],
+            ['key' => 'bank_account_details', 'value' => "Bank: Maybank Berhad\nAccount Name: N&J Mini Mart Enterprise\nAccount No: 5148 7921 6890\nDuitNow QR ID: 202401019988", 'group' => 'payment', 'type' => 'textarea'],
             ['key' => 'payment_instructions', 'value' => "1. Scan the DuitNow QR code or transfer to our Maybank account.\n2. Pay the exact Advance Deposit shown below.\n3. Take a screenshot of the completed transfer.\n4. Enter the Transaction/Reference ID and upload the screenshot to confirm your order.", 'group' => 'payment', 'type' => 'textarea'],
 
             // Phase 4: Notification Settings
             ['key' => 'notify_email_enabled', 'value' => '1', 'group' => 'notification', 'type' => 'boolean'],
-            ['key' => 'admin_email', 'value' => 'admin@99bulksales.my', 'group' => 'notification', 'type' => 'text'],
+            ['key' => 'admin_email', 'value' => 'admin@njminimart.my', 'group' => 'notification', 'type' => 'text'],
             ['key' => 'admin_phone', 'value' => '+60128899900', 'group' => 'notification', 'type' => 'text'],
             ['key' => 'notify_telegram_enabled', 'value' => '0', 'group' => 'notification', 'type' => 'boolean'],
             ['key' => 'telegram_bot_token', 'value' => '', 'group' => 'notification', 'type' => 'text'],

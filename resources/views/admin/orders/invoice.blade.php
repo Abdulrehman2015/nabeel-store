@@ -84,7 +84,7 @@
         <thead>
             <tr>
                 <th style="width: 5%;">#</th>
-                <th style="width: 45%;">Carton Product Description</th>
+                <th style="width: 45%;">Product Description</th>
                 <th style="width: 15%;">SKU</th>
                 <th style="width: 12%; text-align: right;">Unit Price</th>
                 <th style="width: 8%; text-align: center;">Qty</th>
@@ -115,12 +115,12 @@
                 <strong>Payment Instructions:</strong><br>
                 Remaining balance is payable upon delivery directly to our driver via Cash or instant DuitNow transfer.<br><br>
                 <strong>Return Policy:</strong><br>
-                Defective or damaged outer cartons must be inspected at the point of delivery.
+                Defective or damaged items must be inspected at the point of delivery.
             </td>
             <td style="width: 50%; vertical-align: top;">
                 <table class="totals-table">
                     <tr>
-                        <td style="text-align: right;">Subtotal ({{ $order->items->sum('quantity') }} Cartons):</td>
+                        <td style="text-align: right;">Subtotal ({{ $order->items->sum('quantity') }} {{ Str::plural('Item', $order->items->sum('quantity')) }}):</td>
                         <td style="text-align: right; font-weight: bold; width: 35%;">{{ format_currency($order->subtotal) }}</td>
                     </tr>
                     <tr>

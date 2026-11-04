@@ -1,0 +1,1505 @@
+@extends('layouts.admin')
+
+@section('title', 'Point of Sale (POS) Counter Terminal')
+
+@section('content')
+<div 
+    x-data="posApp()" 
+    x-init="initPos()" 
+    @keydown.window="handleGlobalKeydown($event)"
+    :class="isFullscreen ? 'fixed inset-0 z-50 bg-[#f1f5f9] p-3 flex flex-col h-screen overflow-hidden' : 'flex-1 flex flex-col min-h-0 h-full space-y-2.5 overflow-hidden'"
+>
+
+    {{-- POS Terminal Master Top Command Bar (Compact Single-Row) --}}
+    <div class="shrink-0 bg-white px-3 sm:px-4 py-2 rounded-2xl border border-slate-200/90 shadow-2xs flex flex-wrap items-center justify-between gap-2.5">
+        
+        {{-- Left: Register Identity & Cashier Status --}}
+        <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-sky-600 to-sky-700 text-white flex items-center justify-center text-sm shadow-xs shrink-0">
+                🛒
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="text-sm font-black text-slate-900 tracking-tight">N&J POS</span>
+                <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200/80">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span>Register #1</span>
+                </span>
+                <span class="text-[11px] font-mono text-slate-400 font-bold hidden sm:inline" x-text="currentTime"></span>
+                <span class="text-slate-300 hidden sm:inline">&bull;</span>
+                <span class="text-xs text-slate-600 hidden md:inline">Cashier: <strong class="text-slate-800">{{ auth()->user()->name }}</strong></span>
+            </div>
+        </div>
+
+        {{-- Right: Today's Shift Stats & Control Buttons --}}
+        <div class="flex items-center gap-2">
+            {{-- Today's Sales Metric --}}
+            <div class="px-2.5 py-1 bg-slate-50 border border-slate-200/80 rounded-xl text-left hidden sm:flex items-center gap-1.5">
+                <span class="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider">Today:</span>
+                <span class="text-xs font-black text-slate-900">RM {{ number_format($todaySales, 2) }}</span>
+                <span class="text-[10px] text-slate-400">({{ $todayTransactions }})</span>
+            </div>
+
+            {{-- Sound Beep Toggle --}}
+            <button 
+                type="button" 
+                @click="soundEnabled = !soundEnabled" 
+                :class="soundEnabled ? 'bg-sky-50 text-sky-700 border-sky-200' : 'bg-slate-100 text-slate-400 border-slate-200'"
+                class="px-2.5 py-1.5 border rounded-xl text-xs font-bold transition flex items-center gap-1 cursor-pointer shadow-2xs"
+                title="Toggle Scanner Sound Feedback"
+            >
+                <span x-text="soundEnabled ? '🔊' : '🔇'"></span>
+                <span class="hidden xl:inline text-[10px]" x-text="soundEnabled ? 'Sound On' : 'Muted'"></span>
+            </button>
+
+            {{-- Parked / Held Baskets --}}
+            <button 
+                type="button" 
+                @click="showHeldOrdersModal = true" 
+                class="px-2.5 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200/90 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                title="View Held / Parked Baskets"
+            >
+                <svg class="w-3.5 h-3.5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <span class="hidden sm:inline text-[11px]">Parked</span>
+                <span class="px-1.5 py-0.2 rounded-full bg-amber-500 text-white text-[9px] font-black" x-text="heldOrders.length"></span>
+            </button>
+
+            {{-- Fullscreen Workstation Toggle --}}
+            <button 
+                type="button" 
+                @click="isFullscreen = !isFullscreen" 
+                :class="isFullscreen ? 'bg-slate-900 text-white' : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200'"
+                class="px-2.5 py-1.5 border rounded-xl text-xs font-bold transition flex items-center gap-1 cursor-pointer shadow-2xs"
+                title="Toggle Viewport Fullscreen Mode"
+            >
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-5h-4m4 0v4m0-4l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
+                <span class="hidden md:inline text-[11px]" x-text="isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'"></span>
+            </button>
+
+            {{-- Keyboard Shortcuts Info --}}
+            <button 
+                type="button" 
+                @click="showShortcutsModal = true"
+                class="p-1.5 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-xl border border-slate-200 transition cursor-pointer" 
+                title="View Keyboard Shortcuts"
+            >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </button>
+        </div>
+    </div>
+
+    {{-- Main POS Dual-Column Workstation (Flex 100% Viewport-Fitted) --}}
+    <div class="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-12 gap-3 items-stretch overflow-hidden">
+        
+        {{-- ======================================================== --}}
+        {{-- LEFT COLUMN: FAST CATALOG & BARCODE SCANNER (7-8 Cols)   --}}
+        {{-- ======================================================== --}}
+        <div class="lg:col-span-7 xl:col-span-8 flex flex-col min-h-0 h-full overflow-hidden space-y-2.5">
+            
+            {{-- Search & Category Controls Toolbar --}}
+            <div class="shrink-0 bg-white p-3 rounded-2xl border border-slate-200/90 shadow-2xs space-y-2.5">
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                    
+                    {{-- Barcode Scanner & Search Input --}}
+                    <div class="relative flex-1 group">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 group-focus-within:text-sky-600 transition">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
+                        </div>
+                        <input 
+                            type="text" 
+                            x-ref="barcodeInput"
+                            x-model="searchQuery" 
+                            @keydown.enter.prevent="handleBarcodeEnter()"
+                            placeholder="Scan barcode, SKU or search item (F2 or /)..."
+                            class="w-full pl-9 pr-14 py-2 bg-slate-50/80 hover:bg-slate-50 focus:bg-white text-xs sm:text-sm font-semibold rounded-xl border border-slate-200 focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 text-slate-900 placeholder-slate-400 transition"
+                            autofocus
+                        >
+                        <div class="absolute inset-y-0 right-0 pr-2 flex items-center gap-1">
+                            <button 
+                                type="button" 
+                                x-show="searchQuery.length > 0" 
+                                @click="searchQuery = ''; $refs.barcodeInput.focus()"
+                                class="text-slate-400 hover:text-slate-600 p-1 cursor-pointer"
+                                title="Clear Search"
+                            >
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                            </button>
+                            <kbd class="hidden sm:inline-flex items-center px-1.5 py-0.5 text-[9px] font-mono text-slate-400 bg-white border border-slate-200 rounded shadow-2xs">F2</kbd>
+                        </div>
+                    </div>
+
+                    {{-- Professional Category Custom Dropdown Selector with Real Icons --}}
+                    <div class="relative sm:w-64 shrink-0" @click.outside="categoryDropdownOpen = false">
+                        {{-- Trigger Button --}}
+                        <button 
+                            type="button" 
+                            @click="categoryDropdownOpen = !categoryDropdownOpen" 
+                            class="w-full h-10 px-3 bg-white hover:bg-slate-50 border border-slate-200/90 rounded-xl text-xs font-bold transition flex items-center justify-between gap-2 shadow-2xs cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500"
+                            :class="categoryDropdownOpen ? 'ring-2 ring-sky-500/20 border-sky-500 bg-slate-50' : ''"
+                            title="Filter by Category"
+                        >
+                            <div class="flex items-center gap-2 min-w-0">
+                                {{-- Category Icon / Thumbnail --}}
+                                <template x-if="selectedCategoryObj.id === 'all'">
+                                    <div class="w-6 h-6 rounded-lg bg-sky-100 text-sky-700 flex items-center justify-center shrink-0 text-xs shadow-2xs font-extrabold">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+                                    </div>
+                                </template>
+                                <template x-if="selectedCategoryObj.id !== 'all'">
+                                    <div class="w-6 h-6 rounded-lg bg-slate-100 border border-slate-200/70 p-0.5 flex items-center justify-center shrink-0 overflow-hidden shadow-2xs">
+                                        <template x-if="selectedCategoryObj.image_url">
+                                            <img :src="selectedCategoryObj.image_url" :alt="selectedCategoryObj.name" class="w-full h-full object-contain">
+                                        </template>
+                                        <template x-if="!selectedCategoryObj.image_url">
+                                            <span class="text-xs">🏷️</span>
+                                        </template>
+                                    </div>
+                                </template>
+
+                                {{-- Category Name --}}
+                                <span class="text-slate-900 font-bold truncate text-xs text-left" x-text="selectedCategoryObj.name"></span>
+                            </div>
+
+                            {{-- Product Count Badge & Animated Chevron --}}
+                            <div class="flex items-center gap-1.5 shrink-0">
+                                <span class="px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-600 text-[10px] font-mono font-bold" x-text="selectedCategoryObj.products_count"></span>
+                                <svg 
+                                    class="w-3.5 h-3.5 text-slate-400 transition-transform duration-200" 
+                                    :class="categoryDropdownOpen ? 'rotate-180 text-sky-600' : ''"
+                                    fill="none" 
+                                    stroke="currentColor" 
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
+                                </svg>
+                            </div>
+                        </button>
+
+                        {{-- Dropdown Floating Popover Menu --}}
+                        <div 
+                            x-show="categoryDropdownOpen" 
+                            x-cloak 
+                            x-transition:enter="transition ease-out duration-150" 
+                            x-transition:enter-start="opacity-0 translate-y-1 scale-98" 
+                            x-transition:enter-end="opacity-100 translate-y-0 scale-100" 
+                            x-transition:leave="transition ease-in duration-100" 
+                            x-transition:leave-start="opacity-100 translate-y-0 scale-100" 
+                            x-transition:leave-end="opacity-0 translate-y-1 scale-98" 
+                            class="absolute left-0 mt-1.5 w-72 sm:w-80 bg-white rounded-2xl shadow-xl border border-slate-200/90 py-2 z-50 overflow-hidden"
+                        >
+                            {{-- Search Input inside Dropdown for Fast Cashier Lookup --}}
+                            <div class="px-2.5 pb-2 border-b border-slate-100">
+                                <div class="relative">
+                                    <svg class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                                    <input 
+                                        type="text" 
+                                        x-model="categoryFilterSearch" 
+                                        placeholder="Find category..." 
+                                        class="w-full pl-8 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 placeholder-slate-400 focus:bg-white focus:border-sky-500 focus:ring-1 focus:ring-sky-500/20 transition"
+                                        @click.stop
+                                    >
+                                </div>
+                            </div>
+
+                            {{-- Categories List --}}
+                            <div class="max-h-64 overflow-y-auto divide-y divide-slate-50 p-1 text-xs">
+                                {{-- All Categories Option --}}
+                                <button 
+                                    type="button" 
+                                    @click="selectCategory('all')" 
+                                    class="w-full px-2.5 py-2 rounded-xl flex items-center justify-between text-left transition cursor-pointer group"
+                                    :class="selectedCategory === 'all' ? 'bg-sky-50/90 text-sky-900 font-extrabold ring-1 ring-sky-200' : 'hover:bg-slate-50 text-slate-700'"
+                                >
+                                    <div class="flex items-center gap-2.5 min-w-0">
+                                        <div class="w-7 h-7 rounded-lg bg-sky-100 text-sky-700 flex items-center justify-center shrink-0 text-xs shadow-2xs font-extrabold">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+                                        </div>
+                                        <div>
+                                            <span class="block font-bold leading-tight">All Categories</span>
+                                            <span class="text-[10px] text-slate-400 block mt-0.5">Show all catalog products</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex items-center gap-1.5 shrink-0">
+                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold" :class="selectedCategory === 'all' ? 'bg-sky-600 text-white' : 'bg-slate-100 text-slate-600'" x-text="products.length"></span>
+                                        <template x-if="selectedCategory === 'all'">
+                                            <svg class="w-4 h-4 text-sky-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                        </template>
+                                    </div>
+                                </button>
+
+                                {{-- Category Items with Real Icons --}}
+                                <template x-for="cat in dropdownFilteredCategories" :key="cat.id">
+                                    <button 
+                                        type="button" 
+                                        @click="selectCategory(cat.id)" 
+                                        class="w-full px-2.5 py-2 rounded-xl flex items-center justify-between text-left transition cursor-pointer group"
+                                        :class="String(selectedCategory) === String(cat.id) ? 'bg-sky-50/90 text-sky-900 font-extrabold ring-1 ring-sky-200' : 'hover:bg-slate-50 text-slate-700'"
+                                    >
+                                        <div class="flex items-center gap-2.5 min-w-0">
+                                            {{-- Icon Thumbnail with Rounded Frame --}}
+                                            <div class="w-7 h-7 rounded-lg bg-slate-50 border border-slate-200/80 p-0.5 flex items-center justify-center shrink-0 overflow-hidden shadow-2xs group-hover:scale-105 transition-transform">
+                                                <template x-if="cat.image_url">
+                                                    <img :src="cat.image_url" :alt="cat.name" class="w-full h-full object-contain">
+                                                </template>
+                                                <template x-if="!cat.image_url">
+                                                    <span class="text-xs">🏷️</span>
+                                                </template>
+                                            </div>
+
+                                            <span class="font-bold truncate text-xs" x-text="cat.name"></span>
+                                        </div>
+
+                                        <div class="flex items-center gap-1.5 shrink-0">
+                                            <span class="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold" :class="String(selectedCategory) === String(cat.id) ? 'bg-sky-600 text-white' : 'bg-slate-100 text-slate-600'" x-text="cat.products_count"></span>
+                                            <template x-if="String(selectedCategory) === String(cat.id)">
+                                                <svg class="w-4 h-4 text-sky-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                            </template>
+                                        </div>
+                                    </button>
+                                </template>
+
+                                {{-- Empty Search Inside Dropdown --}}
+                                <template x-if="dropdownFilteredCategories.length === 0">
+                                    <div class="py-4 text-center text-slate-400 text-xs">
+                                        No categories matching "<span class="font-bold text-slate-600" x-text="categoryFilterSearch"></span>"
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- In Stock Only Toggle --}}
+                    <button 
+                        type="button" 
+                        @click="inStockOnly = !inStockOnly" 
+                        :class="inStockOnly ? 'bg-emerald-50 text-emerald-800 border-emerald-300' : 'bg-slate-100 text-slate-600 border-slate-200'"
+                        class="px-2.5 py-2 border rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 shrink-0 cursor-pointer shadow-2xs"
+                        title="Filter Out-of-Stock Items"
+                    >
+                        <span class="w-2 h-2 rounded-full" :class="inStockOnly ? 'bg-emerald-500' : 'bg-slate-400'"></span>
+                        <span class="whitespace-nowrap text-[11px]">In Stock</span>
+                    </button>
+                </div>
+
+                {{-- Smooth Category Carousel Bar with Left & Right Arrows --}}
+                <div class="pt-1.5 border-t border-slate-100 flex items-center gap-1.5">
+                    
+                    {{-- Carousel Left Scroll Button --}}
+                    <button 
+                        type="button" 
+                        @click="scrollCategoryCarousel(-220)"
+                        class="w-6 h-6 rounded-lg bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-600 flex items-center justify-center shrink-0 transition cursor-pointer shadow-2xs"
+                        title="Scroll Categories Left"
+                    >
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
+                    </button>
+
+                    {{-- Horizontally Scrollable Category Pills --}}
+                    <div 
+                        x-ref="categoryCarousel"
+                        class="flex-1 flex items-center gap-1.5 overflow-x-auto no-scrollbar scroll-smooth py-0.5"
+                    >
+                        {{-- All Products Pill --}}
+                        <button 
+                            type="button" 
+                            @click="selectCategory('all')" 
+                            data-cat-pill="all"
+                            :class="selectedCategory === 'all' ? 'bg-slate-900 text-white shadow-xs ring-2 ring-slate-800' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'" 
+                            class="px-3 py-1 rounded-xl text-xs font-bold transition shrink-0 cursor-pointer whitespace-nowrap flex items-center gap-1.5"
+                        >
+                            <svg class="w-3.5 h-3.5 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+                            <span>All Products</span>
+                            <span class="ml-0.5 text-[10px] opacity-75 font-mono" x-text="'(' + products.length + ')'"></span>
+                        </button>
+
+                        {{-- Active Category Pills with Real Icons --}}
+                        <template x-for="cat in activeCategories" :key="cat.id">
+                            <button 
+                                type="button" 
+                                @click="selectCategory(cat.id)" 
+                                :data-cat-pill="cat.id"
+                                :class="String(selectedCategory) === String(cat.id) ? 'bg-sky-600 text-white shadow-xs ring-2 ring-sky-500/30' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'" 
+                                class="px-2.5 py-1 rounded-xl text-xs font-bold transition shrink-0 cursor-pointer flex items-center gap-1.5 whitespace-nowrap group"
+                            >
+                                <div class="w-4 h-4 rounded-md bg-white/80 p-0.5 flex items-center justify-center shrink-0 overflow-hidden" x-show="cat.image_url">
+                                    <img :src="cat.image_url" :alt="cat.name" class="w-full h-full object-contain">
+                                </div>
+                                <span x-text="cat.name"></span>
+                                <span class="text-[10px] opacity-75 font-mono" x-text="'(' + cat.products_count + ')'"></span>
+                            </button>
+                        </template>
+                    </div>
+
+                    {{-- Carousel Right Scroll Button --}}
+                    <button 
+                        type="button" 
+                        @click="scrollCategoryCarousel(220)"
+                        class="w-6 h-6 rounded-lg bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-600 flex items-center justify-center shrink-0 transition cursor-pointer shadow-2xs"
+                        title="Scroll Categories Right"
+                    >
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+                    </button>
+                </div>
+            </div>
+
+            {{-- Products Tile Grid (Independently Scrollable within Viewport) --}}
+            <div class="flex-1 min-h-0 overflow-y-auto pr-1">
+                <div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-2.5 pb-4">
+                    <template x-for="product in filteredProducts" :key="product.id">
+                        <div 
+                            @click="addToCart(product)"
+                            :class="{
+                                'opacity-40 pointer-events-none grayscale': product.stock_quantity <= 0,
+                                'ring-2 ring-sky-500/30 border-sky-400 bg-sky-50/15 shadow-sm': getCartItemQty(product.id) > 0,
+                                'hover:border-sky-400 hover:shadow-md hover:-translate-y-0.5 cursor-pointer': product.stock_quantity > 0
+                            }"
+                            class="group bg-white rounded-2xl border border-slate-200/90 p-2.5 flex flex-col justify-between transition-all duration-150 relative select-none"
+                        >
+                            {{-- Top: SKU & In-Cart / Stock Badges --}}
+                            <div class="flex items-center justify-between gap-1 mb-1">
+                                <span 
+                                    class="text-[9px] font-mono px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 truncate max-w-[85px]" 
+                                    x-text="product.sku || 'SKU'"
+                                ></span>
+
+                                {{-- "X In Cart" Badge if item is in basket --}}
+                                <template x-if="getCartItemQty(product.id) > 0">
+                                    <span class="text-[9px] font-black px-1.5 py-0.5 rounded-full bg-sky-600 text-white shadow-2xs">
+                                        <span x-text="getCartItemQty(product.id)"></span> in cart
+                                    </span>
+                                </template>
+
+                                {{-- Stock Level Badge (when not in cart) --}}
+                                <template x-if="getCartItemQty(product.id) === 0">
+                                    <span 
+                                        class="text-[9px] font-extrabold px-1.5 py-0.5 rounded-full"
+                                        :class="product.stock_quantity > 10 ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : (product.stock_quantity > 0 ? 'bg-amber-50 text-amber-700 border border-amber-200' : 'bg-rose-50 text-rose-700 border border-rose-200')"
+                                        x-text="product.stock_quantity > 0 ? product.stock_quantity + ' stock' : 'Out of Stock'"
+                                    ></span>
+                                </template>
+                            </div>
+
+                            {{-- Product Image & Title --}}
+                            <div class="text-center py-0.5">
+                                <div class="w-14 h-14 sm:w-16 sm:h-16 mx-auto rounded-xl bg-slate-50/90 border border-slate-100 flex items-center justify-center p-1 mb-1.5 overflow-hidden group-hover:scale-105 transition-transform duration-200">
+                                    <img 
+                                        :src="product.image_url" 
+                                        :alt="product.name" 
+                                        class="w-full h-full object-contain"
+                                        loading="lazy"
+                                    >
+                                </div>
+                                <h3 
+                                    class="text-xs font-bold text-slate-900 group-hover:text-sky-600 line-clamp-2 leading-snug min-h-[30px] text-left"
+                                    x-text="product.name"
+                                ></h3>
+                                <p 
+                                    class="text-[10px] text-slate-400 truncate mt-0.5 text-left" 
+                                    x-text="product.pack_size || product.category_name"
+                                ></p>
+                            </div>
+
+                            {{-- Bottom: Price & Tactile Add Button --}}
+                            <div class="pt-1.5 mt-1 border-t border-slate-100 flex items-center justify-between gap-1">
+                                <div>
+                                    <div class="text-xs sm:text-sm font-black text-slate-900">
+                                        RM <span x-text="product.effective_price.toFixed(2)"></span>
+                                    </div>
+                                    <template x-if="product.sale_price && product.sale_price < product.price">
+                                        <div class="text-[9px] text-slate-400 line-through">
+                                            RM <span x-text="product.price.toFixed(2)"></span>
+                                        </div>
+                                    </template>
+                                </div>
+
+                                <button 
+                                    type="button" 
+                                    class="h-6 px-2 rounded-lg bg-sky-50 group-hover:bg-sky-600 text-sky-700 group-hover:text-white flex items-center justify-center font-bold text-[11px] transition shadow-2xs gap-0.5 cursor-pointer"
+                                >
+                                    <span>+ Add</span>
+                                </button>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+
+                {{-- Empty Search Results State --}}
+                <div 
+                    x-show="filteredProducts.length === 0" 
+                    class="bg-white rounded-3xl border border-slate-200/90 p-8 text-center"
+                >
+                    <div class="w-10 h-10 rounded-2xl bg-slate-100 text-slate-400 mx-auto flex items-center justify-center text-lg mb-2">
+                        🔍
+                    </div>
+                    <h3 class="text-xs font-bold text-slate-800">No matching products found</h3>
+                    <p class="text-[11px] text-slate-500 mt-1 max-w-xs mx-auto">
+                        No active items match "<span class="font-bold text-slate-700" x-text="searchQuery"></span>". Try another barcode or keyword.
+                    </p>
+                    <button 
+                        type="button" 
+                        @click="searchQuery = ''; selectedCategory = 'all'" 
+                        class="mt-2.5 px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition cursor-pointer"
+                    >
+                        Reset Search Filters
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        {{-- ======================================================== --}}
+        {{-- RIGHT COLUMN: CASHIER REGISTER & ACTIVE CART (4-5 Cols)  --}}
+        {{-- 100% VIEWPORT-LOCKED CONTAINER (NEVER SCROLLS BELOW FOLD)--}}
+        {{-- ======================================================== --}}
+        <div class="lg:col-span-5 xl:col-span-4 flex flex-col min-h-0 h-full overflow-hidden bg-white rounded-2xl sm:rounded-3xl border border-slate-200/90 shadow-md">
+            
+            {{-- 1. Customer Selector Banner (Fixed Top) --}}
+            <div class="shrink-0 p-2.5 sm:px-3 sm:py-2 bg-slate-50/90 border-b border-slate-200 flex items-center justify-between gap-2">
+                <div class="flex items-center gap-2 truncate">
+                    <div class="w-7 h-7 rounded-lg bg-sky-100 text-sky-700 border border-sky-200 font-bold flex items-center justify-center text-xs shrink-0">
+                        👤
+                    </div>
+                    <div class="truncate">
+                        <div class="text-xs font-bold text-slate-900 truncate" x-text="customer.name"></div>
+                        <div class="text-[10px] text-slate-500 font-mono truncate" x-text="customer.phone || 'Walk-in Retail Shopper'"></div>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-1.5 shrink-0">
+                    <button 
+                        type="button" 
+                        @click="showCustomerModal = true" 
+                        class="px-2 py-0.5 bg-white hover:bg-slate-100 border border-slate-200 rounded-lg text-[10px] font-bold text-slate-700 transition cursor-pointer"
+                    >
+                        Switch
+                    </button>
+                    <button 
+                        type="button" 
+                        x-show="customer.id"
+                        @click="resetCustomer()" 
+                        class="px-1.5 py-0.5 bg-white hover:bg-slate-100 border border-slate-200 rounded-lg text-[10px] font-bold text-slate-500 transition cursor-pointer"
+                        title="Reset to Walk-in"
+                    >
+                        Reset
+                    </button>
+                </div>
+            </div>
+
+            {{-- 2. Cart Header & Batch Actions (Fixed Top) --}}
+            <div class="shrink-0 px-3 py-1.5 bg-slate-100/70 border-b border-slate-200/80 flex items-center justify-between text-xs font-bold text-slate-700">
+                <div class="flex items-center gap-1.5">
+                    <span>Active Basket</span>
+                    <span class="px-2 py-0.5 rounded-full bg-slate-200/90 text-slate-800 text-[10px] font-black" x-text="totalItemCount + ' items'"></span>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <button 
+                        type="button" 
+                        @click="holdCurrentOrder()" 
+                        :disabled="cart.length === 0"
+                        class="text-[10px] text-amber-700 hover:text-amber-800 disabled:opacity-40 disabled:pointer-events-none font-semibold cursor-pointer"
+                    >
+                        Hold Basket
+                    </button>
+                    <span class="text-slate-300">|</span>
+                    <button 
+                        type="button" 
+                        @click="clearCart()" 
+                        :disabled="cart.length === 0"
+                        class="text-[10px] text-rose-600 hover:text-rose-700 disabled:opacity-40 disabled:pointer-events-none font-semibold cursor-pointer"
+                    >
+                        Clear All
+                    </button>
+                </div>
+            </div>
+
+            {{-- 3. Cart Items Scrollable List (FLEX-1: SCROLLS INSIDE ITS CONTAINER) --}}
+            <div class="flex-1 min-h-0 overflow-y-auto divide-y divide-slate-100 p-2 text-xs">
+                <template x-for="(item, index) in cart" :key="item.id">
+                    <div class="p-1.5 hover:bg-slate-50/80 rounded-xl transition flex items-center justify-between gap-2">
+                        
+                        {{-- Small Item Thumbnail --}}
+                        <div class="w-8 h-8 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-center p-0.5 shrink-0 overflow-hidden">
+                            <img :src="item.image_url" :alt="item.name" class="w-full h-full object-contain">
+                        </div>
+
+                        {{-- Item Name & Price --}}
+                        <div class="flex-1 min-w-0">
+                            <div class="font-bold text-slate-900 truncate text-[11px]" x-text="item.name"></div>
+                            <div class="text-[9px] text-slate-400 font-mono flex items-center gap-1 mt-0.5">
+                                <span>RM <span x-text="item.price.toFixed(2)"></span></span>
+                                <span x-show="item.sku" class="text-slate-300">&bull;</span>
+                                <span x-show="item.sku" class="truncate max-w-[70px]" x-text="item.sku"></span>
+                            </div>
+                        </div>
+
+                        {{-- Quantity Stepper --}}
+                        <div class="flex items-center border border-slate-200 rounded-lg bg-white overflow-hidden shrink-0 shadow-2xs">
+                            <button 
+                                type="button" 
+                                @click="decrementQty(index)" 
+                                class="w-5 h-5 flex items-center justify-center text-slate-600 hover:bg-slate-100 font-bold text-xs cursor-pointer"
+                            >
+                                -
+                            </button>
+                            <input 
+                                type="number" 
+                                min="1" 
+                                :max="item.max_stock"
+                                x-model.number="item.quantity" 
+                                @change="validateQty(index)"
+                                class="w-7 h-5 text-center text-xs font-bold border-0 p-0 focus:ring-0 text-slate-900 bg-transparent"
+                            >
+                            <button 
+                                type="button" 
+                                @click="incrementQty(index)" 
+                                class="w-5 h-5 flex items-center justify-center text-slate-600 hover:bg-slate-100 font-bold text-xs cursor-pointer"
+                            >
+                                +
+                            </button>
+                        </div>
+
+                        {{-- Line Total & Trash Action --}}
+                        <div class="text-right shrink-0 min-w-[60px]">
+                            <div class="font-black text-slate-900 text-[11px]">
+                                RM <span x-text="(item.price * item.quantity).toFixed(2)"></span>
+                            </div>
+                            <button 
+                                type="button" 
+                                @click="removeItem(index)" 
+                                class="text-[9px] text-rose-500 hover:text-rose-700 cursor-pointer font-medium"
+                            >
+                                Remove
+                            </button>
+                        </div>
+                    </div>
+                </template>
+
+                {{-- Empty Register Placeholder --}}
+                <div x-show="cart.length === 0" class="py-8 text-center text-slate-400">
+                    <div class="text-2xl mb-1">🛒</div>
+                    <p class="font-bold text-xs text-slate-600">Basket is empty</p>
+                    <p class="text-[10px] text-slate-400 mt-0.5">Scan a barcode or tap products to build order.</p>
+                </div>
+            </div>
+
+            {{-- 4. Financials Summary (Fixed Bottom Section) --}}
+            <div class="shrink-0 p-2.5 bg-slate-50/90 border-t border-slate-200 space-y-1.5 text-xs">
+                <div class="flex justify-between text-slate-600 text-[11px]">
+                    <span>Subtotal:</span>
+                    <span class="font-bold text-slate-900">RM <span x-text="subtotal.toFixed(2)"></span></span>
+                </div>
+
+                {{-- Discount Row --}}
+                <div class="flex items-center justify-between text-slate-600 text-[11px]">
+                    <span>Discount (RM):</span>
+                    <div class="flex items-center gap-1">
+                        <template x-if="discountAmount > 0">
+                            <button 
+                                type="button" 
+                                @click="discountAmount = 0; amountTendered = grandTotal" 
+                                class="text-[9px] text-rose-500 hover:underline cursor-pointer"
+                            >
+                                Reset
+                            </button>
+                        </template>
+                        <input 
+                            type="number" 
+                            min="0" 
+                            step="0.50" 
+                            x-model.number="discountAmount" 
+                            @input="if (paymentMethod === 'cash') amountTendered = grandTotal"
+                            placeholder="0.00"
+                            class="w-16 text-right text-[11px] font-bold py-0.5 px-1.5 border-slate-300 rounded-md bg-white"
+                        >
+                    </div>
+                </div>
+
+                {{-- High-Contrast Grand Total Banner --}}
+                <div class="p-2.5 bg-slate-900 text-white rounded-xl flex items-baseline justify-between shadow-xs">
+                    <div>
+                        <div class="text-[9px] uppercase font-bold text-slate-400 tracking-wider">Total Payable</div>
+                        <div class="text-[9px] text-emerald-400 font-medium">N&J Cash Register</div>
+                    </div>
+                    <div class="text-xl font-black text-lime-400 tracking-tight">
+                        RM <span x-text="grandTotal.toFixed(2)"></span>
+                    </div>
+                </div>
+            </div>
+
+            {{-- 5. Payment Engine & Complete Sale CTA (Anchored Bottom within Viewport) --}}
+            <div class="shrink-0 p-2.5 bg-white border-t border-slate-200 space-y-2">
+                <div class="grid grid-cols-3 gap-1 p-0.5 bg-slate-100 rounded-xl text-xs font-bold">
+                    <button 
+                        type="button" 
+                        @click="paymentMethod = 'cash'; amountTendered = grandTotal" 
+                        :class="paymentMethod === 'cash' ? 'bg-white text-slate-900 shadow-2xs font-extrabold' : 'text-slate-500 hover:text-slate-900'"
+                        class="py-1 rounded-lg transition text-center cursor-pointer flex items-center justify-center gap-1 text-[11px]"
+                    >
+                        <span>💵</span>
+                        <span>Cash</span>
+                    </button>
+                    <button 
+                        type="button" 
+                        @click="paymentMethod = 'duitnow_qr'" 
+                        :class="paymentMethod === 'duitnow_qr' ? 'bg-white text-slate-900 shadow-2xs font-extrabold' : 'text-slate-500 hover:text-slate-900'"
+                        class="py-1 rounded-lg transition text-center cursor-pointer flex items-center justify-center gap-1 text-[11px]"
+                    >
+                        <span>📱</span>
+                        <span>DuitNow QR</span>
+                    </button>
+                    <button 
+                        type="button" 
+                        @click="paymentMethod = 'card'" 
+                        :class="paymentMethod === 'card' ? 'bg-white text-slate-900 shadow-2xs font-extrabold' : 'text-slate-500 hover:text-slate-900'"
+                        class="py-1 rounded-lg transition text-center cursor-pointer flex items-center justify-center gap-1 text-[11px]"
+                    >
+                        <span>💳</span>
+                        <span>Card</span>
+                    </button>
+                </div>
+
+                {{-- 1. CASH PAYMENT CONTROLS --}}
+                <div x-show="paymentMethod === 'cash'" class="space-y-1.5">
+                    <div class="flex items-center justify-between gap-2">
+                        <label class="text-[11px] font-bold text-slate-700">Cash Tendered:</label>
+                        <div class="relative w-32">
+                            <span class="absolute inset-y-0 left-0 pl-2 flex items-center text-[10px] font-bold text-slate-400">RM</span>
+                            <input 
+                                type="number" 
+                                min="0" 
+                                step="0.50" 
+                                x-model.number="amountTendered"
+                                class="w-full pl-7 pr-1.5 py-1 text-right font-black text-xs border-slate-300 rounded-lg focus:ring-sky-500 bg-slate-50/50"
+                            >
+                        </div>
+                    </div>
+
+                    {{-- Dynamic & Preset Cash Chips --}}
+                    <div class="grid grid-cols-4 gap-1">
+                        <button 
+                            type="button" 
+                            @click="amountTendered = grandTotal" 
+                            class="py-0.5 px-1 text-[10px] font-extrabold bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-md transition cursor-pointer"
+                        >
+                            Exact
+                        </button>
+                        <template x-for="preset in cashPresets" :key="preset">
+                            <button 
+                                type="button" 
+                                @click="amountTendered = preset" 
+                                class="py-0.5 px-1 text-[10px] font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-md transition cursor-pointer"
+                                x-text="'RM ' + preset"
+                            ></button>
+                        </template>
+                    </div>
+
+                    {{-- Change Due Banner --}}
+                    <div 
+                        class="p-2 rounded-xl border flex items-center justify-between transition-colors text-xs"
+                        :class="changeDue >= 0 ? 'bg-emerald-50 border-emerald-300 text-emerald-900' : 'bg-rose-50 border-rose-300 text-rose-900'"
+                    >
+                        <span class="text-[10px] font-extrabold uppercase" x-text="changeDue >= 0 ? 'Change Due:' : 'Short Amount:'"></span>
+                        <span class="text-sm font-black">
+                            RM <span x-text="Math.abs(changeDue).toFixed(2)"></span>
+                        </span>
+                    </div>
+                </div>
+
+                {{-- 2. DUITNOW QR CONTROLS --}}
+                <div x-show="paymentMethod === 'duitnow_qr'" class="p-2.5 bg-sky-50 border border-sky-200 rounded-xl text-center space-y-1.5">
+                    <div class="text-[11px] font-extrabold text-sky-950">Customer DuitNow / TNG QR Transfer</div>
+                    <button 
+                        type="button" 
+                        @click="showQrModal = true" 
+                        class="px-3 py-1 bg-sky-600 hover:bg-sky-500 text-white rounded-lg text-xs font-bold transition flex items-center justify-center gap-1 mx-auto shadow-xs cursor-pointer"
+                    >
+                        <span>Display Counter QR Code</span>
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                    </button>
+                </div>
+
+                {{-- 3. CARD CONTROLS --}}
+                <div x-show="paymentMethod === 'card'" class="p-2 bg-slate-50 border border-slate-200 rounded-xl space-y-1 text-xs">
+                    <span class="font-bold text-slate-700 text-[10px]">Card Slip Auth Ref (Optional)</span>
+                    <input 
+                        type="text" 
+                        x-model="paymentReference" 
+                        placeholder="e.g. Visa/Master Auth #98213" 
+                        class="w-full text-xs border-slate-300 rounded-lg py-1 px-2"
+                    >
+                </div>
+
+                {{-- Primary Complete Sale Button (ALWAYS VISIBLE IN VIEWPORT) --}}
+                <button 
+                    type="button" 
+                    @click="processCheckout()" 
+                    :disabled="cart.length === 0 || isProcessing || (paymentMethod === 'cash' && changeDue < 0)"
+                    class="w-full py-2.5 px-3 bg-emerald-600 hover:bg-emerald-500 active:scale-98 disabled:opacity-50 disabled:pointer-events-none text-white rounded-xl text-xs sm:text-sm font-black shadow-md shadow-emerald-600/25 flex items-center justify-center gap-2 transition cursor-pointer"
+                >
+                    <template x-if="!isProcessing">
+                        <span class="flex items-center gap-1.5">
+                            <span>Complete Sale & Print Receipt</span>
+                            <span class="text-[10px] opacity-75 font-mono">(F4)</span>
+                        </span>
+                    </template>
+                    <template x-if="isProcessing">
+                        <span class="flex items-center gap-1.5">
+                            <svg class="animate-spin h-3.5 w-3.5 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+                            <span>Processing...</span>
+                        </span>
+                    </template>
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    {{-- ======================================================== --}}
+    {{-- POST-SALE SUCCESS & THERMAL RECEIPT MODAL               --}}
+    {{-- ======================================================== --}}
+    <div 
+        x-show="showReceiptModal" 
+        x-cloak 
+        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs"
+    >
+        <div 
+            @click.outside="showReceiptModal = false"
+            class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-100 text-center space-y-4 animate-in fade-in zoom-in-95 duration-150"
+        >
+            <div class="w-14 h-14 rounded-full bg-emerald-100 text-emerald-600 mx-auto flex items-center justify-center text-2xl shadow-xs">
+                ✓
+            </div>
+
+            <div>
+                <span class="text-[10px] font-extrabold uppercase px-2.5 py-1 bg-emerald-50 text-emerald-800 rounded-full border border-emerald-200">
+                    Payment Verified & Stock Deducted
+                </span>
+                <h3 class="text-xl font-black text-slate-900 mt-2">Sale Completed!</h3>
+                <p class="text-xs text-slate-500 font-mono mt-0.5">Order #: <span class="font-bold text-slate-800" x-text="completedOrder.order_number"></span></p>
+            </div>
+
+            {{-- Financial Summary Box --}}
+            <div class="p-4 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-2 text-xs">
+                <div class="flex justify-between text-slate-600">
+                    <span>Total Amount Paid:</span>
+                    <span class="font-bold text-slate-900">RM <span x-text="completedOrder.grand_total ? Number(completedOrder.grand_total).toFixed(2) : '0.00'"></span></span>
+                </div>
+                <template x-if="completedOrder.payment_method === 'cash'">
+                    <div>
+                        <div class="flex justify-between text-slate-600">
+                            <span>Cash Tendered:</span>
+                            <span class="font-semibold text-slate-800">RM <span x-text="Number(completedOrder.tendered).toFixed(2)"></span></span>
+                        </div>
+                        <div class="flex justify-between text-emerald-700 font-black text-sm pt-1 border-t border-slate-200">
+                            <span>Change Due:</span>
+                            <span>RM <span x-text="Number(completedOrder.change_due).toFixed(2)"></span></span>
+                        </div>
+                    </div>
+                </template>
+            </div>
+
+            {{-- Action Buttons --}}
+            <div class="grid grid-cols-2 gap-3 pt-2">
+                <a 
+                    :href="completedOrder.receipt_url" 
+                    target="_blank"
+                    class="py-2.5 px-4 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-bold shadow-md shadow-sky-600/20 flex items-center justify-center gap-1.5 transition"
+                >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                    <span>Print Receipt</span>
+                </a>
+
+                <button 
+                    type="button" 
+                    @click="resetForNextSale()"
+                    class="py-2.5 px-4 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                    <span>Next Customer</span>
+                    <span class="text-[10px] text-slate-400 font-mono">(Space)</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    {{-- ======================================================== --}}
+    {{-- CUSTOMER SELECTION / QUICK ADD MODAL                     --}}
+    {{-- ======================================================== --}}
+    <div 
+        x-show="showCustomerModal" 
+        x-cloak 
+        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs"
+    >
+        <div 
+            @click.outside="showCustomerModal = false"
+            class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-slate-100 space-y-4"
+        >
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                <h3 class="text-base font-extrabold text-slate-900">Select Customer</h3>
+                <button type="button" @click="showCustomerModal = false" class="text-slate-400 hover:text-slate-600">✕</button>
+            </div>
+
+            {{-- Existing Customer Search --}}
+            <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Search Existing Customers</label>
+                <input 
+                    type="text" 
+                    x-model="customerSearch" 
+                    placeholder="Search by name, phone or email..." 
+                    class="w-full text-xs rounded-xl border-slate-300"
+                >
+                <div class="max-h-40 overflow-y-auto mt-2 divide-y divide-slate-100 border border-slate-200 rounded-xl">
+                    <template x-for="c in filteredCustomers" :key="c.id">
+                        <div 
+                            @click="selectCustomer(c)" 
+                            class="p-2 hover:bg-sky-50 text-xs flex justify-between items-center cursor-pointer"
+                        >
+                            <div>
+                                <span class="font-bold text-slate-900" x-text="c.name"></span>
+                                <span class="text-[10px] text-slate-400 block" x-text="c.phone"></span>
+                            </div>
+                            <span class="text-sky-600 font-bold text-[11px]">Select &rarr;</span>
+                        </div>
+                    </template>
+                </div>
+            </div>
+
+            {{-- Quick Create Customer Form --}}
+            <div class="pt-3 border-t border-slate-100">
+                <span class="block text-xs font-bold text-slate-700 uppercase mb-2">Or Register New Customer</span>
+                <div class="grid grid-cols-2 gap-2">
+                    <input type="text" x-model="newCustomer.name" placeholder="Full Name *" class="text-xs border-slate-300 rounded-xl">
+                    <input type="text" x-model="newCustomer.phone" placeholder="Phone # *" class="text-xs border-slate-300 rounded-xl">
+                </div>
+                <button 
+                    type="button" 
+                    @click="createQuickCustomer()" 
+                    class="mt-2 w-full py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition"
+                >
+                    + Register & Select
+                </button>
+            </div>
+        </div>
+    </div>
+
+    {{-- ======================================================== --}}
+    {{-- DUITNOW QR DISPLAY MODAL                                 --}}
+    {{-- ======================================================== --}}
+    <div 
+        x-show="showQrModal" 
+        x-cloak 
+        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs"
+    >
+        <div 
+            @click.outside="showQrModal = false"
+            class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-slate-100 text-center space-y-4"
+        >
+            <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+                <h3 class="text-sm font-extrabold text-slate-900">DuitNow QR Counter Display</h3>
+                <button type="button" @click="showQrModal = false" class="text-slate-400 hover:text-slate-600">✕</button>
+            </div>
+
+            <div class="p-3 bg-slate-50 rounded-2xl border border-slate-200 inline-block">
+                @if(setting('duitnow_qr_image'))
+                    <img src="{{ asset('storage/' . setting('duitnow_qr_image')) }}" alt="DuitNow QR" class="w-48 h-48 object-contain mx-auto">
+                @else
+                    <div class="w-48 h-48 bg-white border border-slate-300 flex items-center justify-center text-slate-400 text-xs text-center p-4">
+                        Upload DuitNow QR image in Settings &gt; Payment &amp; QR
+                    </div>
+                @endif
+            </div>
+
+            <div class="text-xs text-slate-600">
+                <p class="font-bold text-slate-900">{{ setting('site_name', 'N&J Mini Mart') }}</p>
+                <p class="text-[11px] text-slate-500 mt-0.5">Ask customer to scan with Touch 'n Go, Maybank, or any banking app.</p>
+                <div class="text-xl font-black text-sky-700 mt-2">
+                    RM <span x-text="grandTotal.toFixed(2)"></span>
+                </div>
+            </div>
+
+            <button 
+                type="button" 
+                @click="showQrModal = false" 
+                class="w-full py-2 bg-slate-900 text-white rounded-xl text-xs font-bold"
+            >
+                Done / Received
+            </button>
+        </div>
+    </div>
+
+    {{-- ======================================================== --}}
+    {{-- HELD / PARKED BASKETS MODAL                              --}}
+    {{-- ======================================================== --}}
+    <div 
+        x-show="showHeldOrdersModal" 
+        x-cloak 
+        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs"
+    >
+        <div 
+            @click.outside="showHeldOrdersModal = false"
+            class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-100 space-y-4"
+        >
+            <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+                <h3 class="text-sm font-extrabold text-slate-900">Held / Parked Customer Baskets</h3>
+                <button type="button" @click="showHeldOrdersModal = false" class="text-slate-400 hover:text-slate-600">✕</button>
+            </div>
+
+            <div class="space-y-2 max-h-60 overflow-y-auto divide-y divide-slate-100">
+                <template x-for="(basket, idx) in heldOrders" :key="idx">
+                    <div class="p-3 bg-slate-50 hover:bg-slate-100 rounded-xl flex items-center justify-between gap-3 text-xs">
+                        <div>
+                            <span class="font-bold text-slate-900" x-text="basket.customer.name"></span>
+                            <div class="text-[10px] text-slate-400">
+                                <span x-text="basket.items.length + ' items'"></span> &bull; 
+                                <span class="font-semibold text-slate-700">RM <span x-text="basket.grandTotal.toFixed(2)"></span></span>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button 
+                                type="button" 
+                                @click="restoreHeldOrder(idx)" 
+                                class="px-3 py-1 bg-sky-600 hover:bg-sky-500 text-white font-bold rounded-lg text-xs"
+                            >
+                                Restore
+                            </button>
+                            <button 
+                                type="button" 
+                                @click="deleteHeldOrder(idx)" 
+                                class="text-rose-500 hover:text-rose-700 p-1"
+                            >
+                                ✕
+                            </button>
+                        </div>
+                    </div>
+                </template>
+
+                <div x-show="heldOrders.length === 0" class="py-8 text-center text-slate-400 text-xs">
+                    No held baskets parked at the moment.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- ======================================================== --}}
+    {{-- KEYBOARD SHORTCUTS MODAL                                 --}}
+    {{-- ======================================================== --}}
+    <div 
+        x-show="showShortcutsModal" 
+        x-cloak 
+        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs"
+    >
+        <div 
+            @click.outside="showShortcutsModal = false"
+            class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-slate-100 space-y-4"
+        >
+            <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+                <h3 class="text-sm font-extrabold text-slate-900">Cashier Keyboard Shortcuts</h3>
+                <button type="button" @click="showShortcutsModal = false" class="text-slate-400 hover:text-slate-600">✕</button>
+            </div>
+
+            <div class="space-y-2 text-xs">
+                <div class="flex justify-between items-center py-1 border-b border-slate-100">
+                    <span class="text-slate-600">Focus Barcode Scanner / Search</span>
+                    <kbd class="px-2 py-0.5 bg-slate-100 border border-slate-200 rounded text-slate-700 font-mono font-bold">F2 or /</kbd>
+                </div>
+                <div class="flex justify-between items-center py-1 border-b border-slate-100">
+                    <span class="text-slate-600">Complete Sale / Checkout</span>
+                    <kbd class="px-2 py-0.5 bg-slate-100 border border-slate-200 rounded text-slate-700 font-mono font-bold">F4</kbd>
+                </div>
+                <div class="flex justify-between items-center py-1 border-b border-slate-100">
+                    <span class="text-slate-600">Next Sale (After Receipt)</span>
+                    <kbd class="px-2 py-0.5 bg-slate-100 border border-slate-200 rounded text-slate-700 font-mono font-bold">Space</kbd>
+                </div>
+                <div class="flex justify-between items-center py-1">
+                    <span class="text-slate-600">Close Modals / Clear Search</span>
+                    <kbd class="px-2 py-0.5 bg-slate-100 border border-slate-200 rounded text-slate-700 font-mono font-bold">Esc</kbd>
+                </div>
+            </div>
+
+            <button type="button" @click="showShortcutsModal = false" class="w-full py-2 bg-slate-900 text-white rounded-xl text-xs font-bold">
+                Got It
+            </button>
+        </div>
+    </div>
+
+</div>
+
+{{-- Reactive Alpine.js Application Engine for POS --}}
+<script>
+function posApp() {
+    return {
+        // Data sets passed from Controller
+        products: @json($products),
+        categories: @json($categories),
+        customers: @json($customers),
+
+        // Search & Filter
+        searchQuery: '',
+        selectedCategory: 'all',
+        categoryDropdownOpen: false,
+        categoryFilterSearch: '',
+        inStockOnly: true,
+
+        // Cart & Customer state
+        cart: [],
+        customer: { id: null, name: 'Walk-in Customer', phone: '', email: '' },
+        customerSearch: '',
+        newCustomer: { name: '', phone: '' },
+        heldOrders: [],
+
+        // Payment State
+        paymentMethod: 'cash',
+        amountTendered: 0,
+        discountAmount: 0,
+        paymentReference: '',
+        isProcessing: false,
+        soundEnabled: true,
+        isFullscreen: false,
+
+        // Modals & UI Controls
+        showReceiptModal: false,
+        showCustomerModal: false,
+        showQrModal: false,
+        showHeldOrdersModal: false,
+        showShortcutsModal: false,
+        completedOrder: {},
+        currentTime: '',
+
+        initPos() {
+            // Update clock
+            this.updateClock();
+            setInterval(() => this.updateClock(), 1000);
+
+            // Load saved held baskets from local storage
+            try {
+                const saved = localStorage.getItem('nj_pos_held_baskets');
+                if (saved) this.heldOrders = JSON.parse(saved);
+            } catch(e) {}
+        },
+
+        updateClock() {
+            const now = new Date();
+            this.currentTime = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        },
+
+        // Web Audio Synthesizer Beeps (100% reliable, zero external files)
+        playBeep() {
+            if (!this.soundEnabled) return;
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(1200, ctx.currentTime);
+                gain.gain.setValueAtTime(0.12, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.08);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.08);
+            } catch(e) {}
+        },
+
+        playChime() {
+            if (!this.soundEnabled) return;
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const now = ctx.currentTime;
+                // Double chime: 880Hz then 1320Hz
+                [880, 1320].forEach((freq, idx) => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(freq, now + (idx * 0.12));
+                    gain.gain.setValueAtTime(0.15, now + (idx * 0.12));
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + (idx * 0.12) + 0.2);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(now + (idx * 0.12));
+                    osc.stop(now + (idx * 0.12) + 0.2);
+                });
+            } catch(e) {}
+        },
+
+        // Filter out empty/dummy categories
+        get activeCategories() {
+            return this.categories.filter(c => c.products_count > 0);
+        },
+
+        // Dropdown filtered categories based on quick filter search inside dropdown
+        get dropdownFilteredCategories() {
+            if (!this.categoryFilterSearch.trim()) return this.activeCategories;
+            const q = this.categoryFilterSearch.toLowerCase().trim();
+            return this.activeCategories.filter(c => c.name.toLowerCase().includes(q));
+        },
+
+        // Currently selected category object for dropdown trigger
+        get selectedCategoryObj() {
+            if (this.selectedCategory === 'all') {
+                return {
+                    id: 'all',
+                    name: 'All Categories',
+                    products_count: this.products.length,
+                    image_url: null,
+                };
+            }
+            return this.categories.find(c => String(c.id) === String(this.selectedCategory)) || {
+                id: 'all',
+                name: 'All Categories',
+                products_count: this.products.length,
+                image_url: null,
+            };
+        },
+
+        // Select category with auto-scroll and synchronization
+        selectCategory(catId) {
+            this.selectedCategory = catId;
+            this.categoryDropdownOpen = false;
+            this.categoryFilterSearch = '';
+            this.$nextTick(() => {
+                const activeBtn = document.querySelector('[data-cat-pill="' + catId + '"]');
+                if (activeBtn) {
+                    activeBtn.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+                }
+            });
+        },
+
+        // Computed filtered products list
+        get filteredProducts() {
+            return this.products.filter(p => {
+                // Category match (robust string comparison so number vs string never fails)
+                if (this.selectedCategory !== 'all' && String(p.category_id) !== String(this.selectedCategory)) {
+                    return false;
+                }
+                // Stock filter
+                if (this.inStockOnly && p.stock_quantity <= 0) {
+                    return false;
+                }
+                // Text search match
+                if (this.searchQuery.trim() !== '') {
+                    const q = this.searchQuery.toLowerCase().trim();
+                    const nameMatch = p.name && p.name.toLowerCase().includes(q);
+                    const skuMatch = p.sku && p.sku.toLowerCase().includes(q);
+                    const brandMatch = p.brand_name && p.brand_name.toLowerCase().includes(q);
+                    return nameMatch || skuMatch || brandMatch;
+                }
+                return true;
+            });
+        },
+
+        get filteredCustomers() {
+            if (!this.customerSearch.trim()) return this.customers.slice(0, 10);
+            const q = this.customerSearch.toLowerCase().trim();
+            return this.customers.filter(c => 
+                (c.name && c.name.toLowerCase().includes(q)) ||
+                (c.phone && c.phone.toLowerCase().includes(q)) ||
+                (c.email && c.email.toLowerCase().includes(q))
+            );
+        },
+
+        get subtotal() {
+            return this.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        },
+
+        get grandTotal() {
+            const raw = this.subtotal - (Number(this.discountAmount) || 0);
+            return Math.max(0, Math.round(raw * 100) / 100);
+        },
+
+        get changeDue() {
+            return (Number(this.amountTendered) || 0) - this.grandTotal;
+        },
+
+        get totalItemCount() {
+            return this.cart.reduce((sum, item) => sum + item.quantity, 0);
+        },
+
+        // Dynamic cash preset chips based on current grand total
+        get cashPresets() {
+            const total = this.grandTotal;
+            const presets = [];
+
+            if (total <= 0) return [10, 20, 50, 100];
+
+            // Next rounded RM 10
+            const next10 = Math.ceil(total / 10) * 10;
+            if (next10 > total && !presets.includes(next10)) presets.push(next10);
+
+            // Next rounded RM 50
+            const next50 = Math.ceil(total / 50) * 50;
+            if (next50 > total && !presets.includes(next50)) presets.push(next50);
+
+            // Next rounded RM 100
+            const next100 = Math.ceil(total / 100) * 100;
+            if (next100 > total && !presets.includes(next100)) presets.push(next100);
+
+            // Fallbacks
+            [20, 50, 100, 200].forEach(p => {
+                if (p > total && presets.length < 3 && !presets.includes(p)) {
+                    presets.push(p);
+                }
+            });
+
+            return presets.slice(0, 3);
+        },
+
+        scrollCategoryCarousel(offset) {
+            if (this.$refs.categoryCarousel) {
+                this.$refs.categoryCarousel.scrollBy({ left: offset, behavior: 'smooth' });
+            }
+        },
+
+        getCartItemQty(productId) {
+            const item = this.cart.find(i => i.id === productId);
+            return item ? item.quantity : 0;
+        },
+
+        // Barcode enter event
+        handleBarcodeEnter() {
+            if (!this.searchQuery.trim()) return;
+            const matches = this.filteredProducts;
+
+            // Direct exact match on SKU or single search result
+            if (matches.length === 1 || matches.some(m => m.sku.toLowerCase() === this.searchQuery.toLowerCase().trim())) {
+                const target = matches.find(m => m.sku.toLowerCase() === this.searchQuery.toLowerCase().trim()) || matches[0];
+                this.addToCart(target);
+                this.searchQuery = '';
+            }
+        },
+
+        // Cart Actions
+        addToCart(product) {
+            if (product.stock_quantity <= 0) return;
+
+            const existingIndex = this.cart.findIndex(i => i.id === product.id);
+            if (existingIndex > -1) {
+                if (this.cart[existingIndex].quantity < product.stock_quantity) {
+                    this.cart[existingIndex].quantity++;
+                    this.playBeep();
+                } else {
+                    alert('Cannot add more: Available stock limit reached (' + product.stock_quantity + ').');
+                }
+            } else {
+                this.cart.push({
+                    id: product.id,
+                    name: product.name,
+                    sku: product.sku,
+                    price: product.effective_price,
+                    quantity: 1,
+                    max_stock: product.stock_quantity,
+                    image_url: product.image_url,
+                    pack_size: product.pack_size,
+                });
+                this.playBeep();
+            }
+
+            // Default cash tendered to grand total
+            this.amountTendered = this.grandTotal;
+        },
+
+        incrementQty(index) {
+            const item = this.cart[index];
+            if (item.quantity < item.max_stock) {
+                item.quantity++;
+                this.amountTendered = this.grandTotal;
+            }
+        },
+
+        decrementQty(index) {
+            if (this.cart[index].quantity > 1) {
+                this.cart[index].quantity--;
+            } else {
+                this.cart.splice(index, 1);
+            }
+            this.amountTendered = this.grandTotal;
+        },
+
+        validateQty(index) {
+            const item = this.cart[index];
+            if (!item.quantity || item.quantity < 1) item.quantity = 1;
+            if (item.quantity > item.max_stock) item.quantity = item.max_stock;
+            this.amountTendered = this.grandTotal;
+        },
+
+        removeItem(index) {
+            this.cart.splice(index, 1);
+            this.amountTendered = this.grandTotal;
+        },
+
+        clearCart() {
+            if (confirm('Clear all items from current register?')) {
+                this.cart = [];
+                this.discountAmount = 0;
+                this.amountTendered = 0;
+                this.$refs.barcodeInput.focus();
+            }
+        },
+
+        // Hold / Park Sale
+        holdCurrentOrder() {
+            if (this.cart.length === 0) return;
+            this.heldOrders.push({
+                items: JSON.parse(JSON.stringify(this.cart)),
+                customer: JSON.parse(JSON.stringify(this.customer)),
+                grandTotal: this.grandTotal,
+                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            });
+            localStorage.setItem('nj_pos_held_baskets', JSON.stringify(this.heldOrders));
+            this.cart = [];
+            this.discountAmount = 0;
+            this.amountTendered = 0;
+            alert('Basket parked successfully. You can resume it anytime.');
+        },
+
+        restoreHeldOrder(idx) {
+            const basket = this.heldOrders[idx];
+            this.cart = basket.items;
+            this.customer = basket.customer;
+            this.heldOrders.splice(idx, 1);
+            localStorage.setItem('nj_pos_held_baskets', JSON.stringify(this.heldOrders));
+            this.showHeldOrdersModal = false;
+            this.amountTendered = this.grandTotal;
+        },
+
+        deleteHeldOrder(idx) {
+            this.heldOrders.splice(idx, 1);
+            localStorage.setItem('nj_pos_held_baskets', JSON.stringify(this.heldOrders));
+        },
+
+        // Customer Selection
+        selectCustomer(c) {
+            this.customer = { id: c.id, name: c.name, phone: c.phone, email: c.email };
+            this.showCustomerModal = false;
+        },
+
+        resetCustomer() {
+            this.customer = { id: null, name: 'Walk-in Customer', phone: '', email: '' };
+        },
+
+        async createQuickCustomer() {
+            if (!this.newCustomer.name || !this.newCustomer.phone) {
+                alert('Please enter both customer name and phone.');
+                return;
+            }
+
+            try {
+                const res = await fetch('{{ route("admin.pos.customer") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    body: JSON.stringify(this.newCustomer)
+                });
+                const data = await res.json();
+                if (data.success) {
+                    this.customers.unshift(data.customer);
+                    this.selectCustomer(data.customer);
+                    this.newCustomer = { name: '', phone: '' };
+                } else {
+                    alert(data.message || 'Error registering customer.');
+                }
+            } catch(e) {
+                alert('Connection error.');
+            }
+        },
+
+        // Process POS Checkout Submission
+        async processCheckout() {
+            if (this.cart.length === 0 || this.isProcessing) return;
+
+            if (this.paymentMethod === 'cash' && this.changeDue < 0) {
+                alert('Tendered cash is less than the grand total!');
+                return;
+            }
+
+            this.isProcessing = true;
+
+            try {
+                const payload = {
+                    items: this.cart.map(i => ({ id: i.id, quantity: i.quantity })),
+                    payment_method: this.paymentMethod,
+                    amount_tendered: Number(this.amountTendered) || this.grandTotal,
+                    discount_amount: Number(this.discountAmount) || 0,
+                    customer_name: this.customer.name,
+                    customer_phone: this.customer.phone,
+                    customer_email: this.customer.email,
+                    user_id: this.customer.id,
+                    notes: this.paymentReference ? 'Ref: ' + this.paymentReference : null,
+                };
+
+                const res = await fetch('{{ route("admin.pos.checkout") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json',
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await res.json();
+
+                if (data.success) {
+                    this.playChime();
+                    this.completedOrder = data;
+                    this.showReceiptModal = true;
+
+                    // Update live stock in memory
+                    this.cart.forEach(item => {
+                        const p = this.products.find(prod => prod.id === item.id);
+                        if (p) p.stock_quantity = Math.max(0, p.stock_quantity - item.quantity);
+                    });
+
+                    // Clear cart
+                    this.cart = [];
+                    this.discountAmount = 0;
+                    this.paymentReference = '';
+                } else {
+                    alert(data.message || 'Checkout failed. Please check stock or inputs.');
+                }
+            } catch(e) {
+                alert('Network error while completing transaction.');
+            } finally {
+                this.isProcessing = false;
+            }
+        },
+
+        resetForNextSale() {
+            this.showReceiptModal = false;
+            this.completedOrder = {};
+            this.resetCustomer();
+            this.$refs.barcodeInput.focus();
+        },
+
+        // Global Keyboard Shortcuts
+        handleGlobalKeydown(e) {
+            // F2 or '/' to focus search
+            if (e.key === 'F2' || (e.key === '/' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA')) {
+                e.preventDefault();
+                this.$refs.barcodeInput?.focus();
+                this.$refs.barcodeInput?.select();
+            }
+            // F4 to complete checkout
+            if (e.key === 'F4') {
+                e.preventDefault();
+                this.processCheckout();
+            }
+            // Space to reset next sale on receipt modal
+            if (e.key === ' ' && this.showReceiptModal) {
+                e.preventDefault();
+                this.resetForNextSale();
+            }
+            // Esc to close modals
+            if (e.key === 'Escape') {
+                this.categoryDropdownOpen = false;
+                this.showReceiptModal = false;
+                this.showCustomerModal = false;
+                this.showQrModal = false;
+                this.showHeldOrdersModal = false;
+                this.showShortcutsModal = false;
+            }
+        }
+    };
+}
+</script>
+@endsection

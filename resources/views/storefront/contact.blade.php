@@ -6,7 +6,7 @@
     {{-- Universal Hero Section --}}
     <x-storefront-hero 
         title="Contact Customer Support"
-        description="Have questions about commercial cartons, bulk container supply, delivery floor logistics, or custom quotations? Our dedicated sales team is ready to assist."
+        description="Have questions about our grocery items, store availability, home delivery, or special orders? Our customer care team is ready to assist."
         badge="Direct Support"
         subBadge="📞 Hotline: +60 12-889 9900"
         :breadcrumbs="['Contact Us' => null]"
@@ -56,7 +56,7 @@
 
                 <div>
                     <label class="block text-xs font-bold text-slate-700 mb-1">Message *</label>
-                    <textarea name="message" rows="4" required class="w-full text-sm px-3.5 py-2.5 border border-slate-300 rounded-xl focus:ring-sky-500" placeholder="Tell us about the cartons you require or inquiry details..."></textarea>
+                    <textarea name="message" rows="4" required class="w-full text-sm px-3.5 py-2.5 border border-slate-300 rounded-xl focus:ring-sky-500" placeholder="Tell us about the products you require or inquiry details..."></textarea>
                 </div>
 
                 <button type="submit" class="w-full py-3.5 bg-sky-600 hover:bg-sky-700 text-white font-extrabold text-sm rounded-xl shadow-lg transition">

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>@yield('title', 'Admin Dashboard') | {{ setting('site_name', '99 Bulk Sales') }} Admin</title>
+    <title>@yield('title', 'Admin Dashboard') | {{ setting('site_name', 'N&J Mini Mart') }} Admin</title>
 
     {{-- Google Fonts: Plus Jakarta Sans & Inter --}}
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -21,6 +21,8 @@
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
+    @stack('styles')
+
     <style>
         [x-cloak] { display: none !important; }
         :root {
@@ -31,17 +33,7 @@
         }
     </style>
 </head>
-<body class="h-full flex antialiased text-slate-800 bg-[#f8fafc]" x-data="{
-    sidebarOpen: false,
-    bellCount: {{ \App\Models\Order::where('order_status', 'pending_payment_verification')->count() }},
-    async pollNotifications() {
-        try {
-            let res = await fetch('{{ route("admin.notifications.poll") }}');
-            let data = await res.json();
-            this.bellCount = data.pending_payments;
-        } catch(e) {}
-    }
-}" x-init="setInterval(() => pollNotifications(), 30000)">
+<body class="h-full flex antialiased text-slate-800 bg-[#f8fafc]" x-data="adminApp()" x-init="initAdmin()">
 
     {{-- Mobile sidebar backdrop --}}
     <div x-show="sidebarOpen" x-cloak class="fixed inset-0 z-40 bg-slate-900/60 backdrop-blur-xs lg:hidden" @click="sidebarOpen = false"></div>
@@ -72,6 +64,17 @@
                     <span>Dashboard</span>
                 </a>
 
+                {{-- Point of Sale (POS) Counter --}}
+                <a href="{{ route('admin.pos.index') }}" class="flex items-center justify-between px-3 py-2 rounded-xl transition {{ request()->routeIs('admin.pos.*') ? 'bg-sky-600 text-white font-bold shadow-sm shadow-sky-600/30' : 'hover:bg-slate-900 text-slate-300' }}">
+                    <div class="flex items-center gap-3">
+                        <svg class="w-4 h-4 {{ request()->routeIs('admin.pos.*') ? 'text-white' : 'text-emerald-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                        <span>POS Register</span>
+                    </div>
+                    <span class="text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                        Counter
+                    </span>
+                </a>
+
                 {{-- Orders (with pending badge) --}}
                 @php
                     $pendingCount = \App\Models\Order::where('order_status', 'pending_payment_verification')->count();
@@ -88,12 +91,12 @@
                     @endif
                 </a>
 
-                <div class="pt-3 pb-1 px-3 text-[10px] uppercase font-bold text-slate-500 tracking-wider">Catalog & Bulk</div>
+                <div class="pt-3 pb-1 px-3 text-[10px] uppercase font-bold text-slate-500 tracking-wider">Catalog</div>
 
                 {{-- Products --}}
                 <a href="{{ route('admin.products.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-xl transition {{ request()->routeIs('admin.products.*') ? 'bg-sky-600 text-white font-bold shadow-sm shadow-sky-600/30' : 'hover:bg-slate-900 text-slate-300' }}">
                     <svg class="w-4 h-4 {{ request()->routeIs('admin.products.*') ? 'text-white' : 'text-slate-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
-                    <span>Products (Cartons)</span>
+                    <span>Products</span>
                 </a>
 
                 {{-- Categories --}}
@@ -220,47 +223,315 @@
     </aside>
 
     {{-- Main Admin Content Column --}}
-    <div class="flex-1 lg:pl-64 flex flex-col min-h-screen">
+    <div class="flex-1 lg:pl-64 flex flex-col {{ request()->routeIs('admin.pos.*') ? 'h-screen max-h-screen overflow-hidden' : 'min-h-screen' }}">
         
         {{-- Admin Top Bar --}}
-        <header class="h-14 bg-white border-b border-slate-200/80 flex items-center justify-between px-4 sm:px-6 sticky top-0 z-30 shadow-xs">
-            <div class="flex items-center gap-3">
-                <button type="button" @click="sidebarOpen = true" class="lg:hidden text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition">
+        <header class="shrink-0 h-16 bg-white/95 backdrop-blur-md border-b border-slate-200/90 flex items-center justify-between px-4 sm:px-6 sticky top-0 z-30 shadow-2xs">
+            
+            {{-- Left Section: Mobile Toggle & Store Status --}}
+            <div class="flex items-center gap-3 shrink-0">
+                <button type="button" @click="sidebarOpen = true" class="lg:hidden text-slate-600 p-2 rounded-xl hover:bg-slate-100 transition cursor-pointer" title="Open Navigation">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
                 </button>
 
-                <a href="{{ url('/') }}" target="_blank" class="text-xs font-semibold text-slate-700 hover:text-sky-600 flex items-center gap-1.5 bg-slate-50 hover:bg-sky-50 px-2.5 py-1.5 rounded-lg border border-slate-200 hover:border-sky-200 transition">
-                    <svg class="w-3.5 h-3.5 text-sky-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                <a 
+                    href="{{ url('/') }}" 
+                    target="_blank" 
+                    class="text-xs font-bold text-slate-700 hover:text-sky-700 flex items-center gap-1.5 bg-slate-100/80 hover:bg-sky-50 px-3 py-1.5 rounded-xl border border-slate-200/90 hover:border-sky-300 transition shadow-2xs group"
+                >
+                    <svg class="w-3.5 h-3.5 text-sky-600 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
                     <span>View Storefront</span>
                 </a>
 
-                <div class="hidden md:flex items-center gap-1.5 text-[11px] font-medium text-slate-400 pl-2 border-l border-slate-200">
-                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                    <span>Store Online</span>
+                {{-- Live Store Online Pill --}}
+                <div class="hidden xl:flex items-center gap-2 px-2.5 py-1 bg-emerald-50/80 border border-emerald-200/80 rounded-xl text-emerald-800 text-[11px] font-bold shadow-2xs">
+                    <span class="relative flex h-2 w-2">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                    </span>
+                    <span>Store Live</span>
+                    <span class="text-emerald-300 font-normal">&bull;</span>
+                    <span class="text-[10px] text-emerald-600 font-semibold">Puchong Hub</span>
                 </div>
             </div>
 
-            <div class="flex items-center gap-3">
-                {{-- In-app notification bell with pending advance payments --}}
-                <a href="{{ route('admin.orders.index', ['status' => 'pending_payment_verification']) }}" class="relative p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition" title="Pending Payment Verifications">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
-                    <span 
-                        x-show="bellCount > 0" 
-                        x-text="bellCount" 
-                        class="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 rounded-full bg-amber-500 text-slate-950 font-extrabold text-[9px] flex items-center justify-center shadow-xs"
-                    ></span>
-                </a>
-
-                {{-- User Mini Profile --}}
-                <div class="flex items-center gap-2 pl-2 border-l border-slate-200">
-                    <div class="w-7 h-7 rounded-lg bg-sky-500/10 text-sky-600 border border-sky-200 font-bold flex items-center justify-center text-xs">
-                        {{ strtoupper(substr(auth()->user()->name ?? 'A', 0, 1)) }}
+            {{-- Center Section: Global Quick Search Bar --}}
+            <form action="{{ route('admin.orders.index') }}" method="GET" class="hidden md:flex items-center flex-1 max-w-sm lg:max-w-md mx-4 lg:mx-8">
+                <div class="relative w-full group">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 group-focus-within:text-sky-600 transition">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                     </div>
-                    <div class="text-xs text-left hidden sm:block">
-                        <span class="block font-bold text-slate-800 leading-tight">{{ auth()->user()->name }}</span>
-                        <span class="text-[10px] text-slate-400 capitalize block leading-tight">{{ auth()->user()->role }}</span>
+                    <input 
+                        type="search" 
+                        name="search" 
+                        id="adminGlobalSearch"
+                        value="{{ request('search') }}"
+                        placeholder="Search orders by #ORD, customer, phone..." 
+                        class="w-full pl-9 pr-14 py-2 bg-slate-100/70 hover:bg-slate-100 focus:bg-white text-xs rounded-xl border border-slate-200 focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 text-slate-800 placeholder-slate-400 font-medium transition"
+                    >
+                    <div class="absolute inset-y-0 right-0 pr-2.5 flex items-center pointer-events-none">
+                        <kbd class="hidden sm:inline-flex items-center px-1.5 py-0.5 text-[10px] font-mono font-semibold text-slate-400 bg-white border border-slate-200/90 rounded-md shadow-2xs">Ctrl K</kbd>
                     </div>
                 </div>
+            </form>
+
+            {{-- Right Section: Quick Action, Alerts & User Profile --}}
+            <div class="flex items-center gap-2.5 sm:gap-3 shrink-0">
+                
+                {{-- Shopify-Style Loud Order Bell Audio Pill --}}
+                <div class="hidden md:flex items-center gap-1 bg-slate-100/90 hover:bg-slate-200/80 border border-slate-200/90 rounded-xl p-1 transition shadow-2xs">
+                    <button 
+                        type="button" 
+                        @click="toggleSound()" 
+                        class="flex items-center gap-1.5 px-2 py-1 rounded-lg text-xs font-bold transition cursor-pointer"
+                        :class="soundAlertsEnabled ? 'bg-white text-emerald-700 shadow-2xs' : 'text-slate-400 hover:text-slate-600'"
+                        :title="soundAlertsEnabled ? 'Shopify Order Bell is Active. Click to Mute' : 'Order Bell Muted. Click to Turn ON'"
+                    >
+                        <span x-text="soundAlertsEnabled ? '🔔' : '🔕'"></span>
+                        <span class="text-[11px]" x-text="soundAlertsEnabled ? 'Order Bell: ON' : 'Bell Muted'"></span>
+                        <span x-show="soundAlertsEnabled" class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    </button>
+
+                    <button 
+                        type="button" 
+                        @click="playShopifyOrderBell()" 
+                        class="px-2 py-1 bg-white hover:bg-sky-50 text-sky-700 rounded-lg text-[10px] font-extrabold uppercase tracking-wider transition cursor-pointer border border-slate-200/80 shadow-2xs"
+                        title="Test Loud Order Bell Sound"
+                    >
+                        Test Bell
+                    </button>
+                </div>
+
+                {{-- Quick POS Register CTA (Shown on non-POS pages) --}}
+                @unless(request()->routeIs('admin.pos.*'))
+                    <a 
+                        href="{{ route('admin.pos.index') }}" 
+                        class="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 active:scale-98 text-white rounded-xl text-xs font-bold shadow-xs shadow-emerald-600/20 transition cursor-pointer"
+                        title="Launch Point of Sale Counter Register"
+                    >
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                        <span>POS Register</span>
+                    </a>
+                @endunless
+
+                {{-- Quick Add Product CTA --}}
+                <a 
+                    href="{{ route('admin.products.create') }}" 
+                    class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 bg-sky-600 hover:bg-sky-500 active:scale-98 text-white rounded-xl text-xs font-bold shadow-xs shadow-sky-600/20 transition cursor-pointer"
+                >
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                    <span>Add Product</span>
+                </a>
+
+                {{-- In-App Notification Bell & Popover --}}
+                <div class="relative" @click.outside="notificationsOpen = false">
+                    <button 
+                        type="button" 
+                        @click="notificationsOpen = !notificationsOpen" 
+                        class="relative p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition cursor-pointer" 
+                        title="Store Notifications & Payment Alerts"
+                    >
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                        <span 
+                            x-show="bellCount > 0" 
+                            x-text="bellCount" 
+                            class="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-amber-500 text-slate-950 font-black text-[10px] flex items-center justify-center shadow-xs ring-2 ring-white"
+                        ></span>
+                    </button>
+
+                    {{-- Notifications Dropdown Menu --}}
+                    <div 
+                        x-show="notificationsOpen" 
+                        x-cloak 
+                        x-transition:enter="transition ease-out duration-150" 
+                        x-transition:enter-start="opacity-0 scale-95" 
+                        x-transition:enter-end="opacity-100 scale-100" 
+                        x-transition:leave="transition ease-in duration-100" 
+                        x-transition:leave-start="opacity-100 scale-100" 
+                        x-transition:leave-end="opacity-0 scale-95" 
+                        class="absolute right-0 mt-2 w-80 sm:w-92 bg-white rounded-2xl shadow-xl border border-slate-200/90 py-2 z-50 overflow-hidden"
+                    >
+                        {{-- Shopify Audio Alert Controls inside Dropdown --}}
+                        <div class="px-4 py-2.5 bg-gradient-to-r from-slate-900 to-slate-950 text-white flex items-center justify-between border-b border-slate-800">
+                            <div class="flex items-center gap-2.5">
+                                <span class="text-base">🔔</span>
+                                <div>
+                                    <div class="text-xs font-black text-white leading-tight">Shopify-Style Order Alert</div>
+                                    <div class="text-[10px] text-emerald-400 font-semibold" x-text="soundAlertsEnabled ? 'Loud Bell Active (Even Minimized)' : 'Bell Muted'"></div>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center gap-1.5">
+                                <button 
+                                    type="button" 
+                                    @click="toggleSound()" 
+                                    class="px-2 py-0.5 rounded-lg text-[10px] font-bold border transition cursor-pointer"
+                                    :class="soundAlertsEnabled ? 'bg-emerald-600 text-white border-emerald-500' : 'bg-slate-800 text-slate-300 border-slate-700'"
+                                    x-text="soundAlertsEnabled ? 'ON' : 'OFF'"
+                                ></button>
+
+                                <button 
+                                    type="button" 
+                                    @click="playShopifyOrderBell()" 
+                                    class="px-2 py-0.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-[10px] font-bold border border-slate-700 transition cursor-pointer"
+                                    title="Play loud test chime"
+                                >
+                                    Test
+                                </button>
+                            </div>
+                        </div>
+
+                        {{-- Desktop Windows Notification Banner Permission CTA --}}
+                        <template x-if="desktopNotifPermission !== 'granted'">
+                            <div class="p-2.5 bg-amber-50 border-b border-amber-200/80 flex items-center justify-between text-xs">
+                                <div class="flex items-center gap-2 text-amber-900">
+                                    <span class="text-sm">🪟</span>
+                                    <span class="text-[11px] font-semibold">Enable Windows Desktop Banners</span>
+                                </div>
+                                <button 
+                                    type="button" 
+                                    @click="requestDesktopPermission()" 
+                                    class="px-2.5 py-1 bg-amber-600 hover:bg-amber-500 text-white text-[10px] font-bold rounded-lg transition cursor-pointer shadow-2xs"
+                                >
+                                    Enable
+                                </button>
+                            </div>
+                        </template>
+
+                        <div class="px-4 py-2 border-b border-slate-100 flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <span class="font-extrabold text-xs text-slate-900">Notifications & Alerts</span>
+                                <span 
+                                    x-show="bellCount > 0" 
+                                    x-text="bellCount + ' pending'" 
+                                    class="text-[10px] font-bold px-2 py-0.5 bg-amber-100 text-amber-800 rounded-full"
+                                ></span>
+                            </div>
+                            <span class="text-[10px] text-slate-400 font-medium">Live Sync 6s</span>
+                        </div>
+
+                        <div class="max-h-72 overflow-y-auto divide-y divide-slate-100 text-xs">
+                            <template x-if="bellCount > 0">
+                                <a 
+                                    href="{{ route('admin.orders.index', ['status' => 'pending_payment_verification']) }}" 
+                                    class="p-3.5 hover:bg-slate-50 flex items-start gap-3 transition block"
+                                >
+                                    <div class="w-8 h-8 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0 text-sm">
+                                        💳
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <div class="font-bold text-slate-900 flex items-center justify-between">
+                                            <span>Payment Proof Awaiting Review</span>
+                                            <span class="text-[10px] text-amber-600 font-bold">Action Req.</span>
+                                        </div>
+                                        <p class="text-[11px] text-slate-500 mt-0.5">
+                                            <span x-text="bellCount"></span> customer order(s) submitted with DuitNow / TNG receipts requiring admin sign-off.
+                                        </p>
+                                        <span class="text-[11px] text-sky-600 font-bold mt-1.5 inline-flex items-center gap-1">
+                                            <span>Verify Receipts Now</span>
+                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                                        </span>
+                                    </div>
+                                </a>
+                            </template>
+
+                            <template x-if="bellCount === 0">
+                                <div class="p-6 text-center text-slate-400">
+                                    <svg class="w-8 h-8 mx-auto text-emerald-500 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                    <p class="font-bold text-slate-700 text-xs">All Clear & Caught Up</p>
+                                    <p class="text-[11px] text-slate-400 mt-0.5">No pending payment receipts awaiting verification.</p>
+                                </div>
+                            </template>
+                        </div>
+
+                        <div class="px-4 py-2 border-t border-slate-100 bg-slate-50/50 flex items-center justify-between text-[11px]">
+                            <a href="{{ route('admin.orders.index') }}" class="font-bold text-sky-600 hover:text-sky-700">View All Orders &rarr;</a>
+                            <a href="{{ route('admin.dashboard') }}" class="text-slate-500 hover:text-slate-800">Dashboard</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="h-6 w-px bg-slate-200"></div>
+
+                {{-- User Profile Pill with Interactive Dropdown Menu --}}
+                <div class="relative" @click.outside="userMenuOpen = false">
+                    <button 
+                        type="button" 
+                        @click="userMenuOpen = !userMenuOpen" 
+                        class="flex items-center gap-2 p-1 sm:px-2.5 sm:py-1.5 rounded-xl hover:bg-slate-100/90 border border-transparent hover:border-slate-200 transition cursor-pointer"
+                    >
+                        <div class="w-8 h-8 rounded-xl bg-sky-500/10 text-sky-700 border border-sky-200/80 font-black flex items-center justify-center text-xs shadow-2xs">
+                            {{ strtoupper(substr(auth()->user()->name ?? 'A', 0, 1)) }}
+                        </div>
+                        <div class="text-xs text-left hidden sm:block">
+                            <span class="block font-bold text-slate-800 leading-tight">{{ auth()->user()->name }}</span>
+                            <span class="text-[10px] text-slate-400 capitalize block leading-tight font-medium">{{ auth()->user()->role ?? 'Admin' }}</span>
+                        </div>
+                        <svg class="w-3.5 h-3.5 text-slate-400 hidden sm:block transition-transform duration-200" :class="userMenuOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </button>
+
+                    {{-- User Dropdown Menu --}}
+                    <div 
+                        x-show="userMenuOpen" 
+                        x-cloak 
+                        x-transition:enter="transition ease-out duration-150" 
+                        x-transition:enter-start="opacity-0 scale-95" 
+                        x-transition:enter-end="opacity-100 scale-100" 
+                        x-transition:leave="transition ease-in duration-100" 
+                        x-transition:leave-start="opacity-100 scale-100" 
+                        x-transition:leave-end="opacity-0 scale-95" 
+                        class="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-xl border border-slate-200/90 py-2 z-50"
+                    >
+                        {{-- User Header Details --}}
+                        <div class="px-4 py-2.5 border-b border-slate-100">
+                            <span class="block font-bold text-xs text-slate-900 leading-tight">{{ auth()->user()->name }}</span>
+                            <span class="text-[11px] text-slate-500 block truncate leading-tight mt-0.5">{{ auth()->user()->email }}</span>
+                            <span class="inline-block mt-1.5 px-2 py-0.5 bg-sky-50 text-sky-700 border border-sky-200/60 rounded-md text-[10px] font-bold uppercase tracking-wider">
+                                {{ auth()->user()->role ?? 'Store Admin' }}
+                            </span>
+                        </div>
+
+                        {{-- Nav Links --}}
+                        <div class="py-1 text-xs">
+                            <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-2.5 px-4 py-2 text-slate-700 hover:bg-slate-50 hover:text-sky-600 transition">
+                                <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM14 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1v-4zM14 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z"/></svg>
+                                <span>Dashboard</span>
+                            </a>
+                            <a href="{{ route('admin.pos.index') }}" class="flex items-center gap-2.5 px-4 py-2 text-emerald-700 hover:bg-emerald-50 hover:text-emerald-800 transition font-bold">
+                                <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                                <span>POS Register</span>
+                            </a>
+                            <a href="{{ route('admin.orders.index') }}" class="flex items-center gap-2.5 px-4 py-2 text-slate-700 hover:bg-slate-50 hover:text-sky-600 transition">
+                                <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                                <span>Customer Orders</span>
+                            </a>
+                            <a href="{{ route('admin.products.index') }}" class="flex items-center gap-2.5 px-4 py-2 text-slate-700 hover:bg-slate-50 hover:text-sky-600 transition">
+                                <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
+                                <span>Product Catalog</span>
+                            </a>
+                            <a href="{{ route('admin.settings.delivery') }}" class="flex items-center gap-2.5 px-4 py-2 text-slate-700 hover:bg-slate-50 hover:text-sky-600 transition">
+                                <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/></svg>
+                                <span>Delivery & Zones</span>
+                            </a>
+                            <a href="{{ route('admin.settings.master-seo') }}" class="flex items-center gap-2.5 px-4 py-2 text-slate-700 hover:bg-slate-50 hover:text-sky-600 transition">
+                                <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/></svg>
+                                <span>Master SEO Tools</span>
+                            </a>
+                        </div>
+
+                        {{-- Log Out CTA --}}
+                        <div class="pt-1 border-t border-slate-100">
+                            <form method="POST" action="{{ route('logout') }}">
+                                @csrf
+                                <button type="submit" class="w-full text-left flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-rose-600 hover:bg-rose-50 transition cursor-pointer">
+                                    <svg class="w-4 h-4 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                                    <span>Log Out</span>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </header>
 
@@ -282,17 +553,359 @@
             </div>
         @endif
 
+        {{-- Live Floating Order Arrival Banner (Shopify Style) --}}
+        <div 
+            x-show="latestNewOrderToast" 
+            x-cloak 
+            x-transition:enter="transition ease-out duration-300 transform" 
+            x-transition:enter-start="opacity-0 -translate-y-4 scale-95" 
+            x-transition:enter-end="opacity-100 translate-y-0 scale-100" 
+            x-transition:leave="transition ease-in duration-200 transform" 
+            x-transition:leave-start="opacity-100 translate-y-0 scale-100" 
+            x-transition:leave-end="opacity-0 -translate-y-4 scale-95" 
+            class="fixed top-20 right-4 sm:right-6 z-50 max-w-sm w-full bg-slate-950 text-white rounded-2xl shadow-2xl border-2 border-emerald-500 p-4"
+        >
+            <div class="flex items-start gap-3">
+                <div class="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center justify-center text-xl shrink-0 animate-bounce">
+                    🔔
+                </div>
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[10px] font-black uppercase tracking-wider text-emerald-400">New Store Order!</span>
+                        <span class="text-[10px] font-mono text-slate-400">Just Now</span>
+                    </div>
+                    <h4 class="text-sm font-extrabold text-white truncate mt-0.5" x-text="latestNewOrderToast?.customer_name"></h4>
+                    <div class="flex items-center gap-2 mt-1 text-xs">
+                        <span class="font-black text-lime-400">RM <span x-text="latestNewOrderToast?.grand_total"></span></span>
+                        <span class="text-slate-400">&bull;</span>
+                        <span class="text-slate-300 font-mono text-[11px]" x-text="'#' + latestNewOrderToast?.order_number"></span>
+                        <span class="text-slate-400">&bull;</span>
+                        <span class="text-slate-400 text-[10px]" x-text="latestNewOrderToast?.items_count + ' items'"></span>
+                    </div>
+                    <div class="mt-2.5 flex items-center gap-2">
+                        <a 
+                            :href="latestNewOrderToast?.url" 
+                            class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl transition flex items-center gap-1 shadow-xs"
+                        >
+                            <span>Open Order</span>
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                        </a>
+                        <button 
+                            type="button" 
+                            @click="latestNewOrderToast = null" 
+                            class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-xl transition cursor-pointer"
+                        >
+                            Dismiss
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         {{-- Main Admin Page View --}}
-        <main class="flex-1 p-4 sm:p-5 lg:p-6 max-w-[1600px] w-full mx-auto">
+        <main class="{{ request()->routeIs('admin.pos.*') ? 'flex-1 min-h-0 p-2 sm:p-2.5 max-w-[1800px] w-full mx-auto flex flex-col overflow-hidden' : 'flex-1 p-4 sm:p-5 lg:p-6 max-w-[1600px] w-full mx-auto' }}">
             @yield('content')
         </main>
 
-        {{-- Admin Footer --}}
-        <footer class="px-6 py-3.5 bg-white border-t border-slate-200/80 text-[11px] text-slate-400 flex flex-col sm:flex-row items-center justify-between gap-2">
-            <span>{{ setting('site_name', 'N&J Mini Mart') }} &bull; Mart Operations Platform</span>
-            <span>Version 2.4 &bull; Fast Carton Fulfilment</span>
-        </footer>
+        {{-- Admin Footer (Suppressed on POS for True Viewport-Fit Register Experience) --}}
+        @unless(request()->routeIs('admin.pos.*'))
+            <footer class="px-6 py-3.5 bg-white border-t border-slate-200/80 text-[11px] text-slate-400 flex flex-col sm:flex-row items-center justify-between gap-2">
+                <span>{{ setting('site_name', 'N&J Mini Mart') }} &bull; Mart Operations Platform</span>
+                <span>Version 2.4 &bull; N&J Mini Mart Management</span>
+            </footer>
+        @endunless
     </div>
 
+    <script>
+        // Global Ctrl+K / Cmd+K shortcut to focus Quick Search
+        window.addEventListener('keydown', function(e) {
+            if ((e.ctrlKey || e.metaKey) && (e.key === 'k' || e.key === 'K')) {
+                e.preventDefault();
+                const searchEl = document.getElementById('adminGlobalSearch');
+                if (searchEl) {
+                    searchEl.focus();
+                    searchEl.select();
+                }
+            }
+        });
+
+        // Shopify-Style Order Audio Bell & Notification Engine
+        function adminApp() {
+            return {
+                sidebarOpen: false,
+                bellCount: {{ (int) \App\Models\Order::where('order_status', 'pending_payment_verification')->count() }},
+                notificationsOpen: false,
+                userMenuOpen: false,
+                soundAlertsEnabled: true,
+                desktopNotifPermission: (typeof Notification !== 'undefined') ? Notification.permission : 'denied',
+                lastOrderId: {{ (int) (\App\Models\Order::max('id') ?? 0) }},
+                latestNewOrderToast: null,
+                toastTimer: null,
+                titleFlashInterval: null,
+                originalTitle: document.title,
+                audioUnlocked: false,
+
+                initAdmin() {
+                    // Auto-unlock Web Audio on first user interaction anywhere
+                    const unlockAudio = () => {
+                        this.ensureAudioUnlocked();
+                        window.removeEventListener('click', unlockAudio);
+                        window.removeEventListener('keydown', unlockAudio);
+                        window.removeEventListener('touchstart', unlockAudio);
+                    };
+                    window.addEventListener('click', unlockAudio, { once: true });
+                    window.addEventListener('keydown', unlockAudio, { once: true });
+                    window.addEventListener('touchstart', unlockAudio, { once: true });
+
+                    // Restore sound preference from localStorage
+                    try {
+                        const saved = localStorage.getItem('nj_admin_sound_enabled');
+                        if (saved !== null) {
+                            this.soundAlertsEnabled = saved === 'true';
+                        }
+                    } catch(e) {}
+
+                    // Track notification permissions
+                    if ('Notification' in window) {
+                        this.desktopNotifPermission = Notification.permission;
+                    }
+
+                    // High-frequency polling (every 6 seconds for instantaneous background alerts)
+                    setInterval(() => this.pollNotifications(), 6000);
+                    // Initial silent sync
+                    this.pollNotifications();
+                },
+
+                toggleSound() {
+                    this.soundAlertsEnabled = !this.soundAlertsEnabled;
+                    try {
+                        localStorage.setItem('nj_admin_sound_enabled', this.soundAlertsEnabled ? 'true' : 'false');
+                    } catch(e) {}
+                    if (this.soundAlertsEnabled) {
+                        this.playShopifyOrderBell();
+                    }
+                },
+
+                requestDesktopPermission() {
+                    if (!('Notification' in window)) {
+                        alert('Your browser does not support desktop notifications.');
+                        return;
+                    }
+                    Notification.requestPermission().then(permission => {
+                        this.desktopNotifPermission = permission;
+                        if (permission === 'granted') {
+                            try {
+                                new Notification("✅ Order Alerts Active", {
+                                    body: "You will now hear loud chimes & see desktop banners for every new order!",
+                                    icon: "{{ asset('images/logo.png') }}"
+                                });
+                            } catch(e) {}
+                        }
+                    });
+                },
+
+                ensureAudioUnlocked() {
+                    try {
+                        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                        if (!AudioCtx) return;
+                        if (!window.__njAudioContext) {
+                            window.__njAudioContext = new AudioCtx();
+                        }
+                        if (window.__njAudioContext.state === 'suspended') {
+                            window.__njAudioContext.resume();
+                        }
+                        this.audioUnlocked = true;
+                    } catch(e) {}
+                },
+
+                // Shopify Signature Metallic Register Bell ("Ka-Ching! 🔔")
+                playShopifyOrderBell() {
+                    if (!this.soundAlertsEnabled) return;
+                    try {
+                        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                        if (!AudioCtx) return;
+                        if (!window.__njAudioContext) {
+                            window.__njAudioContext = new AudioCtx();
+                        }
+                        const ctx = window.__njAudioContext;
+                        if (ctx.state === 'suspended') {
+                            ctx.resume();
+                        }
+
+                        const now = ctx.currentTime;
+
+                        // Compressor / Master Limiter to maximize volume without clipping
+                        const compressor = ctx.createDynamicsCompressor();
+                        compressor.threshold.setValueAtTime(-16, now);
+                        compressor.knee.setValueAtTime(6, now);
+                        compressor.ratio.setValueAtTime(14, now);
+                        compressor.attack.setValueAtTime(0.002, now);
+                        compressor.release.setValueAtTime(0.25, now);
+                        compressor.connect(ctx.destination);
+
+                        // Master Gain (boosted for loud presence across the room)
+                        const masterGain = ctx.createGain();
+                        masterGain.gain.setValueAtTime(0.9, now);
+                        masterGain.connect(compressor);
+
+                        // --- 1. Mechanical Register Click / Drawer Slide ("Ka-") ---
+                        const bufferSize = Math.floor(ctx.sampleRate * 0.05);
+                        const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+                        const output = noiseBuffer.getChannelData(0);
+                        for (let i = 0; i < bufferSize; i++) {
+                            output[i] = Math.random() * 2 - 1;
+                        }
+                        const whiteNoise = ctx.createBufferSource();
+                        whiteNoise.buffer = noiseBuffer;
+
+                        const noiseFilter = ctx.createBiquadFilter();
+                        noiseFilter.type = 'bandpass';
+                        noiseFilter.frequency.setValueAtTime(3200, now);
+                        noiseFilter.Q.setValueAtTime(4, now);
+
+                        const noiseGain = ctx.createGain();
+                        noiseGain.gain.setValueAtTime(0.35, now);
+                        noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+
+                        whiteNoise.connect(noiseFilter);
+                        noiseFilter.connect(noiseGain);
+                        noiseGain.connect(masterGain);
+                        whiteNoise.start(now);
+                        whiteNoise.stop(now + 0.05);
+
+                        // --- 2. Strike 1: Crisp Brass Bell Attack at 0.035s ---
+                        const t1 = now + 0.035;
+                        [1567.98, 2093.00, 3135.96].forEach((freq, idx) => {
+                            const osc = ctx.createOscillator();
+                            const g = ctx.createGain();
+                            osc.type = idx === 0 ? 'sine' : 'triangle';
+                            osc.frequency.setValueAtTime(freq, t1);
+                            g.gain.setValueAtTime(0.35, t1);
+                            g.gain.exponentialRampToValueAtTime(0.0001, t1 + 0.45);
+                            osc.connect(g);
+                            g.connect(masterGain);
+                            osc.start(t1);
+                            osc.stop(t1 + 0.5);
+                        });
+
+                        // --- 3. Strike 2: The Iconic High-Register Bell ("-Ching! 🔔") at 0.13s ---
+                        const t2 = now + 0.13;
+                        const harmonics = [
+                            { f: 2093.00, type: 'sine', vol: 0.65 },    // C7 (Fundamental)
+                            { f: 2637.02, type: 'sine', vol: 0.55 },    // E7 (Bright Major Third)
+                            { f: 3135.96, type: 'sine', vol: 0.5 },     // G7 (Fifth)
+                            { f: 4186.01, type: 'triangle', vol: 0.35 },// C8 (Crystal Sparkle)
+                            { f: 6271.93, type: 'sine', vol: 0.25 }     // G8 (Airy Overtones)
+                        ];
+
+                        harmonics.forEach(note => {
+                            const osc = ctx.createOscillator();
+                            const g = ctx.createGain();
+                            osc.type = note.type;
+                            osc.frequency.setValueAtTime(note.f, t2);
+                            g.gain.setValueAtTime(note.vol, t2);
+                            // Long sustained 1.8s metallic ring
+                            g.gain.exponentialRampToValueAtTime(0.0001, t2 + 1.8);
+                            osc.connect(g);
+                            g.connect(masterGain);
+                            osc.start(t2);
+                            osc.stop(t2 + 1.85);
+                        });
+
+                        // --- 4. Echo Chime at 0.22s ---
+                        const t3 = now + 0.22;
+                        const chime = ctx.createOscillator();
+                        const chimeG = ctx.createGain();
+                        chime.type = 'sine';
+                        chime.frequency.setValueAtTime(3520.00, t3);
+                        chimeG.gain.setValueAtTime(0.3, t3);
+                        chimeG.gain.exponentialRampToValueAtTime(0.0001, t3 + 1.2);
+                        chime.connect(chimeG);
+                        chimeG.connect(masterGain);
+                        chime.start(t3);
+                        chime.stop(t3 + 1.25);
+
+                    } catch (e) {
+                        console.warn('Audio bell error:', e);
+                    }
+                },
+
+                triggerNewOrderAlert(order) {
+                    // 1. Play Loud Bell (Works even in background tab / minimized)
+                    this.playShopifyOrderBell();
+
+                    // 2. Desktop Windows Notification (Persistent banner when minimized!)
+                    if ('Notification' in window && Notification.permission === 'granted') {
+                        try {
+                            const notif = new Notification('🔔 New Order Received! #' + order.order_number, {
+                                body: order.customer_name + ' • RM ' + order.grand_total + ' (' + order.items_count + ' items)\nPayment: ' + (order.payment_method || 'Online'),
+                                icon: '{{ asset('images/logo.png') }}',
+                                requireInteraction: true,
+                                tag: 'order-' + order.id,
+                            });
+                            notif.onclick = () => {
+                                window.focus();
+                                window.location.href = order.url;
+                            };
+                        } catch(e) {}
+                    }
+
+                    // 3. Flashing Tab Title
+                    this.startTabTitleFlash(order);
+
+                    // 4. In-App Floating Toast
+                    this.latestNewOrderToast = order;
+                    if (this.toastTimer) clearTimeout(this.toastTimer);
+                    this.toastTimer = setTimeout(() => {
+                        this.latestNewOrderToast = null;
+                    }, 12000);
+                },
+
+                startTabTitleFlash(order) {
+                    if (this.titleFlashInterval) clearInterval(this.titleFlashInterval);
+                    let state = false;
+                    this.titleFlashInterval = setInterval(() => {
+                        document.title = state ? '🔔 (1) NEW ORDER! RM ' + order.grand_total : this.originalTitle;
+                        state = !state;
+                    }, 1000);
+
+                    const stopFlashing = () => {
+                        if (this.titleFlashInterval) {
+                            clearInterval(this.titleFlashInterval);
+                            this.titleFlashInterval = null;
+                        }
+                        document.title = this.originalTitle;
+                        window.removeEventListener('focus', stopFlashing);
+                        window.removeEventListener('click', stopFlashing);
+                    };
+                    window.addEventListener('focus', stopFlashing);
+                    window.addEventListener('click', stopFlashing);
+                },
+
+                async pollNotifications() {
+                    try {
+                        let url = '{{ route("admin.notifications.poll") }}?last_order_id=' + this.lastOrderId;
+                        let res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+                        if (!res.ok) return;
+                        let data = await res.json();
+
+                        this.bellCount = data.pending_payments;
+
+                        if (data.has_new_orders && data.new_orders && data.new_orders.length > 0) {
+                            data.new_orders.forEach(ord => {
+                                this.triggerNewOrderAlert(ord);
+                            });
+                        }
+
+                        if (data.latest_order_id) {
+                            this.lastOrderId = data.latest_order_id;
+                        }
+                    } catch(e) {}
+                }
+            };
+        }
+    </script>
+
+    @stack('scripts')
 </body>
 </html>

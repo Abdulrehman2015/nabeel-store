@@ -15,7 +15,7 @@
                     Live Sync
                 </span>
             </div>
-            <p class="text-xs text-slate-500 mt-0.5">Real-time carton volume, advance payment validations & warehouse queue.</p>
+            <p class="text-xs text-slate-500 mt-0.5">Real-time store volume, advance payment validations & warehouse queue.</p>
         </div>
 
         <div class="flex items-center gap-2">
@@ -72,7 +72,7 @@
             </div>
             <div class="mt-1 flex items-center gap-1.5 text-[11px] text-sky-600 font-semibold">
                 <span class="w-1.5 h-1.5 rounded-full bg-sky-500"></span>
-                <span>Bulk carton bookings</span>
+                <span>Store product orders</span>
             </div>
         </div>
 
@@ -132,7 +132,7 @@
                 @if($lowStockCount > 0)
                     <a href="{{ route('admin.products.index', ['stock_status' => 'low']) }}" class="inline-flex items-center gap-1 text-[11px] text-rose-800 font-extrabold hover:text-rose-900 group">
                         <span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse"></span>
-                        <span>&le; 20 cartons left</span>
+                        <span>&le; 20 items left</span>
                         <span class="group-hover:translate-x-0.5 transition-transform">&rarr;</span>
                     </a>
                 @else
@@ -220,7 +220,7 @@
                     <span class="font-bold text-slate-800">RM {{ number_format(($sevenDayRevenueTotal ?? array_sum($chartRevenue)) / 7, 2) }}</span>
                 </div>
                 <div class="py-1 bg-slate-50 rounded-lg border border-slate-100">
-                    <span class="text-slate-400 block text-[10px]">Active Cartons</span>
+                    <span class="text-slate-400 block text-[10px]">Active Products</span>
                     <span class="font-bold text-slate-800">{{ $totalActiveProducts ?? \App\Models\Product::where('is_active', true)->count() }} SKUs</span>
                 </div>
                 <div class="py-1 bg-slate-50 rounded-lg border border-slate-100">
@@ -239,7 +239,7 @@
                             <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
                             Inventory Health
                         </h2>
-                        <span class="text-[11px] text-slate-400">Safety threshold: &le; 20 cartons</span>
+                        <span class="text-[11px] text-slate-400">Safety threshold: &le; 20 items</span>
                     </div>
                     <a href="{{ route('admin.products.index') }}" class="text-[11px] font-bold text-sky-600 hover:text-sky-700">
                         View All &rarr;
@@ -273,7 +273,7 @@
                         </div>
                         <div>
                             <span class="block text-xs font-bold text-slate-800">Warehouse Stocks Optimal</span>
-                            <span class="text-[11px] text-slate-400 max-w-[220px] block mt-0.5">All cartons exceed the minimum safety threshold.</span>
+                            <span class="text-[11px] text-slate-400 max-w-[220px] block mt-0.5">All products exceed the minimum safety threshold.</span>
                         </div>
                     </div>
                 @endif
@@ -297,7 +297,7 @@
                     <svg class="w-4 h-4 text-sky-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
                     Recent Orders
                 </h2>
-                <p class="text-[11px] text-slate-400">Latest storefront carton bookings & advance payment submissions</p>
+                <p class="text-[11px] text-slate-400">Latest storefront orders & advance payment submissions</p>
             </div>
             <a href="{{ route('admin.orders.index') }}" class="text-xs font-bold text-sky-600 hover:text-sky-700 flex items-center gap-1">
                 <span>View All Orders</span>

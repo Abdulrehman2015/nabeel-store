@@ -50,7 +50,16 @@ class AdminOrderController extends Controller
             'delivered' => Order::where('order_status', 'delivered')->count(),
         ];
 
-        return view('admin.orders.index', compact('orders', 'counts'));
+        $stats = [
+            'total_orders' => Order::count(),
+            'pending_count' => $counts['pending_payment_verification'],
+            'pending_amount' => Order::where('order_status', 'pending_payment_verification')->sum('advance_amount'),
+            'ready_for_dispatch' => Order::whereIn('order_status', ['confirmed', 'processing'])->count(),
+            'out_for_delivery' => $counts['out_for_delivery'],
+            'total_revenue' => Order::whereIn('order_status', ['confirmed', 'processing', 'out_for_delivery', 'delivered'])->sum('grand_total'),
+        ];
+
+        return view('admin.orders.index', compact('orders', 'counts', 'stats'));
     }
 
     public function show(Order $order)

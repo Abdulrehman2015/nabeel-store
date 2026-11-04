@@ -12,8 +12,8 @@ class HowItWorksSeeder extends Seeder
         $steps = [
             [
                 'step_number' => 1,
-                'title' => 'Browse Cartons & Add to Cart',
-                'description' => 'Explore Groceries & Marts of drinks, dairy, staples, and supplies. Add items to your cart with no complicated registration.',
+                'title' => 'Browse Products & Add to Cart',
+                'description' => 'Explore our wide selection of fresh groceries, drinks, snacks, and essentials. Add items to your cart with ease.',
                 'icon' => 'cart',
                 'sort_order' => 1,
             ],
@@ -27,14 +27,14 @@ class HowItWorksSeeder extends Seeder
             [
                 'step_number' => 3,
                 'title' => 'Scan QR & Upload Advance Proof',
-                'description' => 'Scan the DuitNow QR to pay the small advance deposit (default 10%), then upload your payment screenshot and reference ID.',
+                'description' => 'Scan the DuitNow QR to make payment, then upload your payment screenshot and reference ID.',
                 'icon' => 'qrcode',
                 'sort_order' => 3,
             ],
             [
                 'step_number' => 4,
-                'title' => 'Quick Verification & Delivery',
-                'description' => 'Our dispatch team verifies your proof immediately, prepares your carton goods, and delivers right to your floor with balance on delivery.',
+                'title' => 'Quick Verification & Fast Delivery',
+                'description' => 'Our store team verifies your payment immediately, carefully packs your grocery items, and delivers right to your doorstep.',
                 'icon' => 'truck',
                 'sort_order' => 4,
             ],

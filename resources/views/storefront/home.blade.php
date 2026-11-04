@@ -90,17 +90,17 @@
 
                                     {{-- Micro-Pill Feature Highlights --}}
                                     <div class="hidden sm:flex flex-wrap items-center gap-2 pt-1 text-[11px] text-slate-300">
-                                        <span class="inline-flex items-center gap-1 bg-slate-900/60 px-2.5 py-1 rounded-lg border border-slate-700/60">
+                                        <span class="inline-flex items-center gap-1.5 bg-slate-900/60 px-3 py-1 rounded-lg border border-slate-700/60 backdrop-blur-sm">
                                             <svg class="w-3.5 h-3.5 text-emerald-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
-                                            100% Sealed Original Cases
+                                            100% Fresh & Authentic
                                         </span>
-                                        <span class="inline-flex items-center gap-1 bg-slate-900/60 px-2.5 py-1 rounded-lg border border-slate-700/60">
+                                        <span class="inline-flex items-center gap-1.5 bg-slate-900/60 px-3 py-1 rounded-lg border border-slate-700/60 backdrop-blur-sm">
                                             <svg class="w-3.5 h-3.5 text-emerald-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
-                                            10% QR Advance Booking
+                                            Free Delivery Radius ({{ setting('free_delivery_radius', 2) }}km)
                                         </span>
-                                        <span class="inline-flex items-center gap-1 bg-slate-900/60 px-2.5 py-1 rounded-lg border border-slate-700/60">
+                                        <span class="inline-flex items-center gap-1.5 bg-slate-900/60 px-3 py-1 rounded-lg border border-slate-700/60 backdrop-blur-sm">
                                             <svg class="w-3.5 h-3.5 text-emerald-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
-                                            Zero MOQ Friction
+                                            Everyday Low Mart Prices
                                         </span>
                                     </div>
 
@@ -168,7 +168,7 @@
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 p-4 sm:p-5 bg-white rounded-2xl border border-slate-200/90 shadow-2xs">
             
             {{-- Prop 1: Delivery --}}
-            <div class="flex items-center gap-3 p-2 rounded-xl hover:bg-slate-50 transition-colors">
+            <div class="flex items-center gap-3 p-2.5 rounded-xl hover:bg-slate-50 transition-colors">
                 <div class="w-11 h-11 rounded-xl bg-sky-50 text-sky-600 border border-sky-100 flex items-center justify-center shrink-0">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0"/></svg>
                 </div>
@@ -179,35 +179,35 @@
             </div>
 
             {{-- Prop 2: Floor --}}
-            <div class="flex items-center gap-3 p-2 rounded-xl hover:bg-slate-50 transition-colors">
+            <div class="flex items-center gap-3 p-2.5 rounded-xl hover:bg-slate-50 transition-colors">
                 <div class="w-11 h-11 rounded-xl bg-amber-50 text-amber-600 border border-amber-100 flex items-center justify-center shrink-0">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
                 </div>
                 <div>
-                    <h4 class="text-xs sm:text-sm font-bold text-slate-900 leading-snug">Free Floor 0 & 1</h4>
-                    <p class="text-[11px] text-slate-500">Up to Floor {{ setting('free_floor_limit', 1) }} zero extra charges</p>
+                    <h4 class="text-xs sm:text-sm font-bold text-slate-900 leading-snug">Doorstep & Floor Delivery</h4>
+                    <p class="text-[11px] text-slate-500">Floor 0 & 1 zero extra charges</p>
                 </div>
             </div>
 
-            {{-- Prop 3: Sealed Cases --}}
-            <div class="flex items-center gap-3 p-2 rounded-xl hover:bg-slate-50 transition-colors">
+            {{-- Prop 3: 100% Genuine --}}
+            <div class="flex items-center gap-3 p-2.5 rounded-xl hover:bg-slate-50 transition-colors">
                 <div class="w-11 h-11 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center shrink-0">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/></svg>
                 </div>
                 <div>
-                    <h4 class="text-xs sm:text-sm font-bold text-slate-900 leading-snug">Factory Sealed Cases</h4>
-                    <p class="text-[11px] text-slate-500">100% genuine original packaging</p>
+                    <h4 class="text-xs sm:text-sm font-bold text-slate-900 leading-snug">100% Fresh & Authentic</h4>
+                    <p class="text-[11px] text-slate-500">Direct from trusted brand distributors</p>
                 </div>
             </div>
 
-            {{-- Prop 4: QR Advance --}}
-            <div class="flex items-center gap-3 p-2 rounded-xl hover:bg-slate-50 transition-colors">
+            {{-- Prop 4: Easy Payment --}}
+            <div class="flex items-center gap-3 p-2.5 rounded-xl hover:bg-slate-50 transition-colors">
                 <div class="w-11 h-11 rounded-xl bg-purple-50 text-purple-600 border border-purple-100 flex items-center justify-center shrink-0">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
                 </div>
                 <div>
-                    <h4 class="text-xs sm:text-sm font-bold text-slate-900 leading-snug">Secure 10% QR Advance</h4>
-                    <p class="text-[11px] text-slate-500">Pay deposit now, balance on arrival</p>
+                    <h4 class="text-xs sm:text-sm font-bold text-slate-900 leading-snug">Fast QR & Online Pay</h4>
+                    <p class="text-[11px] text-slate-500">Instant DuitNow & Bank Transfer</p>
                 </div>
             </div>
 
@@ -249,7 +249,7 @@
                                 {{ $category->name }}
                             </h3>
                             <span class="text-[10px] font-semibold text-slate-400 mt-1 block">
-                                {{ $category->products_count }} {{ Str::plural('Carton', $category->products_count) }}
+                                {{ $category->products_count }} {{ Str::plural('Product', $category->products_count) }}
                             </span>
                         </div>
                     </a>
@@ -258,30 +258,41 @@
         </section>
     @endif
 
-    {{-- 4. Featured Flash Carton Deals (If Promo Products Exist) --}}
+    {{-- 4. Featured Store Specials (Fresh, Clean, High-End Grocery Deals Showcase) --}}
     @if($promoProducts->count() > 0)
         <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="relative rounded-3xl overflow-hidden bg-gradient-to-br from-rose-950 via-slate-950 to-slate-900 border border-rose-900/50 p-5 sm:p-8 text-white shadow-xl">
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+            <div class="relative rounded-3xl overflow-hidden bg-gradient-to-br from-rose-50/80 via-orange-50/40 to-white border border-rose-200/80 p-5 sm:p-8 shadow-xs">
+                
+                {{-- Decorative background glow --}}
+                <div class="absolute -right-20 -bottom-20 w-64 h-64 bg-rose-200/30 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="absolute -left-20 -top-20 w-64 h-64 bg-amber-200/30 rounded-full blur-3xl pointer-events-none"></div>
+
+                <div class="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                     <div>
                         <div class="flex items-center gap-2">
                             <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-rose-600 text-white shadow-xs">
                                 🔥 Limited Store Deals
                             </span>
-                            <span class="text-xs font-bold text-rose-300">Special Price Drops</span>
+                            <span class="text-xs font-bold text-rose-700">Special Price Drops</span>
                         </div>
-                        <h2 class="text-xl sm:text-3xl font-black tracking-tight text-white mt-1">
-                            Featured Store Specials
+                        <h2 class="text-xl sm:text-2xl lg:text-3xl font-black tracking-tight text-slate-900 mt-1">
+                            {{ $sections['promo']->title ?? 'Featured Store Specials' }}
                         </h2>
+                        <p class="text-xs text-slate-600 mt-1 max-w-xl">
+                            {{ $sections['promo']->subtitle ?? 'Exclusive discounts on popular groceries, drinks, and daily household essentials.' }}
+                        </p>
                     </div>
 
-                    <a href="{{ route('category.index') }}" class="inline-flex items-center gap-1 text-xs font-bold text-rose-300 hover:text-white transition">
-                        <span>See All Discounted Items</span>
+                    <a 
+                        href="{{ route('category.index') }}" 
+                        class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white hover:bg-rose-50 text-rose-700 font-bold text-xs border border-rose-200 shadow-2xs hover:shadow-xs transition self-start sm:self-center"
+                    >
+                        <span>See All Deals</span>
                         <span>&rarr;</span>
                     </a>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+                <div class="relative z-10 grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6">
                     @foreach($promoProducts->take(4) as $product)
                         @include('storefront.partials.product_card', ['product' => $product])
                     @endforeach
@@ -349,7 +360,7 @@
 
         {{-- Tab 1: Featured Products --}}
         <div x-show="currentTab === 'featured'" x-cloak>
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+            <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6">
                 @foreach($featuredProducts as $product)
                     @include('storefront.partials.product_card', ['product' => $product])
                 @endforeach
@@ -359,7 +370,7 @@
         {{-- Tab 2: New Arrivals --}}
         @if($newArrivalProducts->count() > 0)
             <div x-show="currentTab === 'new'" x-cloak>
-                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+                <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6">
                     @foreach($newArrivalProducts as $product)
                         @include('storefront.partials.product_card', ['product' => $product])
                     @endforeach
@@ -370,7 +381,7 @@
         {{-- Tab 3: Best Sellers --}}
         @if($bestSellers->count() > 0)
             <div x-show="currentTab === 'bestsellers'" x-cloak>
-                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+                <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6">
                     @foreach($bestSellers as $product)
                         @include('storefront.partials.product_card', ['product' => $product])
                     @endforeach
@@ -386,7 +397,7 @@
         </div>
     </section>
 
-    {{-- 6. "Who We Supply" Solutions Grid --}}
+    {{-- 6. Mart Departments Showcase --}}
     <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center max-w-xl mx-auto mb-8">
             <span class="text-xs font-bold text-sky-600 uppercase tracking-wider">Everything for Your Home & Family</span>
@@ -399,7 +410,7 @@
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-            {{-- Segment 1 --}}
+            {{-- Department 1 --}}
             <div class="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-2xs hover:border-sky-400 hover:shadow-md transition-all flex flex-col justify-between">
                 <div>
                     <div class="w-12 h-12 rounded-xl bg-sky-50 text-sky-600 border border-sky-100 flex items-center justify-center text-xl mb-3">
@@ -411,12 +422,12 @@
                     </p>
                 </div>
                 <div class="mt-4 pt-3 border-t border-slate-100">
-                    <span class="text-[11px] font-bold text-sky-600">Fresh daily stock &rarr;</span>
+                    <a href="{{ route('category.index') }}" class="text-[11px] font-bold text-sky-600 hover:underline">Fresh daily stock &rarr;</a>
                 </div>
             </div>
 
-            {{-- Segment 2 --}}
-            <div class="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-2xs hover:border-sky-400 hover:shadow-md transition-all flex flex-col justify-between">
+            {{-- Department 2 --}}
+            <div class="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-2xs hover:border-amber-400 hover:shadow-md transition-all flex flex-col justify-between">
                 <div>
                     <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 border border-amber-100 flex items-center justify-center text-xl mb-3">
                         🥤
@@ -427,12 +438,12 @@
                     </p>
                 </div>
                 <div class="mt-4 pt-3 border-t border-slate-100">
-                    <span class="text-[11px] font-bold text-amber-600">Great family packs &rarr;</span>
+                    <a href="{{ route('category.index') }}" class="text-[11px] font-bold text-amber-600 hover:underline">Great family packs &rarr;</a>
                 </div>
             </div>
 
-            {{-- Segment 3 --}}
-            <div class="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-2xs hover:border-sky-400 hover:shadow-md transition-all flex flex-col justify-between">
+            {{-- Department 3 --}}
+            <div class="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-2xs hover:border-emerald-400 hover:shadow-md transition-all flex flex-col justify-between">
                 <div>
                     <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center text-xl mb-3">
                         🧼
@@ -443,12 +454,12 @@
                     </p>
                 </div>
                 <div class="mt-4 pt-3 border-t border-slate-100">
-                    <span class="text-[11px] font-bold text-emerald-600">Floor 0 & 1 Free delivery &rarr;</span>
+                    <a href="{{ route('category.index') }}" class="text-[11px] font-bold text-emerald-600 hover:underline">Floor 0 & 1 Free delivery &rarr;</a>
                 </div>
             </div>
 
-            {{-- Segment 4 --}}
-            <div class="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-2xs hover:border-sky-400 hover:shadow-md transition-all flex flex-col justify-between">
+            {{-- Department 4 --}}
+            <div class="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-2xs hover:border-purple-400 hover:shadow-md transition-all flex flex-col justify-between">
                 <div>
                     <div class="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 border border-purple-100 flex items-center justify-center text-xl mb-3">
                         🍪
@@ -459,7 +470,7 @@
                     </p>
                 </div>
                 <div class="mt-4 pt-3 border-t border-slate-100">
-                    <span class="text-[11px] font-bold text-purple-600">Snack bundles &rarr;</span>
+                    <a href="{{ route('category.index') }}" class="text-[11px] font-bold text-purple-600 hover:underline">Snack favorites &rarr;</a>
                 </div>
             </div>
         </div>
@@ -520,7 +531,7 @@
                         {{ $sections['how_it_works']->title ?? 'How Online Ordering Works' }}
                     </h2>
                     <p class="text-slate-500 text-xs sm:text-sm mt-1">
-                        From browsing your groceries straight to your door or floor.
+                        {{ $sections['how_it_works']->subtitle ?? 'From browsing your groceries straight to your door or floor in 4 simple steps.' }}
                     </p>
                 </div>
 
@@ -542,7 +553,7 @@
         </section>
     @endif
 
-    {{-- 9. Why Choose Us --}}
+    {{-- 9. Why Shop at N&J Mini Mart? (The Mart Advantage) --}}
     @if(!isset($sections['benefits']) || $sections['benefits']->is_active)
         <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center max-w-xl mx-auto mb-8 sm:mb-10">
@@ -551,11 +562,7 @@
                     {{ $sections['benefits']->title ?? 'Why Shop at N&J Mini Mart?' }}
                 </h2>
                 <p class="text-slate-500 text-xs sm:text-sm mt-1">
-                    Genuine products, reliable local delivery, and transparent pricing.
-                </p>
-            </div>
-                <p class="text-slate-500 text-xs sm:text-sm mt-1">
-                    Direct factory cases, reliable logistics, and full price transparency.
+                    {{ $sections['benefits']->subtitle ?? 'Genuine products, reliable local delivery, and transparent pricing.' }}
                 </p>
             </div>
 
@@ -596,6 +603,9 @@
                 <h2 class="text-xl sm:text-3xl font-black text-slate-900 tracking-tight mt-1">
                     {{ $sections['faqs']->title ?? 'Frequently Asked Questions' }}
                 </h2>
+                <p class="text-slate-500 text-xs sm:text-sm mt-1">
+                    {{ $sections['faqs']->subtitle ?? 'Common questions about delivery, payments, and shopping at our store.' }}
+                </p>
             </div>
 
             <div class="space-y-2.5" x-data="{ activeFaq: 0 }">

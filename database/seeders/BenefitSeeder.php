@@ -11,14 +11,14 @@ class BenefitSeeder extends Seeder
     {
         $benefits = [
             [
-                'title' => 'Factory Carton Mart Pricing',
-                'description' => 'Unbeatable bulk carton savings direct from primary manufacturers and distributors without retail markups.',
+                'title' => 'Everyday Low Mart Pricing',
+                'description' => 'Affordable everyday groceries and household savings direct from trusted brands without excessive markups.',
                 'icon' => 'tag',
                 'sort_order' => 1,
             ],
             [
                 'title' => 'Free Local Delivery Radius',
-                'description' => 'Enjoy free delivery within our 5km radius and nominal rates for adjoining zones calculated automatically.',
+                'description' => 'Enjoy free delivery within our local radius and nominal rates for adjoining zones calculated automatically.',
                 'icon' => 'truck',
                 'sort_order' => 2,
             ],
@@ -29,8 +29,8 @@ class BenefitSeeder extends Seeder
                 'sort_order' => 3,
             ],
             [
-                'title' => 'Secure DuitNow QR Advance',
-                'description' => 'Pay only 10% advance deposit via instant QR to secure carton stock. Pay the remaining balance upon delivery.',
+                'title' => 'Secure DuitNow QR & Online Pay',
+                'description' => 'Pay with instant DuitNow QR or bank transfer to confirm your order. Simple, fast and secure.',
                 'icon' => 'shield-check',
                 'sort_order' => 4,
             ],

@@ -219,7 +219,7 @@ class CheckoutController extends Controller
      */
     public function success(string $orderNumber)
     {
-        $order = Order::where('order_number', $orderNumber)->with('items')->firstOrFail();
+        $order = Order::where('order_number', $orderNumber)->with(['items.product'])->firstOrFail();
 
         $whatsAppUrl = $this->notificationService->getWhatsAppClickUrl($order);
 

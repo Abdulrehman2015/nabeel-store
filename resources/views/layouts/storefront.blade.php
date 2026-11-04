@@ -275,7 +275,7 @@
                                 x-model="liveSearchQuery" 
                                 @input.debounce.300ms="fetchLiveSearch()" 
                                 @focus="fetchLiveSearch()" 
-                                placeholder="Search products by brand, carton or SKU (e.g. Fanta, Milo, Maggi)..." 
+                                placeholder="Search products by brand, name or SKU (e.g. Fanta, Milo, Maggi)..." 
                                 class="w-full pl-11 pr-24 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:bg-white focus:border-sky-500 focus:ring-2 focus:ring-sky-200 transition"
                                 autocomplete="off"
                             >
@@ -427,7 +427,7 @@
                     <input 
                         type="text" 
                         name="q" 
-                        placeholder="Search cartons, drinks, oil..." 
+                        placeholder="Search products, drinks, pantry..." 
                         class="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-300 rounded-xl text-sm"
                     >
                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
@@ -514,7 +514,7 @@
                             <div class="flex-1 min-w-0">
                                 <h4 class="text-sm font-bold text-slate-900 truncate" x-text="item.name"></h4>
                                 <p class="text-xs text-slate-500" x-text="item.pack_size"></p>
-                                <div class="text-xs font-bold text-sky-600 mt-1" x-text="'RM ' + Number(item.unit_price).toFixed(2) + ' / carton'"></div>
+                                <div class="text-xs font-bold text-sky-600 mt-1" x-text="'RM ' + Number(item.unit_price).toFixed(2) + ''"></div>
                                 
                                 <div class="flex items-center gap-2 mt-2">
                                     <div class="flex items-center border border-slate-300 rounded-lg">

@@ -5,73 +5,128 @@
 @section('content')
 <div class="space-y-6">
     <!-- Header -->
-    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-2 border-b border-slate-200">
         <div>
-            <h1 class="text-2xl font-bold text-gray-900">Categories</h1>
-            <p class="text-xs text-gray-500 mt-1">Manage bulk grocery category taxonomy, mega-menu order and SEO meta.</p>
+            <div class="flex items-center gap-2 text-xs font-semibold text-slate-500 mb-1">
+                <span>Catalog</span>
+                <span class="text-slate-300">/</span>
+                <span class="text-slate-700">Categories</span>
+            </div>
+            <h1 class="text-2xl font-black text-slate-900 tracking-tight">Mart Categories</h1>
+            <p class="text-xs text-slate-500 mt-0.5">Manage store aisles, mega-menu display order and category SEO meta</p>
         </div>
-        <a href="{{ route('admin.categories.create') }}" class="px-4 py-2 bg-primary hover:bg-primary-hover text-white rounded-lg text-sm font-semibold shadow flex items-center gap-2 transition">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-            Add Category
-        </a>
+        <div class="flex items-center gap-2.5">
+            <a href="{{ route('category.index') }}" target="_blank" class="px-3.5 py-2 bg-white hover:bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold text-slate-700 shadow-2xs hover:border-sky-400 hover:text-sky-600 transition flex items-center gap-1.5">
+                <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                <span>Storefront View</span>
+            </a>
+            <a href="{{ route('admin.categories.create') }}" class="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-bold shadow-md shadow-sky-600/25 hover:shadow-sky-600/40 flex items-center gap-2 transition cursor-pointer">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                <span>Add Category</span>
+            </a>
+        </div>
     </div>
 
     <!-- Table Card -->
-    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+    <div class="bg-white rounded-2xl shadow-xs border border-slate-200/90 overflow-hidden">
         <div class="overflow-x-auto">
-            <table class="w-full text-left text-sm text-gray-600">
-                <thead class="bg-gray-50 text-xs uppercase text-gray-500 font-semibold border-b border-gray-200">
+            <table class="w-full text-left text-sm text-slate-600">
+                <thead class="bg-slate-50/80 text-[11px] uppercase text-slate-500 font-bold tracking-wider border-b border-slate-200/80">
                     <tr>
-                        <th class="px-6 py-3">Category</th>
-                        <th class="px-6 py-3">Parent</th>
-                        <th class="px-6 py-3">Sort Order</th>
-                        <th class="px-6 py-3">Products</th>
-                        <th class="px-6 py-3">Status</th>
-                        <th class="px-6 py-3 text-right">Actions</th>
+                        <th class="px-6 py-3.5">Category & Store Hyperlink</th>
+                        <th class="px-6 py-3.5">Parent Department</th>
+                        <th class="px-6 py-3.5">Sort Order</th>
+                        <th class="px-6 py-3.5">Products Count</th>
+                        <th class="px-6 py-3.5">Visibility</th>
+                        <th class="px-6 py-3.5 text-right">Actions</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-200">
+                <tbody class="divide-y divide-slate-100">
                     @forelse($categories as $category)
-                        <tr class="hover:bg-gray-50/75 transition">
-                            <td class="px-6 py-4 flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-xl overflow-hidden flex items-center justify-center p-0.5 shrink-0 border border-gray-200 bg-gray-50 shadow-2xs">
+                        <tr class="hover:bg-slate-50/60 transition group">
+                            {{-- Category with Icon & Clickable Hyperlink --}}
+                            <td class="px-6 py-4 flex items-center gap-3.5">
+                                <div class="w-11 h-11 rounded-xl overflow-hidden flex items-center justify-center p-1 shrink-0 border border-slate-200 bg-white shadow-2xs group-hover:border-sky-300 transition">
                                     {!! $category->renderIcon('w-full h-full object-cover rounded-lg') !!}
                                 </div>
-                                <div>
-                                    <span class="font-semibold text-gray-900 block">{{ $category->name }}</span>
-                                    <span class="text-xs text-gray-400 font-mono">/category/{{ $category->slug }}</span>
+                                <div class="min-w-0">
+                                    <a href="{{ route('admin.categories.edit', $category) }}" class="font-bold text-slate-900 group-hover:text-sky-600 transition block text-sm">
+                                        {{ $category->name }}
+                                    </a>
+                                    <a href="{{ route('category.show', $category->slug) }}" target="_blank" class="text-[11px] text-sky-600 hover:text-sky-800 hover:underline font-mono inline-flex items-center gap-1 mt-0.5" title="Open storefront category page">
+                                        <span>/category/{{ $category->slug }}</span>
+                                        <svg class="w-3 h-3 text-sky-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                                    </a>
                                 </div>
                             </td>
-                            <td class="px-6 py-4 text-xs font-medium text-gray-700">
-                                {{ $category->parent ? $category->parent->name : '— Root —' }}
-                            </td>
-                            <td class="px-6 py-4 text-xs font-mono text-gray-600">
-                                {{ $category->sort_order }}
-                            </td>
-                            <td class="px-6 py-4 text-xs">
-                                <span class="px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 font-semibold">
-                                    {{ $category->products_count }} products
-                                </span>
-                            </td>
-                            <td class="px-6 py-4">
-                                @if($category->is_active)
-                                    <span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-100 text-emerald-800">Active</span>
+
+                            {{-- Parent Category --}}
+                            <td class="px-6 py-4 text-xs font-semibold text-slate-700">
+                                @if($category->parent)
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 border border-slate-200/80">
+                                        <svg class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
+                                        {{ $category->parent->name }}
+                                    </span>
                                 @else
-                                    <span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-gray-100 text-gray-600">Disabled</span>
+                                    <span class="text-slate-400 text-[11px] font-medium">— Root Aisle —</span>
                                 @endif
                             </td>
-                            <td class="px-6 py-4 text-right space-x-2">
-                                <a href="{{ route('admin.categories.edit', $category) }}" class="text-primary hover:text-primary-hover font-semibold text-xs">Edit</a>
-                                <form action="{{ route('admin.categories.destroy', $category) }}" method="POST" class="inline-block" onsubmit="return confirm('Are you sure you want to delete this category?');">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="text-red-600 hover:text-red-800 font-semibold text-xs">Delete</button>
-                                </form>
+
+                            {{-- Sort Order --}}
+                            <td class="px-6 py-4 text-xs font-mono font-bold text-slate-700">
+                                <span class="px-2 py-1 rounded-md bg-slate-100 border border-slate-200/60">
+                                    #{{ $category->sort_order }}
+                                </span>
+                            </td>
+
+                            {{-- Products Count with Link --}}
+                            <td class="px-6 py-4 text-xs">
+                                <a href="{{ route('admin.products.index') }}?category={{ $category->id }}" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-sky-50 text-sky-700 hover:bg-sky-100 font-bold border border-sky-200 transition">
+                                    <span>{{ $category->products_count }} products</span>
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                                </a>
+                            </td>
+
+                            {{-- Status Badge --}}
+                            <td class="px-6 py-4">
+                                @if($category->is_active)
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                        Active
+                                    </span>
+                                @else
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-slate-100 text-slate-600 border border-slate-200">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+                                        Hidden
+                                    </span>
+                                @endif
+                            </td>
+
+                            {{-- Action Buttons --}}
+                            <td class="px-6 py-4 text-right">
+                                <div class="flex items-center justify-end gap-2">
+                                    <a href="{{ route('category.show', $category->slug) }}" target="_blank" class="p-1.5 text-slate-400 hover:text-sky-600 hover:bg-sky-50 rounded-lg transition" title="View live page">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                                    </a>
+                                    <a href="{{ route('admin.categories.edit', $category) }}" class="px-3 py-1 bg-white hover:bg-slate-50 border border-slate-300 rounded-lg text-xs font-bold text-slate-700 hover:text-sky-600 hover:border-sky-300 transition shadow-2xs">
+                                        Edit
+                                    </a>
+                                    <form action="{{ route('admin.categories.destroy', $category) }}" method="POST" class="inline-block" onsubmit="return confirm('Are you sure you want to delete category \'{{ $category->name }}\'?');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="px-2.5 py-1 bg-white hover:bg-rose-50 border border-slate-200 hover:border-rose-300 rounded-lg text-xs font-bold text-rose-600 transition cursor-pointer shadow-2xs">
+                                            Delete
+                                        </button>
+                                    </form>
+                                </div>
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="px-6 py-8 text-center text-gray-400 text-sm">No categories found.</td>
+                            <td colspan="6" class="px-6 py-12 text-center text-slate-400 text-sm">
+                                <svg class="w-10 h-10 mx-auto text-slate-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+                                <span>No categories found in store database.</span>
+                            </td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -79,11 +134,10 @@
         </div>
 
         @if($categories->hasPages())
-            <div class="p-4 border-t border-gray-200">
+            <div class="p-4 border-t border-slate-200/80 bg-slate-50/50">
                 {{ $categories->links() }}
             </div>
         @endif
     </div>
 </div>
 @endsection
-

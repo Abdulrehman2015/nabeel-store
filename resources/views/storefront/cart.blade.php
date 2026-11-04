@@ -85,7 +85,7 @@
                                     <p class="text-xs text-slate-500">{{ $item['pack_size'] }}</p>
                                     <div class="text-xs font-mono text-slate-400 mt-0.5">SKU: {{ $item['sku'] }}</div>
                                     <div class="text-xs font-bold text-sky-600 mt-1">
-                                        {{ format_currency($item['unit_price']) }} / carton
+                                        {{ format_currency($item['unit_price']) }} 
                                     </div>
                                 </div>
                             </div>
@@ -137,7 +137,7 @@
 
                     <div class="space-y-3 text-sm">
                         <div class="flex justify-between text-slate-600">
-                            <span>Subtotal ({{ $summary['item_count'] }} {{ Str::plural('carton', $summary['item_count']) }}):</span>
+                            <span>Subtotal ({{ $summary['item_count'] }} {{ Str::plural('item', $summary['item_count']) }}):</span>
                             <span class="font-bold text-slate-900">{{ $summary['subtotal_formatted'] }}</span>
                         </div>
                         <div class="flex justify-between text-slate-600 text-xs">

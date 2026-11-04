@@ -30,18 +30,48 @@ class AdminProductController extends Controller
             $query->where('category_id', $request->query('category'));
         }
 
+        if ($request->filled('brand')) {
+            $query->where('brand_id', $request->query('brand'));
+        }
+
         if ($request->filled('stock_status')) {
             if ($request->query('stock_status') === 'low') {
-                $query->where('stock_quantity', '<=', 20);
+                $query->where('stock_quantity', '<=', 20)->where('stock_quantity', '>', 0);
             } elseif ($request->query('stock_status') === 'out') {
                 $query->where('stock_quantity', '<=', 0);
+            } elseif ($request->query('stock_status') === 'in_stock') {
+                $query->where('stock_quantity', '>', 20);
             }
+        }
+
+        if ($request->filled('badge')) {
+            $badge = $request->query('badge');
+            if ($badge === 'promo') {
+                $query->where('is_promo', true);
+            } elseif ($badge === 'new') {
+                $query->where('is_new', true);
+            } elseif ($badge === 'featured') {
+                $query->where('is_featured', true);
+            }
+        }
+
+        if ($request->filled('status')) {
+            $query->where('is_active', $request->query('status') === 'active');
         }
 
         $products = $query->latest('id')->paginate(15)->withQueryString();
         $categories = Category::orderBy('name')->get();
+        $brands = Brand::orderBy('name')->get();
 
-        return view('admin.products.index', compact('products', 'categories'));
+        $stats = [
+            'total' => Product::count(),
+            'active' => Product::where('is_active', true)->count(),
+            'low_stock' => Product::where('stock_quantity', '<=', 20)->where('stock_quantity', '>', 0)->count(),
+            'out_of_stock' => Product::where('stock_quantity', '<=', 0)->count(),
+            'promo' => Product::where('is_promo', true)->count(),
+        ];
+
+        return view('admin.products.index', compact('products', 'categories', 'brands', 'stats'));
     }
 
     public function create()
@@ -60,7 +90,7 @@ class AdminProductController extends Controller
             'name' => 'required|string|max:200',
             'slug' => 'nullable|string|max:200|unique:products,slug',
             'sku' => 'required|string|max:50|unique:products,sku',
-            'pack_size' => 'required|string|max:100',
+            'pack_size' => 'nullable|string|max:100',
             'unit_description' => 'nullable|string|max:150',
             'weight_volume' => 'nullable|string|max:50',
             'price' => 'required|numeric|min:0.01',
@@ -131,7 +161,7 @@ class AdminProductController extends Controller
             'name' => 'required|string|max:200',
             'slug' => 'nullable|string|max:200|unique:products,slug,' . $product->id,
             'sku' => 'required|string|max:50|unique:products,sku,' . $product->id,
-            'pack_size' => 'required|string|max:100',
+            'pack_size' => 'nullable|string|max:100',
             'unit_description' => 'nullable|string|max:150',
             'weight_volume' => 'nullable|string|max:50',
             'price' => 'required|numeric|min:0.01',

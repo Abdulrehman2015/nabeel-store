@@ -6,7 +6,7 @@
     {{-- Universal Hero Section --}}
     <x-storefront-hero 
         title="Frequently Asked Questions"
-        description="Find immediate answers regarding delivery zones, floor logistics, carton return policies, and order tracking."
+        description="Find immediate answers regarding delivery zones, floor logistics, item return policies, and order tracking."
         badge="Help & Knowledge Base"
         subBadge="⚡ Instant Answers"
         :breadcrumbs="['FAQs' => null]"

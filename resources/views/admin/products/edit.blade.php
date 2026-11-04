@@ -2,6 +2,31 @@
 
 @section('title', 'Edit Product: ' . $product->name)
 
+@push('styles')
+{{-- Quill 2.0 Rich Text Editor --}}
+<link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet" />
+<style>
+    .ql-toolbar.ql-snow {
+        border-top-left-radius: 0.75rem;
+        border-top-right-radius: 0.75rem;
+        border-color: #e2e8f0;
+        background: #f8fafc;
+    }
+    .ql-container.ql-snow {
+        border-bottom-left-radius: 0.75rem;
+        border-bottom-right-radius: 0.75rem;
+        border-color: #e2e8f0;
+        font-family: inherit;
+        font-size: 0.875rem;
+        min-height: 180px;
+        background: #ffffff;
+    }
+    .ql-editor {
+        min-height: 180px;
+    }
+</style>
+@endpush
+
 @section('content')
 <div class="max-w-6xl mx-auto space-y-6" x-data="{
     title: '{{ old('name', addslashes($product->name)) }}',
@@ -9,31 +34,85 @@
     metaDesc: '{{ old('meta_description', addslashes($product->meta_description ?? '')) }}',
     slug: '{{ old('slug', $product->slug) }}',
     price: '{{ old('price', $product->price) }}',
-    salePrice: '{{ old('sale_price', $product->sale_price ?? '') }}'
+    salePrice: '{{ old('sale_price', $product->sale_price ?? '') }}',
+    stock: {{ old('stock_quantity', $product->stock_quantity ?? 0) }},
+    isActive: {{ old('is_active', $product->is_active) ? 'true' : 'false' }},
+    isFeatured: {{ old('is_featured', $product->is_featured) ? 'true' : 'false' }},
+    isNew: {{ old('is_new', $product->is_new) ? 'true' : 'false' }},
+    isPromo: {{ old('is_promo', $product->is_promo) ? 'true' : 'false' }},
+    bannerPreview: null,
+    copied: false,
+    
+    get liveUrl() {
+        let base = '{{ url('/product') }}';
+        let s = (this.slug || '').trim();
+        return s ? (base + '/' + s) : '{{ route('product.show', $product->slug) }}';
+    },
+
+    get discountPercent() {
+        let p = parseFloat(this.price);
+        let sp = parseFloat(this.salePrice);
+        if (p > 0 && sp > 0 && sp < p) {
+            return Math.round(((p - sp) / p) * 100);
+        }
+        return 0;
+    },
+
+    copyLink() {
+        navigator.clipboard.writeText(this.liveUrl);
+        this.copied = true;
+        setTimeout(() => this.copied = false, 2500);
+    },
+
+    previewBanner(event) {
+        const file = event.target.files[0];
+        if (file) {
+            this.bannerPreview = URL.createObjectURL(file);
+        }
+    }
 }">
-    <!-- Header -->
-    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+    <!-- Top Action Bar -->
+    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-slate-200">
         <div>
-            <div class="flex items-center gap-2 text-sm text-gray-500">
-                <a href="{{ route('admin.products.index') }}" class="hover:text-primary">Products</a>
-                <span>/</span>
-                <span class="text-gray-900 font-medium truncate max-w-xs">{{ $product->name }}</span>
+            <nav class="flex items-center gap-2 text-xs font-semibold text-slate-500 mb-1">
+                <a href="{{ route('admin.products.index') }}" class="hover:text-sky-600 transition flex items-center gap-1">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                    <span>Products</span>
+                </a>
+                <span class="text-slate-300">/</span>
+                <span class="text-slate-700 truncate max-w-xs">{{ $product->name }}</span>
+            </nav>
+            <div class="flex items-center gap-3">
+                <h1 class="text-2xl font-black text-slate-900 tracking-tight">Edit Mart Product</h1>
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold"
+                    :class="isActive ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-100 text-slate-600 border border-slate-200'">
+                    <span class="w-1.5 h-1.5 rounded-full" :class="isActive ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'"></span>
+                    <span x-text="isActive ? 'Published' : 'Draft / Hidden'"></span>
+                </span>
             </div>
-            <h1 class="text-2xl font-bold text-gray-900 mt-1">Edit Product</h1>
         </div>
-        <div class="flex items-center gap-2">
-            <a href="{{ route('product.show', $product->slug) }}" target="_blank" class="px-3.5 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 flex items-center gap-1.5 transition">
-                <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
-                View on Store
+
+        <div class="flex items-center gap-2.5">
+            {{-- Hyperlink to View on Store --}}
+            <a :href="liveUrl" target="_blank" class="px-4 py-2 bg-white hover:bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold text-slate-700 shadow-2xs hover:border-sky-400 hover:text-sky-600 transition flex items-center gap-2 group">
+                <svg class="w-4 h-4 text-slate-400 group-hover:text-sky-500 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                <span>View on Store</span>
             </a>
-            <button type="submit" form="productForm" class="px-5 py-2 bg-primary hover:bg-primary-hover text-white rounded-lg text-sm font-semibold shadow transition">Update Product</button>
+
+            <button type="submit" form="productForm" class="px-5 py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-bold shadow-md shadow-sky-600/25 hover:shadow-sky-600/40 transition flex items-center gap-1.5 cursor-pointer">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                <span>Update Product</span>
+            </button>
         </div>
     </div>
 
     @if($errors->any())
-        <div class="p-4 bg-red-50 border-l-4 border-red-500 rounded-r-lg">
-            <h4 class="text-sm font-bold text-red-800">Please correct the following errors:</h4>
-            <ul class="mt-2 text-xs text-red-700 list-disc list-inside space-y-1">
+        <div class="p-4 bg-rose-50 border-l-4 border-rose-500 rounded-xl shadow-xs">
+            <div class="flex items-center gap-2 text-rose-800 font-bold text-sm">
+                <svg class="w-4 h-4 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <span>Please correct the errors below:</span>
+            </div>
+            <ul class="mt-2 text-xs text-rose-700 list-disc list-inside space-y-1 font-medium">
                 @foreach($errors->all() as $err)
                     <li>{{ $err }}</li>
                 @endforeach
@@ -46,186 +125,357 @@
         @method('PUT')
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <!-- Left 2 Cols: Main Info -->
+            <!-- Left 2 Cols: Main Info & Media -->
             <div class="lg:col-span-2 space-y-6">
-                <!-- Basic Card -->
-                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-4">
-                    <h3 class="text-base font-semibold text-gray-900 border-b border-gray-100 pb-3">Basic Information</h3>
-
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Product Name *</label>
-                        <input type="text" name="name" x-model="title" required value="{{ old('name', $product->name) }}" class="w-full text-sm border-gray-300 rounded-lg focus:ring-primary focus:border-primary">
+                
+                <!-- Basic Info Card -->
+                <div class="bg-white rounded-2xl shadow-xs border border-slate-200/90 p-5 sm:p-6 space-y-5">
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                        <div class="flex items-center gap-2.5">
+                            <span class="w-8 h-8 rounded-lg bg-sky-50 text-sky-600 flex items-center justify-center font-bold">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                            </span>
+                            <div>
+                                <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wide">Product Information</h3>
+                                <p class="text-[11px] text-slate-400">Core details, SKU, live hyperlink & description</p>
+                            </div>
+                        </div>
+                        <span class="text-[11px] text-slate-400 font-medium">* Required</span>
                     </div>
 
+                    {{-- Product Title --}}
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Product Title *</label>
+                        <input type="text" name="name" x-model="title" required value="{{ old('name', $product->name) }}" placeholder="e.g. Dutch Lady Full Cream Milk 1L" class="w-full text-base font-semibold border-slate-300 rounded-xl focus:ring-4 focus:ring-sky-500/10 focus:border-sky-500 transition px-3.5 py-2.5 bg-slate-50/40 hover:bg-white focus:bg-white">
+                    </div>
+
+                    {{-- Dedicated Live Hyperlink Banner --}}
+                    <div class="rounded-xl border border-sky-200/80 bg-gradient-to-r from-sky-50/80 via-white to-sky-50/40 p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
+                        <div class="flex items-start sm:items-center gap-2.5 min-w-0">
+                            <span class="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-sky-600 text-white flex-shrink-0 shadow-xs">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+                            </span>
+                            <div class="min-w-0">
+                                <span class="block text-[10px] font-extrabold uppercase tracking-wider text-sky-800">Live Storefront Hyperlink</span>
+                                <a :href="liveUrl" target="_blank" class="text-xs sm:text-sm font-bold text-sky-600 hover:text-sky-800 hover:underline flex items-center gap-1.5 font-mono truncate transition group">
+                                    <span class="truncate" x-text="liveUrl"></span>
+                                    <svg class="w-3.5 h-3.5 text-sky-500 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                                </a>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2 flex-shrink-0">
+                            <button type="button" @click="copyLink()" class="px-3 py-1.5 bg-white hover:bg-slate-50 border border-sky-300 text-sky-700 text-xs font-bold rounded-lg shadow-2xs transition flex items-center gap-1.5 cursor-pointer">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                                <span x-text="copied ? 'Copied!' : 'Copy URL'"></span>
+                            </button>
+                            <a :href="liveUrl" target="_blank" class="px-3 py-1.5 bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold rounded-lg shadow-xs transition flex items-center gap-1.5">
+                                <span>Open Page</span>
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                            </a>
+                        </div>
+                    </div>
+
+                    {{-- SKU and URL Slug Row --}}
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">URL Slug</label>
-                            <input type="text" name="slug" x-model="slug" value="{{ old('slug', $product->slug) }}" class="w-full text-sm border-gray-300 rounded-lg focus:ring-primary focus:border-primary">
+                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">SKU / Barcode *</label>
+                            <div class="relative rounded-xl shadow-2xs">
+                                <input type="text" name="sku" required value="{{ old('sku', $product->sku) }}" placeholder="e.g. BEV-DL-001" class="w-full text-xs font-mono font-bold border-slate-300 rounded-xl focus:ring-4 focus:ring-sky-500/10 focus:border-sky-500 py-2.5 px-3 bg-slate-50/40 hover:bg-white focus:bg-white">
+                            </div>
+                            <p class="text-[10px] text-slate-400 mt-1">Unique store stock keeping unit or manufacturer barcode.</p>
                         </div>
+
                         <div>
-                            <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">SKU / Barcode *</label>
-                            <input type="text" name="sku" required value="{{ old('sku', $product->sku) }}" class="w-full text-sm border-gray-300 rounded-lg focus:ring-primary focus:border-primary">
+                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">URL Slug</label>
+                            <div class="flex rounded-xl shadow-2xs border border-slate-300 overflow-hidden focus-within:border-sky-500 focus-within:ring-4 focus-within:ring-sky-500/10 bg-slate-50 transition">
+                                <span class="inline-flex items-center px-2.5 text-[11px] font-mono text-slate-400 bg-slate-100 border-r border-slate-200 select-none">
+                                    /product/
+                                </span>
+                                <input type="text" name="slug" x-model="slug" value="{{ old('slug', $product->slug) }}" placeholder="product-url-slug" class="flex-1 min-w-0 block w-full px-3 py-2 text-xs font-mono font-semibold text-slate-800 bg-white border-0 focus:ring-0 focus:outline-none">
+                            </div>
+                            <p class="text-[10px] text-slate-400 mt-1">
+                                Hyperlink: <a :href="liveUrl" target="_blank" class="text-sky-600 hover:underline font-mono" x-text="liveUrl"></a>
+                            </p>
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div>
-                            <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Carton / Pack Size *</label>
-                            <input type="text" name="pack_size" required value="{{ old('pack_size', $product->pack_size) }}" class="w-full text-sm border-gray-300 rounded-lg focus:ring-primary focus:border-primary">
+                    {{-- Optional Unit / Measurement Specifications --}}
+                    <div class="p-4 bg-slate-50/70 rounded-xl border border-slate-200/70 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-bold text-slate-700 uppercase tracking-wider">Unit & Packaging Specifications (Optional)</span>
+                            <span class="text-[10px] text-slate-400 font-medium">Displayed on product details specs</span>
                         </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Unit Description</label>
-                            <input type="text" name="unit_description" value="{{ old('unit_description', $product->unit_description) }}" class="w-full text-sm border-gray-300 rounded-lg focus:ring-primary focus:border-primary">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Weight / Volume</label>
-                            <input type="text" name="weight_volume" value="{{ old('weight_volume', $product->weight_volume) }}" class="w-full text-sm border-gray-300 rounded-lg focus:ring-primary focus:border-primary">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">Unit / Size</label>
+                                <input type="text" name="pack_size" value="{{ old('pack_size', $product->pack_size) }}" placeholder="e.g. 1L, 500g, 1 Pack" class="w-full text-xs font-medium bg-white border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 py-1.5">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">Weight / Volume</label>
+                                <input type="text" name="weight_volume" value="{{ old('weight_volume', $product->weight_volume) }}" placeholder="e.g. 1.0 kg, 350 ml" class="w-full text-xs font-medium bg-white border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 py-1.5">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">Packaging Type</label>
+                                <input type="text" name="unit_description" value="{{ old('unit_description', $product->unit_description) }}" placeholder="e.g. Tetra Pak, Bottle, Pouch" class="w-full text-xs font-medium bg-white border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 py-1.5">
+                            </div>
                         </div>
                     </div>
 
+                    {{-- Short Summary Description --}}
                     <div>
-                        <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Short Description</label>
-                        <textarea name="short_description" rows="2" class="w-full text-sm border-gray-300 rounded-lg focus:ring-primary focus:border-primary">{{ old('short_description', $product->short_description) }}</textarea>
+                        <div class="flex justify-between items-center mb-1">
+                            <label class="text-xs font-bold text-slate-700 uppercase tracking-wider">Short Description</label>
+                            <span class="text-[10px] text-slate-400">Brief summary displayed on storefront cards</span>
+                        </div>
+                        <textarea name="short_description" rows="2" placeholder="Brief 1-2 sentence overview for product cards..." class="w-full text-xs font-medium border-slate-300 rounded-xl focus:ring-4 focus:ring-sky-500/10 focus:border-sky-500 transition py-2 px-3 bg-slate-50/40 hover:bg-white focus:bg-white">{{ old('short_description', $product->short_description) }}</textarea>
                     </div>
 
+                    {{-- Professional Rich Text Description (Quill.js) --}}
                     <div>
-                        <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Detailed Description</label>
-                        <textarea name="description" rows="5" class="w-full text-sm border-gray-300 rounded-lg focus:ring-primary focus:border-primary">{{ old('description', $product->description) }}</textarea>
+                        <div class="flex justify-between items-center mb-1.5">
+                            <label class="text-xs font-bold text-slate-700 uppercase tracking-wider">Product Description</label>
+                            <span class="text-[10px] text-sky-600 font-semibold">Rich Visual Editor</span>
+                        </div>
+
+                        {{-- Hidden real textarea synced with Quill --}}
+                        <textarea id="hiddenDescription" name="description" class="hidden">{{ old('description', $product->description) }}</textarea>
+
+                        {{-- Quill Editor Container --}}
+                        <div id="quillEditorContainer">
+                            {!! old('description', $product->description) !!}
+                        </div>
+                        <p class="text-[10px] text-slate-400 mt-1.5">Use formatting, headings, bullet points and bold text to present clean product information.</p>
                     </div>
                 </div>
 
-                <!-- Media Card -->
-                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-4">
-                    <h3 class="text-base font-semibold text-gray-900 border-b border-gray-100 pb-3">Product Media</h3>
-
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Featured Main Image</label>
-                        @if($product->featured_image)
-                            <div class="flex items-center gap-4 mb-3">
-                                <img src="{{ asset('storage/' . $product->featured_image) }}" alt="{{ $product->name }}" class="w-20 h-20 object-cover rounded-lg border border-gray-200 shadow-sm">
-                                <div class="text-xs text-gray-500">Current featured image. Upload a new one to replace.</div>
+                <!-- Product Media & Banner Images -->
+                <div class="bg-white rounded-2xl shadow-xs border border-slate-200/90 p-5 sm:p-6 space-y-5">
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                        <div class="flex items-center gap-2.5">
+                            <span class="w-8 h-8 rounded-lg bg-cyan-50 text-cyan-600 flex items-center justify-center font-bold">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                            </span>
+                            <div>
+                                <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wide">Product Media & Banner Images</h3>
+                                <p class="text-[11px] text-slate-400">Main banner photo & additional gallery angles</p>
                             </div>
-                        @endif
-                        <input type="file" name="featured_image" accept="image/*" class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20">
+                        </div>
                     </div>
 
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Add More Gallery Images</label>
+                    {{-- Featured Main Image Upload Card --}}
+                    <div class="p-4 bg-slate-50/70 rounded-xl border border-slate-200/80 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <label class="text-xs font-bold text-slate-900 uppercase tracking-wider">Product Banner / Main Image</label>
+                            <span class="text-[10px] font-semibold text-slate-400">800x800px recommended</span>
+                        </div>
+
+                        <div class="flex flex-col sm:flex-row items-center gap-4">
+                            {{-- Image Preview Container --}}
+                            <div class="relative w-28 h-28 rounded-xl overflow-hidden border border-slate-200 bg-white p-1 flex-shrink-0 shadow-2xs flex items-center justify-center">
+                                <template x-if="bannerPreview">
+                                    <img :src="bannerPreview" class="w-full h-full object-contain">
+                                </template>
+                                <template x-if="!bannerPreview">
+                                    @if($product->featured_image)
+                                        <img src="{{ asset('storage/' . $product->featured_image) }}" alt="{{ $product->name }}" class="w-full h-full object-contain">
+                                    @else
+                                        <div class="flex flex-col items-center justify-center text-slate-300">
+                                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                            <span class="text-[9px] mt-1 font-semibold">No Image</span>
+                                        </div>
+                                    @endif
+                                </template>
+                            </div>
+
+                            {{-- Upload Dropzone Input --}}
+                            <div class="flex-1 w-full">
+                                <label class="border-2 border-dashed border-slate-300 hover:border-sky-500 rounded-xl p-4 flex flex-col items-center justify-center text-center cursor-pointer bg-white hover:bg-sky-50/30 transition group">
+                                    <svg class="w-6 h-6 text-slate-400 group-hover:text-sky-500 mb-1.5 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+                                    <span class="text-xs font-bold text-slate-700 group-hover:text-sky-600">Click to upload new banner photo</span>
+                                    <span class="text-[10px] text-slate-400 mt-0.5">JPG, PNG, WEBP up to 3MB</span>
+                                    <input type="file" name="featured_image" accept="image/*" @change="previewBanner" class="hidden">
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Additional Gallery Photos --}}
+                    <div class="p-4 bg-slate-50/70 rounded-xl border border-slate-200/80 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <label class="text-xs font-bold text-slate-900 uppercase tracking-wider">Media Images / Additional Gallery Photos</label>
+                            <span class="text-[10px] font-semibold text-slate-400">Multiple photos supported</span>
+                        </div>
+
                         @if($product->images->count() > 0)
-                            <div class="flex flex-wrap gap-2 mb-3">
-                                @foreach($product->images as $gal)
-                                    <img src="{{ asset('storage/' . $gal->image_path) }}" class="w-16 h-16 object-cover rounded-lg border border-gray-200 shadow-xs">
-                                @endforeach
+                            <div>
+                                <span class="text-[11px] font-bold text-slate-600 block mb-2">Current Media Gallery ({{ $product->images->count() }}):</span>
+                                <div class="grid grid-cols-4 sm:grid-cols-6 gap-2.5">
+                                    @foreach($product->images as $gal)
+                                        <div class="relative group aspect-square rounded-xl overflow-hidden border border-slate-200 bg-white p-1 shadow-2xs">
+                                            <img src="{{ asset('storage/' . $gal->image_path) }}" class="w-full h-full object-contain">
+                                        </div>
+                                    @endforeach
+                                </div>
                             </div>
                         @endif
-                        <input type="file" name="gallery_images[]" multiple accept="image/*" class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200">
+
+                        <label class="border-2 border-dashed border-slate-300 hover:border-sky-500 rounded-xl p-4 flex flex-col items-center justify-center text-center cursor-pointer bg-white hover:bg-sky-50/30 transition group">
+                            <svg class="w-6 h-6 text-slate-400 group-hover:text-sky-500 mb-1.5 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                            <span class="text-xs font-bold text-slate-700 group-hover:text-sky-600">Add More Gallery Images</span>
+                            <span class="text-[10px] text-slate-400 mt-0.5">Hold Ctrl/Cmd to select multiple pictures</span>
+                            <input type="file" name="gallery_images[]" multiple accept="image/*" class="hidden">
+                        </label>
                     </div>
                 </div>
 
-                <!-- Phase 5 SEO Card -->
-                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-4">
-                    <div class="flex items-center justify-between border-b border-gray-100 pb-3">
-                        <h3 class="text-base font-semibold text-gray-900 flex items-center gap-2">
-                            <span>🔍 Search Engine Optimization (SEO)</span>
-                        </h3>
-                        <span class="text-xs text-primary font-semibold">Google Snippet Preview</span>
+                <!-- SEO Snippet Card -->
+                <div class="bg-white rounded-2xl shadow-xs border border-slate-200/90 p-5 sm:p-6 space-y-4">
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                        <div class="flex items-center gap-2.5">
+                            <span class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                            </span>
+                            <div>
+                                <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wide">Search Engine Optimization</h3>
+                                <p class="text-[11px] text-slate-400">Google SERP Snippet Preview & Meta Tags</p>
+                            </div>
+                        </div>
                     </div>
 
-                    <!-- Google Snippet Preview Box -->
-                    <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 font-sans text-left space-y-1">
-                        <div class="text-xs text-gray-500 truncate flex items-center gap-1">
-                            <span>{{ url('/') }}/product/</span><span class="font-semibold text-gray-700" x-text="slug || 'product-slug'"></span>
+                    <!-- Live Google SERP Preview Box -->
+                    <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 font-sans text-left space-y-1">
+                        <div class="text-[11px] text-slate-500 truncate flex items-center gap-1 font-mono">
+                            <span>{{ url('/') }}/product/</span><span class="font-bold text-slate-700" x-text="slug || '{{ $product->slug }}'"></span>
                         </div>
-                        <h4 class="text-base text-blue-700 font-medium hover:underline truncate" x-text="metaTitle || title || '{{ $product->name }}'"></h4>
-                        <p class="text-xs text-gray-600 line-clamp-2" x-text="metaDesc || 'Buy groceries and household goods. Fast delivery.'"></p>
+                        <h4 class="text-base text-blue-700 font-semibold hover:underline truncate" x-text="metaTitle || title || '{{ $product->name }}'"></h4>
+                        <p class="text-xs text-slate-600 line-clamp-2" x-text="metaDesc || 'Buy everyday groceries and household items at N&J Mini Mart. Fast delivery.'"></p>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <div class="flex justify-between items-center mb-1">
-                                <label class="text-xs font-semibold text-gray-700 uppercase">Meta Title</label>
-                                <span class="text-[10px] text-gray-400" :class="metaTitle.length > 60 ? 'text-red-500 font-bold' : ''" x-text="metaTitle.length + '/60 chars'"></span>
+                                <label class="text-xs font-bold text-slate-700 uppercase">Meta Title</label>
+                                <span class="text-[10px] text-slate-400" :class="metaTitle.length > 60 ? 'text-rose-500 font-bold' : ''" x-text="metaTitle.length + '/60' + (metaTitle.length > 60 ? ' (too long)' : '')"></span>
                             </div>
-                            <input type="text" name="meta_title" x-model="metaTitle" value="{{ old('meta_title', $product->meta_title) }}" class="w-full text-sm border-gray-300 rounded-lg focus:ring-primary focus:border-primary">
+                            <input type="text" name="meta_title" x-model="metaTitle" value="{{ old('meta_title', $product->meta_title) }}" class="w-full text-xs font-medium border-slate-300 rounded-xl focus:ring-2 focus:ring-sky-500 focus:border-sky-500 py-2">
                         </div>
                         <div>
-                            <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Focus Keyword</label>
-                            <input type="text" name="focus_keyword" value="{{ old('focus_keyword', $product->focus_keyword) }}" class="w-full text-sm border-gray-300 rounded-lg focus:ring-primary focus:border-primary">
+                            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Focus Keyword</label>
+                            <input type="text" name="focus_keyword" value="{{ old('focus_keyword', $product->focus_keyword) }}" placeholder="e.g. floor cleaner, groceries" class="w-full text-xs font-medium border-slate-300 rounded-xl focus:ring-2 focus:ring-sky-500 focus:border-sky-500 py-2">
                         </div>
                     </div>
 
                     <div>
                         <div class="flex justify-between items-center mb-1">
-                            <label class="text-xs font-semibold text-gray-700 uppercase">Meta Description</label>
-                            <span class="text-[10px] text-gray-400" :class="metaDesc.length > 160 ? 'text-red-500 font-bold' : ''" x-text="metaDesc.length + '/160 chars'"></span>
+                            <label class="text-xs font-bold text-slate-700 uppercase">Meta Description</label>
+                            <span class="text-[10px] text-slate-400" :class="metaDesc.length > 160 ? 'text-rose-500 font-bold' : ''" x-text="metaDesc.length + '/160' + (metaDesc.length > 160 ? ' (too long)' : '')"></span>
                         </div>
-                        <textarea name="meta_description" x-model="metaDesc" rows="2" class="w-full text-sm border-gray-300 rounded-lg focus:ring-primary focus:border-primary">{{ old('meta_description', $product->meta_description) }}</textarea>
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Meta Keywords</label>
-                            <input type="text" name="meta_keywords" value="{{ old('meta_keywords', $product->meta_keywords) }}" class="w-full text-sm border-gray-300 rounded-lg focus:ring-primary focus:border-primary">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Robots Tag</label>
-                            <select name="robots" class="w-full text-sm border-gray-300 rounded-lg focus:ring-primary focus:border-primary">
-                                <option value="index, follow" {{ old('robots', $product->robots) === 'index, follow' ? 'selected' : '' }}>index, follow (Default)</option>
-                                <option value="noindex, follow" {{ old('robots', $product->robots) === 'noindex, follow' ? 'selected' : '' }}>noindex, follow</option>
-                                <option value="index, nofollow" {{ old('robots', $product->robots) === 'index, nofollow' ? 'selected' : '' }}>index, nofollow</option>
-                                <option value="noindex, nofollow" {{ old('robots', $product->robots) === 'noindex, nofollow' ? 'selected' : '' }}>noindex, nofollow</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">OpenGraph Title</label>
-                            <input type="text" name="og_title" value="{{ old('og_title', $product->og_title) }}" class="w-full text-sm border-gray-300 rounded-lg focus:ring-primary focus:border-primary">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">OpenGraph Description</label>
-                            <input type="text" name="og_description" value="{{ old('og_description', $product->og_description) }}" class="w-full text-sm border-gray-300 rounded-lg focus:ring-primary focus:border-primary">
-                        </div>
+                        <textarea name="meta_description" x-model="metaDesc" rows="2" class="w-full text-xs font-medium border-slate-300 rounded-xl focus:ring-2 focus:ring-sky-500 focus:border-sky-500 py-2">{{ old('meta_description', $product->meta_description) }}</textarea>
                     </div>
                 </div>
             </div>
 
-            <!-- Right Col: Pricing, Inventory & Flags -->
+            <!-- Right Col: Pricing, Stock, Category & Badges -->
             <div class="space-y-6">
+                
                 <!-- Pricing Card -->
-                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-4">
-                    <h3 class="text-base font-semibold text-gray-900 border-b border-gray-100 pb-3">Pricing & Tax</h3>
-
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Price ({{ setting('currency_symbol', 'RM') }}) *</label>
-                        <input type="number" step="0.01" name="price" x-model="price" required value="{{ old('price', $product->price) }}" class="w-full text-sm border-gray-300 rounded-lg focus:ring-primary focus:border-primary">
+                <div class="bg-white rounded-2xl shadow-xs border border-slate-200/90 p-5 sm:p-6 space-y-4">
+                    <div class="flex items-center gap-2.5 border-b border-slate-100 pb-3">
+                        <span class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        </span>
+                        <div>
+                            <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wide">Pricing</h3>
+                            <p class="text-[11px] text-slate-400">Regular and promotional price</p>
+                        </div>
                     </div>
 
                     <div>
-                        <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Sale / Promo Price ({{ setting('currency_symbol', 'RM') }})</label>
-                        <input type="number" step="0.01" name="sale_price" x-model="salePrice" value="{{ old('sale_price', $product->sale_price) }}" class="w-full text-sm border-gray-300 rounded-lg focus:ring-primary focus:border-primary">
-                        <p class="text-[11px] text-gray-500 mt-1">Leave empty if not on sale.</p>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Regular Price *</label>
+                        <div class="flex rounded-xl shadow-2xs border border-slate-300 overflow-hidden focus-within:border-emerald-500 focus-within:ring-4 focus-within:ring-emerald-500/10 bg-slate-50 transition">
+                            <span class="inline-flex items-center px-3.5 text-xs font-bold text-slate-600 bg-slate-100 border-r border-slate-200 select-none">
+                                {{ setting('currency_symbol', 'RM') }}
+                            </span>
+                            <input type="number" step="0.01" name="price" x-model="price" required value="{{ old('price', $product->price) }}" class="flex-1 min-w-0 block w-full px-3 py-2 text-base font-black text-slate-900 bg-white border-0 focus:ring-0 focus:outline-none">
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="flex items-center justify-between mb-1.5">
+                            <label class="text-xs font-bold text-slate-700 uppercase tracking-wider">Sale / Promo Price</label>
+                            <template x-if="discountPercent > 0">
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-rose-50 text-rose-600 border border-rose-200" x-text="discountPercent + '% OFF'"></span>
+                            </template>
+                        </div>
+                        <div class="flex rounded-xl shadow-2xs border border-slate-300 overflow-hidden focus-within:border-rose-500 focus-within:ring-4 focus-within:ring-rose-500/10 bg-slate-50 transition">
+                            <span class="inline-flex items-center px-3.5 text-xs font-bold text-slate-600 bg-slate-100 border-r border-slate-200 select-none">
+                                {{ setting('currency_symbol', 'RM') }}
+                            </span>
+                            <input type="number" step="0.01" name="sale_price" x-model="salePrice" value="{{ old('sale_price', $product->sale_price) }}" placeholder="Optional discount" class="flex-1 min-w-0 block w-full px-3 py-2 text-base font-black text-rose-600 bg-white border-0 focus:ring-0 focus:outline-none">
+                        </div>
+                        <p class="text-[10px] text-slate-400 mt-1">Leave blank to sell at standard regular price.</p>
                     </div>
                 </div>
 
-                <!-- Inventory Card -->
-                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-4">
-                    <h3 class="text-base font-semibold text-gray-900 border-b border-gray-100 pb-3">Inventory</h3>
+                <!-- Product Quantity & Stock Card -->
+                <div class="bg-white rounded-2xl shadow-xs border border-slate-200/90 p-5 sm:p-6 space-y-4">
+                    <div class="flex items-center gap-2.5 border-b border-slate-100 pb-3">
+                        <span class="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                        </span>
+                        <div>
+                            <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wide">Product Quantity & Stock</h3>
+                            <p class="text-[11px] text-slate-400">Inventory availability in store</p>
+                        </div>
+                    </div>
 
                     <div>
-                        <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Cartons in Stock *</label>
-                        <input type="number" name="stock_quantity" required value="{{ old('stock_quantity', $product->stock_quantity) }}" min="0" class="w-full text-sm border-gray-300 rounded-lg focus:ring-primary focus:border-primary">
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Product Quantity in Stock *</label>
+                        <div class="flex items-center border border-slate-300 rounded-xl overflow-hidden shadow-2xs focus-within:border-sky-500 focus-within:ring-4 focus-within:ring-sky-500/10 transition">
+                            <button type="button" @click="stock = Math.max(0, stock - 1)" class="px-3.5 py-2.5 text-slate-600 hover:bg-slate-100 font-bold text-sm select-none cursor-pointer bg-slate-50">-</button>
+                            <input type="number" name="stock_quantity" x-model.number="stock" required min="0" placeholder="0" class="w-full text-center text-base font-black text-slate-900 border-0 focus:ring-0 focus:outline-none">
+                            <button type="button" @click="stock = stock + 1" class="px-3.5 py-2.5 text-slate-600 hover:bg-slate-100 font-bold text-sm select-none cursor-pointer bg-slate-50">+</button>
+                        </div>
+
+                        {{-- Stock Status Indicator --}}
+                        <div class="mt-2.5">
+                            <template x-if="stock > 20">
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                    <span x-text="stock + ' units available (Healthy Stock)'"></span>
+                                </span>
+                            </template>
+                            <template x-if="stock > 0 && stock <= 20">
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                                    <span x-text="stock + ' units left (Low Stock Warning)'"></span>
+                                </span>
+                            </template>
+                            <template x-if="stock <= 0">
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                                    <span>Out of Stock (Shows as Sold Out)</span>
+                                </span>
+                            </template>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Organization Card -->
-                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-4">
-                    <h3 class="text-base font-semibold text-gray-900 border-b border-gray-100 pb-3">Categorization</h3>
+                <!-- Categorization Card -->
+                <div class="bg-white rounded-2xl shadow-xs border border-slate-200/90 p-5 sm:p-6 space-y-4">
+                    <div class="flex items-center gap-2.5 border-b border-slate-100 pb-3">
+                        <span class="w-8 h-8 rounded-lg bg-violet-50 text-violet-600 flex items-center justify-center font-bold">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
+                        </span>
+                        <div>
+                            <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wide">Categorization</h3>
+                            <p class="text-[11px] text-slate-400">Department and brand organization</p>
+                        </div>
+                    </div>
 
                     <div>
-                        <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Category *</label>
-                        <select name="category_id" required class="w-full text-sm border-gray-300 rounded-lg focus:ring-primary focus:border-primary">
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Category *</label>
+                        <select name="category_id" required class="w-full text-xs font-bold py-2.5 px-3 border-slate-300 rounded-xl focus:ring-4 focus:ring-sky-500/10 focus:border-sky-500 bg-slate-50/50 hover:bg-white focus:bg-white transition">
                             <option value="">Select Category</option>
                             @foreach($categories as $cat)
                                 <option value="{{ $cat->id }}" {{ old('category_id', $product->category_id) == $cat->id ? 'selected' : '' }}>{{ $cat->name }}</option>
@@ -234,9 +484,9 @@
                     </div>
 
                     <div>
-                        <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Brand</label>
-                        <select name="brand_id" class="w-full text-sm border-gray-300 rounded-lg focus:ring-primary focus:border-primary">
-                            <option value="">None / Generic</option>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Brand</label>
+                        <select name="brand_id" class="w-full text-xs font-bold py-2.5 px-3 border-slate-300 rounded-xl focus:ring-4 focus:ring-sky-500/10 focus:border-sky-500 bg-slate-50/50 hover:bg-white focus:bg-white transition">
+                            <option value="">None / Generic Mart Brand</option>
                             @foreach($brands as $brand)
                                 <option value="{{ $brand->id }}" {{ old('brand_id', $product->brand_id) == $brand->id ? 'selected' : '' }}>{{ $brand->name }}</option>
                             @endforeach
@@ -244,33 +494,105 @@
                     </div>
                 </div>
 
-                <!-- Flags Card -->
-                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-3">
-                    <h3 class="text-base font-semibold text-gray-900 border-b border-gray-100 pb-3">Status & Badges</h3>
+                <!-- Status & Badges Toggle Switches Card -->
+                <div class="bg-white rounded-2xl shadow-xs border border-slate-200/90 p-5 sm:p-6 space-y-4">
+                    <div class="flex items-center gap-2.5 border-b border-slate-100 pb-3">
+                        <span class="w-8 h-8 rounded-lg bg-pink-50 text-pink-600 flex items-center justify-center font-bold">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg>
+                        </span>
+                        <div>
+                            <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wide">Status & Badges</h3>
+                            <p class="text-[11px] text-slate-400">Storefront visibility & promotional tags</p>
+                        </div>
+                    </div>
 
-                    <label class="flex items-center gap-3 cursor-pointer">
-                        <input type="checkbox" name="is_active" value="1" {{ old('is_active', $product->is_active) ? 'checked' : '' }} class="rounded text-primary focus:ring-primary">
-                        <span class="text-sm font-medium text-gray-700">Active (Visible in Store)</span>
-                    </label>
+                    {{-- Active in Store Switch --}}
+                    <div class="p-3 rounded-xl border border-slate-200/80 bg-slate-50/40 hover:bg-slate-50 transition flex items-center justify-between cursor-pointer" @click="isActive = !isActive">
+                        <div>
+                            <span class="text-xs font-bold text-slate-900 block">Active in Store</span>
+                            <span class="text-[10px] text-slate-400 block">Visible to customers and available for purchase</span>
+                        </div>
+                        <input type="checkbox" name="is_active" value="1" class="hidden" :checked="isActive">
+                        <button type="button" class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none" :class="isActive ? 'bg-emerald-600' : 'bg-slate-300'">
+                            <span class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out" :class="isActive ? 'translate-x-5' : 'translate-x-0'"></span>
+                        </button>
+                    </div>
 
-                    <label class="flex items-center gap-3 cursor-pointer">
-                        <input type="checkbox" name="is_featured" value="1" {{ old('is_featured', $product->is_featured) ? 'checked' : '' }} class="rounded text-primary focus:ring-primary">
-                        <span class="text-sm font-medium text-gray-700">Featured Product</span>
-                    </label>
+                    {{-- Featured Product Switch --}}
+                    <div class="p-3 rounded-xl border border-slate-200/80 bg-slate-50/40 hover:bg-slate-50 transition flex items-center justify-between cursor-pointer" @click="isFeatured = !isFeatured">
+                        <div>
+                            <div class="flex items-center gap-1.5">
+                                <span class="text-xs font-bold text-slate-900">Featured Product</span>
+                                <span class="px-1.5 py-0.2 rounded text-[9px] font-black bg-amber-100 text-amber-800">★ Featured</span>
+                            </div>
+                            <span class="text-[10px] text-slate-400 block">Showcases in the Featured Mart items section</span>
+                        </div>
+                        <input type="checkbox" name="is_featured" value="1" class="hidden" :checked="isFeatured">
+                        <button type="button" class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none" :class="isFeatured ? 'bg-sky-600' : 'bg-slate-300'">
+                            <span class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out" :class="isFeatured ? 'translate-x-5' : 'translate-x-0'"></span>
+                        </button>
+                    </div>
 
-                    <label class="flex items-center gap-3 cursor-pointer">
-                        <input type="checkbox" name="is_new" value="1" {{ old('is_new', $product->is_new) ? 'checked' : '' }} class="rounded text-primary focus:ring-primary">
-                        <span class="text-sm font-medium text-gray-700">New Arrival Badge</span>
-                    </label>
+                    {{-- New Arrival Badge Switch --}}
+                    <div class="p-3 rounded-xl border border-slate-200/80 bg-slate-50/40 hover:bg-slate-50 transition flex items-center justify-between cursor-pointer" @click="isNew = !isNew">
+                        <div>
+                            <div class="flex items-center gap-1.5">
+                                <span class="text-xs font-bold text-slate-900">New Arrival Badge</span>
+                                <span class="px-1.5 py-0.2 rounded text-[9px] font-black bg-sky-100 text-sky-800">NEW</span>
+                            </div>
+                            <span class="text-[10px] text-slate-400 block">Adds blue NEW tag on storefront cards</span>
+                        </div>
+                        <input type="checkbox" name="is_new" value="1" class="hidden" :checked="isNew">
+                        <button type="button" class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none" :class="isNew ? 'bg-sky-600' : 'bg-slate-300'">
+                            <span class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out" :class="isNew ? 'translate-x-5' : 'translate-x-0'"></span>
+                        </button>
+                    </div>
 
-                    <label class="flex items-center gap-3 cursor-pointer">
-                        <input type="checkbox" name="is_promo" value="1" {{ old('is_promo', $product->is_promo) ? 'checked' : '' }} class="rounded text-primary focus:ring-primary">
-                        <span class="text-sm font-medium text-gray-700">Special Promotion</span>
-                    </label>
+                    {{-- Special Promotion Switch --}}
+                    <div class="p-3 rounded-xl border border-slate-200/80 bg-slate-50/40 hover:bg-slate-50 transition flex items-center justify-between cursor-pointer" @click="isPromo = !isPromo">
+                        <div>
+                            <div class="flex items-center gap-1.5">
+                                <span class="text-xs font-bold text-slate-900">Special Promotion</span>
+                                <span class="px-1.5 py-0.2 rounded text-[9px] font-black bg-rose-100 text-rose-800">🔥 Promo</span>
+                            </div>
+                            <span class="text-[10px] text-slate-400 block">Displays in Deals & Promotions tabs</span>
+                        </div>
+                        <input type="checkbox" name="is_promo" value="1" class="hidden" :checked="isPromo">
+                        <button type="button" class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none" :class="isPromo ? 'bg-rose-600' : 'bg-slate-300'">
+                            <span class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out" :class="isPromo ? 'translate-x-5' : 'translate-x-0'"></span>
+                        </button>
+                    </div>
                 </div>
+
             </div>
         </div>
     </form>
 </div>
 @endsection
 
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const quill = new Quill('#quillEditorContainer', {
+            theme: 'snow',
+            placeholder: 'Write complete product details, directions, ingredients, and key benefits...',
+            modules: {
+                toolbar: [
+                    [{ 'header': [2, 3, false] }],
+                    ['bold', 'italic', 'underline', 'strike'],
+                    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                    ['link', 'clean']
+                ]
+            }
+        });
+
+        const hiddenTextarea = document.getElementById('hiddenDescription');
+        const form = document.getElementById('productForm');
+
+        form.addEventListener('submit', function () {
+            hiddenTextarea.value = quill.root.innerHTML;
+        });
+    });
+</script>
+@endpush
