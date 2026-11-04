@@ -12,6 +12,7 @@ use App\Http\Controllers\Admin\AdminPolicyController;
 use App\Http\Controllers\Admin\AdminPosController;
 use App\Http\Controllers\Admin\AdminProductController;
 use App\Http\Controllers\Admin\AdminProductImportExportController;
+use App\Http\Controllers\Admin\AdminProfileController;
 use App\Http\Controllers\Admin\AdminSettingsController;
 use Illuminate\Support\Facades\Route;
 
@@ -103,6 +104,11 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
         Route::get('/page-seo', [AdminSettingsController::class, 'pageSeo'])->name('page-seo');
         Route::post('/page-seo', [AdminSettingsController::class, 'savePageSeo'])->name('page-seo.save');
     });
+
+    // Admin Profile & Security Settings
+    Route::get('profile', [AdminProfileController::class, 'edit'])->name('profile.edit');
+    Route::put('profile', [AdminProfileController::class, 'update'])->name('profile.update');
+    Route::put('profile/password', [AdminProfileController::class, 'updatePassword'])->name('profile.password.update');
 
     // Activity & Audit Log (Phase 7.1)
     Route::get('activity-logs', [AdminActivityLogController::class, 'index'])->name('activity-logs.index');

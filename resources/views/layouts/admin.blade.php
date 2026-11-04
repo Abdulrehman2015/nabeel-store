@@ -204,18 +204,18 @@
 
         {{-- Sidebar Footer --}}
         <div class="p-3 bg-slate-950/80 border-t border-slate-900 flex items-center justify-between text-xs">
-            <div class="flex items-center gap-2.5 truncate">
-                <div class="w-8 h-8 rounded-lg bg-sky-600/20 text-sky-400 border border-sky-500/30 font-bold flex items-center justify-center text-xs shrink-0">
+            <a href="{{ route('admin.profile.edit') }}" class="flex items-center gap-2.5 truncate group hover:opacity-90 transition" title="Manage Admin Profile & Password">
+                <div class="w-8 h-8 rounded-lg bg-sky-600/20 text-sky-400 group-hover:bg-sky-600 group-hover:text-white border border-sky-500/30 font-bold flex items-center justify-center text-xs shrink-0 transition">
                     {{ strtoupper(substr(auth()->user()->name ?? 'A', 0, 1)) }}
                 </div>
                 <div class="truncate">
-                    <span class="block font-bold text-white truncate text-[11px] leading-tight">{{ auth()->user()->name }}</span>
-                    <span class="text-[10px] text-slate-400 capitalize block leading-tight">{{ auth()->user()->role }}</span>
+                    <span class="block font-bold text-white group-hover:text-sky-400 transition truncate text-[11px] leading-tight">{{ auth()->user()->name }}</span>
+                    <span class="text-[10px] text-slate-400 capitalize block leading-tight">{{ auth()->user()->role ?? 'Admin' }}</span>
                 </div>
-            </div>
+            </a>
             <form method="POST" action="{{ route('logout') }}">
                 @csrf
-                <button type="submit" class="text-slate-400 hover:text-rose-400 p-1.5 rounded-lg hover:bg-slate-900 transition" title="Log Out">
+                <button type="submit" class="text-slate-400 hover:text-rose-400 p-1.5 rounded-lg hover:bg-slate-900 transition cursor-pointer" title="Log Out">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
                 </button>
             </form>
@@ -493,6 +493,10 @@
 
                         {{-- Nav Links --}}
                         <div class="py-1 text-xs">
+                            <a href="{{ route('admin.profile.edit') }}" class="flex items-center gap-2.5 px-4 py-2 hover:bg-slate-50 transition font-bold {{ request()->routeIs('admin.profile.*') ? 'bg-sky-50 text-sky-700' : 'text-slate-800 hover:text-sky-600' }}">
+                                <svg class="w-4 h-4 {{ request()->routeIs('admin.profile.*') ? 'text-sky-600' : 'text-slate-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                                <span>Profile & Password</span>
+                            </a>
                             <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-2.5 px-4 py-2 text-slate-700 hover:bg-slate-50 hover:text-sky-600 transition">
                                 <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM14 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1v-4zM14 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z"/></svg>
                                 <span>Dashboard</span>
