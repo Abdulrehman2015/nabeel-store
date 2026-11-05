@@ -6,6 +6,7 @@
 <div 
     x-data="posApp()" 
     x-init="initPos()" 
+    @click="handlePosClick($event)"
     @keydown.window="handleGlobalKeydown($event)"
     @keyup.window="handleGlobalKeyup($event)"
     :class="isFullscreen ? 'fixed inset-0 z-50 bg-[#f1f5f9] p-3 flex flex-col h-screen overflow-hidden' : 'flex-1 flex flex-col min-h-0 h-full space-y-2.5 overflow-hidden'"
@@ -1102,6 +1103,9 @@ function posApp() {
         selectedCartIndex: -1,
         qtyKeyBuffer: '',
         qtyBufferTimeout: null,
+        barcodeScanBuffer: '',
+        lastScanTime: 0,
+        scanBufferTimeout: null,
         shortcutToast: {
             show: false,
             message: '',
@@ -1142,6 +1146,25 @@ function posApp() {
                 const saved = localStorage.getItem('nj_pos_held_baskets');
                 if (saved) this.heldOrders = JSON.parse(saved);
             } catch(e) {}
+
+            // Auto-focus barcode scanner input on POS launch
+            this.$nextTick(() => {
+                this.focusBarcodeInput();
+            });
+        },
+
+        focusBarcodeInput() {
+            if (this.$refs.barcodeInput && document.activeElement !== this.$refs.barcodeInput) {
+                this.$refs.barcodeInput.focus();
+            }
+        },
+
+        handlePosClick(e) {
+            if (this.isAnyModalOpen()) return;
+            const target = e.target;
+            if (!target.closest('input, textarea, button, a, select, [data-cart-item]')) {
+                this.focusBarcodeInput();
+            }
         },
 
         updateClock() {
@@ -1228,6 +1251,7 @@ function posApp() {
                 if (activeBtn) {
                     activeBtn.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
                 }
+                this.focusBarcodeInput();
             });
         },
 
@@ -1323,15 +1347,60 @@ function posApp() {
 
         // Barcode enter event
         handleBarcodeEnter() {
-            if (!this.searchQuery.trim()) return;
-            const matches = this.filteredProducts;
-
-            // Direct exact match on SKU or single search result
-            if (matches.length === 1 || matches.some(m => m.sku.toLowerCase() === this.searchQuery.toLowerCase().trim())) {
-                const target = matches.find(m => m.sku.toLowerCase() === this.searchQuery.toLowerCase().trim()) || matches[0];
-                this.addToCart(target);
-                this.searchQuery = '';
+            const code = this.barcodeScanBuffer.trim() || this.searchQuery.trim();
+            if (code) {
+                this.processBarcodeScan(code);
             }
+        },
+
+        // Universal Barcode Processor (searches across all products, adds to cart, provides audio/visual feedback)
+        processBarcodeScan(code) {
+            if (!code || !code.trim()) return;
+            const q = code.trim().toLowerCase();
+
+            // 1. Exact match on SKU across ALL products
+            let product = this.products.find(p => p.sku && p.sku.toLowerCase() === q);
+
+            // 2. Exact match on ID
+            if (!product) {
+                product = this.products.find(p => String(p.id) === q);
+            }
+
+            // 3. Exact match on Name
+            if (!product) {
+                product = this.products.find(p => p.name && p.name.toLowerCase() === q);
+            }
+
+            // 4. Fallback: single partial match across all products
+            if (!product) {
+                const matches = this.products.filter(p => 
+                    (p.sku && p.sku.toLowerCase().includes(q)) ||
+                    (p.name && p.name.toLowerCase().includes(q))
+                );
+                if (matches.length === 1) {
+                    product = matches[0];
+                }
+            }
+
+            if (product) {
+                if (product.stock_quantity <= 0) {
+                    this.showToast(`Out of stock: ${product.name}`, '⚠️', 'warning');
+                    this.playBeep();
+                } else {
+                    this.addToCart(product);
+                    this.showToast(`Scanned: ${product.name}`, '🛒', 'success');
+                }
+                this.searchQuery = '';
+                this.barcodeScanBuffer = '';
+            } else {
+                this.showToast(`Barcode not found: "${code.trim()}"`, '❌', 'warning');
+                this.playBeep();
+                this.searchQuery = code.trim();
+            }
+
+            this.$nextTick(() => {
+                this.focusBarcodeInput();
+            });
         },
 
         // Cart Actions
@@ -1364,6 +1433,11 @@ function posApp() {
 
             // Default cash tendered to grand total
             this.amountTendered = this.grandTotal;
+
+            // Maintain auto-focus on barcode scanner input
+            this.$nextTick(() => {
+                this.focusBarcodeInput();
+            });
         },
 
         incrementQty(index) {
@@ -1557,7 +1631,9 @@ function posApp() {
             this.showReceiptModal = false;
             this.completedOrder = {};
             this.resetCustomer();
-            this.$refs.barcodeInput.focus();
+            this.$nextTick(() => {
+                this.focusBarcodeInput();
+            });
         },
 
         getActiveCartIndex() {
@@ -1723,6 +1799,7 @@ function posApp() {
                     this.showQrModal = false;
                     this.showHeldOrdersModal = false;
                     this.showShortcutsModal = false;
+                    this.$nextTick(() => this.focusBarcodeInput());
                 }
                 // Space to reset next sale on receipt modal
                 if (e.key === ' ' && this.showReceiptModal) {
@@ -1776,6 +1853,56 @@ function posApp() {
                 }
             }
 
+            // 1. Universal Automatic Barcode Scanner Enter / Tab Interceptor
+            // Detects barcode scan ending with Enter or scanner Tab delimiter
+            if (e.key === 'Enter' || (e.key === 'Tab' && this.barcodeScanBuffer.trim().length >= 2 && (Date.now() - this.lastScanTime < 80))) {
+                const code = this.barcodeScanBuffer.trim() || (document.activeElement === this.$refs.barcodeInput ? this.searchQuery.trim() : '');
+                if (code) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    this.barcodeScanBuffer = '';
+                    this.processBarcodeScan(code);
+                    return;
+                }
+            }
+
+            // 2. Universal Barcode Keystroke Listener (Captures scanner wedge even when search field is not focused)
+            if (e.key && e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+                const now = Date.now();
+                const timeDiff = now - this.lastScanTime;
+                this.lastScanTime = now;
+
+                const active = document.activeElement;
+                const isOtherInput = active && active !== this.$refs.barcodeInput && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA');
+
+                if (isOtherInput) {
+                    // When another input is focused, only collect if keystrokes arrive at scanner speed (< 50ms)
+                    if (timeDiff < 50) {
+                        this.barcodeScanBuffer += e.key;
+                    } else {
+                        this.barcodeScanBuffer = '';
+                    }
+                } else {
+                    // Not in another input: collect into scanner buffer
+                    if (timeDiff > 250) {
+                        this.barcodeScanBuffer = e.key;
+                    } else {
+                        this.barcodeScanBuffer += e.key;
+                    }
+
+                    // Ensure search input is focused and synced
+                    if (active !== this.$refs.barcodeInput) {
+                        this.focusBarcodeInput();
+                        this.searchQuery = this.barcodeScanBuffer;
+                    }
+
+                    if (this.scanBufferTimeout) clearTimeout(this.scanBufferTimeout);
+                    this.scanBufferTimeout = setTimeout(() => {
+                        this.barcodeScanBuffer = '';
+                    }, 2000);
+                }
+            }
+
             // F2 or '/' to focus search
             if (e.key === 'F2' || (e.key === '/' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA')) {
                 e.preventDefault();
@@ -1797,6 +1924,8 @@ function posApp() {
                 if (this.searchQuery) {
                     this.searchQuery = '';
                 }
+                this.barcodeScanBuffer = '';
+                this.$nextTick(() => this.focusBarcodeInput());
             }
         },
 
