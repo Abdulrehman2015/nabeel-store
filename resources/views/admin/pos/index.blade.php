@@ -1148,36 +1148,57 @@
                 </div>
 
                 {{-- 2. Print Automation & Output Mode --}}
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 bg-slate-50/80 rounded-2xl border border-slate-200/80">
-                    {{-- Auto-Print Switch --}}
-                    <div>
-                        <div class="flex items-center justify-between">
-                            <span class="font-bold text-slate-800">Auto-Print on Checkout</span>
-                            <button 
-                                type="button" 
-                                @click="printerConfig.autoPrint = !printerConfig.autoPrint" 
-                                class="relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {{-- Auto-Print Interactive Toggle Card --}}
+                    <div 
+                        @click="printerConfig.autoPrint = !printerConfig.autoPrint"
+                        class="p-3.5 bg-slate-50/90 rounded-2xl border transition-all cursor-pointer select-none flex flex-col justify-between group"
+                        :class="printerConfig.autoPrint ? 'border-emerald-400 bg-emerald-50/40 ring-2 ring-emerald-400/20' : 'border-slate-200/90 hover:bg-slate-100/70'"
+                    >
+                        <div class="flex items-center justify-between gap-3">
+                            <div class="flex items-center gap-2 min-w-0">
+                                <span class="w-7 h-7 rounded-xl flex items-center justify-center text-xs shrink-0 font-bold transition-colors" :class="printerConfig.autoPrint ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200/70 text-slate-500'">⚡</span>
+                                <span class="font-extrabold text-slate-900 text-xs truncate">Auto-Print on Checkout</span>
+                            </div>
+
+                            {{-- Clean, Non-Deforming Tactile Toggle Switch --}}
+                            <div 
+                                class="relative inline-flex h-6 w-11 shrink-0 items-center rounded-full p-0.5 transition-colors duration-200 ease-in-out shadow-inner"
                                 :class="printerConfig.autoPrint ? 'bg-emerald-600' : 'bg-slate-300'"
                             >
-                                <span class="pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out" :class="printerConfig.autoPrint ? 'translate-x-4' : 'translate-x-0'"></span>
-                            </button>
+                                <span 
+                                    class="pointer-events-none block h-5 w-5 aspect-square rounded-full bg-white shadow-md transition-transform duration-200 ease-in-out"
+                                    :class="printerConfig.autoPrint ? 'translate-x-5' : 'translate-x-0'"
+                                ></span>
+                            </div>
                         </div>
-                        <p class="text-[10px] text-slate-500 mt-1 leading-normal">
-                            Instantly triggers receipt print as soon as sale is completed without requiring manual button click.
-                        </p>
+
+                        <div class="mt-2.5 pt-2 border-t flex items-center justify-between text-[10px]" :class="printerConfig.autoPrint ? 'border-emerald-200/60' : 'border-slate-200/70'">
+                            <span class="text-slate-500 leading-tight">Instant print when sale completes</span>
+                            <span 
+                                class="font-black uppercase tracking-wider text-[9px] px-2 py-0.5 rounded-full shrink-0 transition" 
+                                :class="printerConfig.autoPrint ? 'bg-emerald-600 text-white shadow-2xs' : 'bg-slate-200 text-slate-600'" 
+                                x-text="printerConfig.autoPrint ? 'Enabled' : 'Disabled'"
+                            ></span>
+                        </div>
                     </div>
 
-                    {{-- Print Delivery Mode --}}
-                    <div>
-                        <label class="block font-bold text-slate-800 mb-1">Print Execution Mode</label>
-                        <select 
-                            x-model="printerConfig.printMode" 
-                            class="w-full py-1.5 px-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
-                        >
-                            <option value="iframe">Direct Slip Print (Instant In-Page Dialog)</option>
-                            <option value="popup">Popup Preview Window (Visual Review)</option>
-                        </select>
-                        <p class="text-[10px] text-slate-400 mt-0.5">Use "Direct Slip Print" for fast counter checkout.</p>
+                    {{-- Print Delivery Mode Card --}}
+                    <div class="p-3.5 bg-slate-50/90 rounded-2xl border border-slate-200/90 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center gap-2 mb-1.5">
+                                <span class="w-7 h-7 rounded-xl bg-sky-100 text-sky-700 flex items-center justify-center text-xs shrink-0 font-bold">🖨️</span>
+                                <label class="font-extrabold text-slate-900 text-xs">Print Execution Mode</label>
+                            </div>
+                            <select 
+                                x-model="printerConfig.printMode" 
+                                class="w-full py-1.5 px-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 shadow-2xs transition cursor-pointer"
+                            >
+                                <option value="iframe">Direct Slip Print (Instant In-Page Dialog)</option>
+                                <option value="popup">Popup Preview Window (Visual Review)</option>
+                            </select>
+                        </div>
+                        <p class="text-[10px] text-slate-400 mt-2">Use "Direct Slip Print" for fast counter checkout.</p>
                     </div>
                 </div>
 
@@ -1389,7 +1410,7 @@ function posApp() {
             showBarcode: true,
             showCashier: true,
             showCustomer: true,
-            storeName: '{{ setting("site_name", "N&J MINI MART") }}',
+            storeName: {!! json_encode(html_entity_decode(setting('site_name', 'N&J MINI MART'), ENT_QUOTES, 'UTF-8')) !!},
             storeTagline: 'Retail Mart & Everyday Essentials',
             storeAddress: 'Puchong Central Distribution Hub, Selangor',
             storePhone: '+60 12-859 9900',
@@ -1413,6 +1434,9 @@ function posApp() {
                 const savedPrinter = localStorage.getItem('pos_thermal_printer_config');
                 if (savedPrinter) {
                     this.printerConfig = Object.assign({}, this.printerConfig, JSON.parse(savedPrinter));
+                    if (this.printerConfig.storeName) {
+                        this.printerConfig.storeName = this.printerConfig.storeName.replace(/&amp;/g, '&');
+                    }
                 }
             } catch(e) {}
 
@@ -2306,7 +2330,7 @@ function posApp() {
                 showBarcode: true,
                 showCashier: true,
                 showCustomer: true,
-                storeName: '{{ setting("site_name", "N&J MINI MART") }}',
+                storeName: {!! json_encode(html_entity_decode(setting('site_name', 'N&J MINI MART'), ENT_QUOTES, 'UTF-8')) !!},
                 storeTagline: 'Retail Mart & Everyday Essentials',
                 storeAddress: 'Puchong Central Distribution Hub, Selangor',
                 storePhone: '+60 12-859 9900',
