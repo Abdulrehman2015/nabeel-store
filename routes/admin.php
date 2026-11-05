@@ -13,6 +13,7 @@ use App\Http\Controllers\Admin\AdminPosController;
 use App\Http\Controllers\Admin\AdminProductController;
 use App\Http\Controllers\Admin\AdminProductImportExportController;
 use App\Http\Controllers\Admin\AdminProfileController;
+use App\Http\Controllers\Admin\AdminReportController;
 use App\Http\Controllers\Admin\AdminSettingsController;
 use Illuminate\Support\Facades\Route;
 
@@ -55,6 +56,10 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::post('orders/{order}/internal-note', [AdminOrderController::class, 'addInternalNote'])->name('orders.internal-note');
     Route::get('orders/{order}/invoice', [AdminOrderController::class, 'printInvoice'])->name('orders.invoice');
     Route::get('orders/{order}/payment-proof', [AdminOrderController::class, 'viewPaymentProof'])->name('orders.payment-proof');
+
+    // Sales & Product Performance Reports Module
+    Route::get('reports', [AdminReportController::class, 'index'])->name('reports.index');
+    Route::get('reports/export', [AdminReportController::class, 'export'])->name('reports.export');
 
     // Customers
     Route::get('customers', [AdminCustomerController::class, 'index'])->name('customers.index');

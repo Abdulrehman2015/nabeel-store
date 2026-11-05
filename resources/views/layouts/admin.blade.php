@@ -91,6 +91,17 @@
                     @endif
                 </a>
 
+                {{-- Reports & Analytics Module --}}
+                <a href="{{ route('admin.reports.index') }}" class="flex items-center justify-between px-3 py-2 rounded-xl transition {{ request()->routeIs('admin.reports.*') ? 'bg-sky-600 text-white font-bold shadow-sm shadow-sky-600/30' : 'hover:bg-slate-900 text-slate-300' }}">
+                    <div class="flex items-center gap-3">
+                        <svg class="w-4 h-4 {{ request()->routeIs('admin.reports.*') ? 'text-white' : 'text-slate-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                        <span>Reports & Analytics</span>
+                    </div>
+                    <span class="text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-sky-500/20 text-sky-400 border border-sky-500/30">
+                        New
+                    </span>
+                </a>
+
                 <div class="pt-3 pb-1 px-3 text-[10px] uppercase font-bold text-slate-500 tracking-wider">Catalog</div>
 
                 {{-- Products --}}
