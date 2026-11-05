@@ -7,6 +7,7 @@
     x-data="posApp()" 
     x-init="initPos()" 
     @keydown.window="handleGlobalKeydown($event)"
+    @keyup.window="handleGlobalKeyup($event)"
     :class="isFullscreen ? 'fixed inset-0 z-50 bg-[#f1f5f9] p-3 flex flex-col h-screen overflow-hidden' : 'flex-1 flex flex-col min-h-0 h-full space-y-2.5 overflow-hidden'"
 >
 
@@ -489,6 +490,9 @@
                 <div class="flex items-center gap-1.5">
                     <span>Active Basket</span>
                     <span class="px-2 py-0.5 rounded-full bg-slate-200/90 text-slate-800 text-[10px] font-black" x-text="totalItemCount + ' items'"></span>
+                    <span class="text-[9px] text-slate-400 font-normal hidden xl:inline">
+                        &bull; Hold <kbd class="px-1 py-0.5 bg-white border border-slate-200 rounded font-mono text-[9px] text-slate-700 font-bold">Ctrl</kbd> + digits / <kbd class="px-1 py-0.5 bg-white border border-slate-200 rounded font-mono text-[9px] text-slate-700 font-bold">&uarr;&darr;</kbd> for qty
+                    </span>
                 </div>
 
                 <div class="flex items-center gap-2">
@@ -515,7 +519,14 @@
             {{-- 3. Cart Items Scrollable List (FLEX-1: SCROLLS INSIDE ITS CONTAINER) --}}
             <div class="flex-1 min-h-0 overflow-y-auto divide-y divide-slate-100 p-2 text-xs">
                 <template x-for="(item, index) in cart" :key="item.id">
-                    <div class="p-1.5 hover:bg-slate-50/80 rounded-xl transition flex items-center justify-between gap-2">
+                    <div 
+                        :data-cart-item="index"
+                        @click="selectedCartIndex = index"
+                        :class="getActiveCartIndex() === index 
+                            ? 'bg-sky-50/90 ring-2 ring-sky-500/60 border-sky-300 shadow-xs' 
+                            : 'hover:bg-slate-50/80 border-slate-100/80'"
+                        class="p-1.5 rounded-xl border transition-all flex items-center justify-between gap-2 cursor-pointer relative"
+                    >
                         
                         {{-- Small Item Thumbnail --}}
                         <div class="w-8 h-8 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-center p-0.5 shrink-0 overflow-hidden">
@@ -524,7 +535,10 @@
 
                         {{-- Item Name & Price --}}
                         <div class="flex-1 min-w-0">
-                            <div class="font-bold text-slate-900 truncate text-[11px]" x-text="item.name"></div>
+                            <div class="flex items-center gap-1.5">
+                                <span class="font-bold text-slate-900 truncate text-[11px]" x-text="item.name"></span>
+                                <span x-show="getActiveCartIndex() === index" class="text-[8px] font-black uppercase tracking-wider text-sky-700 bg-sky-200/90 px-1 py-0.2 rounded shrink-0">Selected</span>
+                            </div>
                             <div class="text-[9px] text-slate-400 font-mono flex items-center gap-1 mt-0.5">
                                 <span>RM <span x-text="item.price.toFixed(2)"></span></span>
                                 <span x-show="item.sku" class="text-slate-300">&bull;</span>
@@ -536,7 +550,7 @@
                         <div class="flex items-center border border-slate-200 rounded-lg bg-white overflow-hidden shrink-0 shadow-2xs">
                             <button 
                                 type="button" 
-                                @click="decrementQty(index)" 
+                                @click.stop="decrementQty(index)" 
                                 class="w-5 h-5 flex items-center justify-center text-slate-600 hover:bg-slate-100 font-bold text-xs cursor-pointer"
                             >
                                 -
@@ -547,11 +561,12 @@
                                 :max="item.max_stock"
                                 x-model.number="item.quantity" 
                                 @change="validateQty(index)"
+                                @click.stop=""
                                 class="w-7 h-5 text-center text-xs font-bold border-0 p-0 focus:ring-0 text-slate-900 bg-transparent"
                             >
                             <button 
                                 type="button" 
-                                @click="incrementQty(index)" 
+                                @click.stop="incrementQty(index)" 
                                 class="w-5 h-5 flex items-center justify-center text-slate-600 hover:bg-slate-100 font-bold text-xs cursor-pointer"
                             >
                                 +
@@ -565,7 +580,7 @@
                             </div>
                             <button 
                                 type="button" 
-                                @click="removeItem(index)" 
+                                @click.stop="removeItem(index)" 
                                 class="text-[9px] text-rose-500 hover:text-rose-700 cursor-pointer font-medium"
                             >
                                 Remove
@@ -998,8 +1013,26 @@
 
             <div class="space-y-2 text-xs">
                 <div class="flex justify-between items-center py-1 border-b border-slate-100">
-                    <span class="text-slate-600">Focus Barcode Scanner / Search</span>
+                    <span class="text-slate-600">Focus Barcode / Search</span>
                     <kbd class="px-2 py-0.5 bg-slate-100 border border-slate-200 rounded text-slate-700 font-mono font-bold">F2 or /</kbd>
+                </div>
+                <div class="flex justify-between items-center py-1 border-b border-slate-100">
+                    <div>
+                        <span class="text-slate-800 font-semibold block">Set Quantity (e.g. 12)</span>
+                        <span class="text-[10px] text-slate-400">Hold Ctrl and type numbers</span>
+                    </div>
+                    <kbd class="px-2 py-0.5 bg-sky-50 border border-sky-200 text-sky-800 rounded font-mono font-bold text-[11px]">Ctrl + 1, 2...</kbd>
+                </div>
+                <div class="flex justify-between items-center py-1 border-b border-slate-100">
+                    <div>
+                        <span class="text-slate-800 font-semibold block">Increase / Decrease Qty</span>
+                        <span class="text-[10px] text-slate-400">Step active item quantity</span>
+                    </div>
+                    <kbd class="px-2 py-0.5 bg-sky-50 border border-sky-200 text-sky-800 rounded font-mono font-bold text-[11px]">Ctrl + &uarr; / &darr;</kbd>
+                </div>
+                <div class="flex justify-between items-center py-1 border-b border-slate-100">
+                    <span class="text-slate-600">Select Previous / Next Item</span>
+                    <kbd class="px-2 py-0.5 bg-slate-100 border border-slate-200 rounded text-slate-700 font-mono font-bold">Alt + &uarr; / &darr;</kbd>
                 </div>
                 <div class="flex justify-between items-center py-1 border-b border-slate-100">
                     <span class="text-slate-600">Complete Sale / Checkout</span>
@@ -1018,6 +1051,31 @@
             <button type="button" @click="showShortcutsModal = false" class="w-full py-2 bg-slate-900 text-white rounded-xl text-xs font-bold">
                 Got It
             </button>
+        </div>
+    </div>
+
+    {{-- Toast Notification for Shortcut Quantity / Action HUD --}}
+    <div 
+        x-show="shortcutToast.show"
+        x-transition:enter="transition ease-out duration-150"
+        x-transition:enter-start="opacity-0 translate-y-3 scale-95"
+        x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+        x-transition:leave="transition ease-in duration-100"
+        x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+        x-transition:leave-end="opacity-0 translate-y-3 scale-95"
+        class="fixed bottom-4 right-4 z-50 pointer-events-none"
+        x-cloak
+    >
+        <div 
+            class="px-3.5 py-2 rounded-2xl shadow-2xl flex items-center gap-2 text-xs font-bold border backdrop-blur-md"
+            :class="{
+                'bg-slate-900/95 text-white border-slate-700 shadow-slate-900/30': shortcutToast.type === 'info',
+                'bg-amber-600/95 text-white border-amber-500 shadow-amber-900/30': shortcutToast.type === 'warning',
+                'bg-emerald-600/95 text-white border-emerald-500 shadow-emerald-900/30': shortcutToast.type === 'success'
+            }"
+        >
+            <span class="text-sm" x-text="shortcutToast.icon"></span>
+            <span x-text="shortcutToast.message"></span>
         </div>
     </div>
 
@@ -1041,6 +1099,16 @@ function posApp() {
 
         // Cart & Customer state
         cart: [],
+        selectedCartIndex: -1,
+        qtyKeyBuffer: '',
+        qtyBufferTimeout: null,
+        shortcutToast: {
+            show: false,
+            message: '',
+            icon: '⚡',
+            type: 'info',
+            timeout: null,
+        },
         customer: { id: null, name: 'Walk-in Customer', phone: '', email: '' },
         customerSearch: '',
         newCustomer: { name: '', phone: '' },
@@ -1274,6 +1342,7 @@ function posApp() {
             if (existingIndex > -1) {
                 if (this.cart[existingIndex].quantity < product.stock_quantity) {
                     this.cart[existingIndex].quantity++;
+                    this.selectedCartIndex = existingIndex;
                     this.playBeep();
                 } else {
                     alert('Cannot add more: Available stock limit reached (' + product.stock_quantity + ').');
@@ -1289,6 +1358,7 @@ function posApp() {
                     image_url: product.image_url,
                     pack_size: product.pack_size,
                 });
+                this.selectedCartIndex = this.cart.length - 1;
                 this.playBeep();
             }
 
@@ -1298,6 +1368,8 @@ function posApp() {
 
         incrementQty(index) {
             const item = this.cart[index];
+            if (!item) return;
+            this.selectedCartIndex = index;
             if (item.quantity < item.max_stock) {
                 item.quantity++;
                 this.amountTendered = this.grandTotal;
@@ -1305,16 +1377,26 @@ function posApp() {
         },
 
         decrementQty(index) {
-            if (this.cart[index].quantity > 1) {
-                this.cart[index].quantity--;
+            const item = this.cart[index];
+            if (!item) return;
+            this.selectedCartIndex = index;
+            if (item.quantity > 1) {
+                item.quantity--;
             } else {
                 this.cart.splice(index, 1);
+                if (this.cart.length === 0) {
+                    this.selectedCartIndex = -1;
+                } else if (this.selectedCartIndex >= this.cart.length) {
+                    this.selectedCartIndex = this.cart.length - 1;
+                }
             }
             this.amountTendered = this.grandTotal;
         },
 
         validateQty(index) {
             const item = this.cart[index];
+            if (!item) return;
+            this.selectedCartIndex = index;
             if (!item.quantity || item.quantity < 1) item.quantity = 1;
             if (item.quantity > item.max_stock) item.quantity = item.max_stock;
             this.amountTendered = this.grandTotal;
@@ -1322,12 +1404,19 @@ function posApp() {
 
         removeItem(index) {
             this.cart.splice(index, 1);
+            if (this.cart.length === 0) {
+                this.selectedCartIndex = -1;
+            } else if (this.selectedCartIndex >= this.cart.length) {
+                this.selectedCartIndex = this.cart.length - 1;
+            }
             this.amountTendered = this.grandTotal;
         },
 
         clearCart() {
             if (confirm('Clear all items from current register?')) {
                 this.cart = [];
+                this.selectedCartIndex = -1;
+                this.qtyKeyBuffer = '';
                 this.discountAmount = 0;
                 this.amountTendered = 0;
                 this.$refs.barcodeInput.focus();
@@ -1471,32 +1560,255 @@ function posApp() {
             this.$refs.barcodeInput.focus();
         },
 
+        getActiveCartIndex() {
+            if (!this.cart || this.cart.length === 0) return -1;
+            if (this.selectedCartIndex < 0 || this.selectedCartIndex >= this.cart.length) {
+                return this.cart.length - 1; // default to the latest added cart item
+            }
+            return this.selectedCartIndex;
+        },
+
+        showToast(message, icon = '⚡', type = 'info') {
+            if (this.shortcutToast.timeout) {
+                clearTimeout(this.shortcutToast.timeout);
+            }
+            this.shortcutToast.message = message;
+            this.shortcutToast.icon = icon;
+            this.shortcutToast.type = type;
+            this.shortcutToast.show = true;
+            this.shortcutToast.timeout = setTimeout(() => {
+                this.shortcutToast.show = false;
+            }, 1800);
+        },
+
+        isAnyModalOpen() {
+            return this.showReceiptModal || 
+                   this.showCustomerModal || 
+                   this.showQrModal || 
+                   this.showHeldOrdersModal || 
+                   this.showShortcutsModal;
+        },
+
+        extractDigit(e) {
+            if (/^[0-9]$/.test(e.key)) {
+                return e.key;
+            }
+            if (/^Digit([0-9])$/.test(e.code)) {
+                return e.code.replace('Digit', '');
+            }
+            if (/^Numpad([0-9])$/.test(e.code)) {
+                return e.code.replace('Numpad', '');
+            }
+            return null;
+        },
+
+        handleQuantityDigit(digit) {
+            if (this.cart.length === 0) {
+                this.showToast('Cart is empty. Please add a product first.', '⚠️', 'warning');
+                return;
+            }
+
+            const activeIdx = this.getActiveCartIndex();
+            const item = this.cart[activeIdx];
+            if (!item) return;
+
+            // Reset any pending timeout
+            if (this.qtyBufferTimeout) {
+                clearTimeout(this.qtyBufferTimeout);
+            }
+
+            // Append digit to buffer (e.g. '1' then '2' becomes '12')
+            this.qtyKeyBuffer = (this.qtyKeyBuffer || '') + digit;
+            let targetQty = parseInt(this.qtyKeyBuffer, 10);
+
+            if (isNaN(targetQty) || targetQty < 1) {
+                targetQty = 1;
+            }
+
+            // Cap at available stock
+            if (targetQty > item.max_stock) {
+                targetQty = item.max_stock;
+                item.quantity = targetQty;
+                this.showToast(item.name + ': Stock limit reached (' + item.max_stock + ')', '⚠️', 'warning');
+            } else {
+                item.quantity = targetQty;
+                this.showToast(item.name + ' Qty: ' + targetQty, '⚡', 'info');
+            }
+
+            this.amountTendered = this.grandTotal;
+            this.playBeep();
+
+            // Clear buffer after 1.5 seconds of inactivity
+            this.qtyBufferTimeout = setTimeout(() => {
+                this.qtyKeyBuffer = '';
+            }, 1500);
+        },
+
+        handleQuantityArrow(direction) {
+            if (this.cart.length === 0) {
+                this.showToast('Cart is empty. Please add a product first.', '⚠️', 'warning');
+                return;
+            }
+
+            this.qtyKeyBuffer = '';
+            if (this.qtyBufferTimeout) {
+                clearTimeout(this.qtyBufferTimeout);
+            }
+
+            const activeIdx = this.getActiveCartIndex();
+            const item = this.cart[activeIdx];
+            if (!item) return;
+
+            if (direction === 'up') {
+                if (item.quantity < item.max_stock) {
+                    item.quantity++;
+                    this.amountTendered = this.grandTotal;
+                    this.playBeep();
+                    this.showToast(item.name + ' Qty: ' + item.quantity, '▲', 'info');
+                } else {
+                    this.showToast(item.name + ': Max stock limit reached (' + item.max_stock + ')', '⚠️', 'warning');
+                }
+            } else if (direction === 'down') {
+                if (item.quantity > 1) {
+                    item.quantity--;
+                    this.amountTendered = this.grandTotal;
+                    this.playBeep();
+                    this.showToast(item.name + ' Qty: ' + item.quantity, '▼', 'info');
+                } else {
+                    this.showToast(item.name + ' minimum quantity is 1', 'ℹ️', 'info');
+                }
+            }
+        },
+
+        selectPrevCartItem() {
+            if (this.cart.length === 0) return;
+            const current = this.getActiveCartIndex();
+            this.selectedCartIndex = current > 0 ? current - 1 : 0;
+            this.qtyKeyBuffer = '';
+            const item = this.cart[this.selectedCartIndex];
+            if (item) {
+                this.showToast('Selected: ' + item.name, '👉', 'info');
+            }
+            this.scrollSelectedCartItemIntoView();
+        },
+
+        selectNextCartItem() {
+            if (this.cart.length === 0) return;
+            const current = this.getActiveCartIndex();
+            this.selectedCartIndex = current < this.cart.length - 1 ? current + 1 : this.cart.length - 1;
+            this.qtyKeyBuffer = '';
+            const item = this.cart[this.selectedCartIndex];
+            if (item) {
+                this.showToast('Selected: ' + item.name, '👉', 'info');
+            }
+            this.scrollSelectedCartItemIntoView();
+        },
+
+        scrollSelectedCartItemIntoView() {
+            this.$nextTick(() => {
+                const el = document.querySelector('[data-cart-item="' + this.selectedCartIndex + '"]');
+                if (el) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            });
+        },
+
         // Global Keyboard Shortcuts
         handleGlobalKeydown(e) {
+            // Check modals first
+            if (this.isAnyModalOpen()) {
+                // Esc to close modals
+                if (e.key === 'Escape') {
+                    this.categoryDropdownOpen = false;
+                    this.showReceiptModal = false;
+                    this.showCustomerModal = false;
+                    this.showQrModal = false;
+                    this.showHeldOrdersModal = false;
+                    this.showShortcutsModal = false;
+                }
+                // Space to reset next sale on receipt modal
+                if (e.key === ' ' && this.showReceiptModal) {
+                    e.preventDefault();
+                    this.resetForNextSale();
+                }
+                return;
+            }
+
+            // Alt + ArrowUp / ArrowDown to navigate selected cart item
+            if (e.altKey && !e.ctrlKey && !e.metaKey) {
+                if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    this.selectPrevCartItem();
+                    return;
+                }
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    this.selectNextCartItem();
+                    return;
+                }
+            }
+
+            // Ctrl/Cmd shortcuts for Quantity manipulation
+            if (e.ctrlKey || e.metaKey) {
+                // Ctrl + ArrowUp: increase quantity
+                if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    this.handleQuantityArrow('up');
+                    return;
+                }
+
+                // Ctrl + ArrowDown: decrease quantity
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    this.handleQuantityArrow('down');
+                    return;
+                }
+
+                // Ctrl + Digits 0-9: multi-digit quantity input (e.g. hold ctrl + 1, 2 => 12)
+                const digit = this.extractDigit(e);
+                if (digit !== null) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (!e.repeat) {
+                        this.handleQuantityDigit(digit);
+                    }
+                    return;
+                }
+            }
+
             // F2 or '/' to focus search
             if (e.key === 'F2' || (e.key === '/' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA')) {
                 e.preventDefault();
                 this.$refs.barcodeInput?.focus();
                 this.$refs.barcodeInput?.select();
+                return;
             }
+
             // F4 to complete checkout
             if (e.key === 'F4') {
                 e.preventDefault();
                 this.processCheckout();
+                return;
             }
-            // Space to reset next sale on receipt modal
-            if (e.key === ' ' && this.showReceiptModal) {
-                e.preventDefault();
-                this.resetForNextSale();
-            }
-            // Esc to close modals
+
+            // Esc to clear search or close dropdown
             if (e.key === 'Escape') {
                 this.categoryDropdownOpen = false;
-                this.showReceiptModal = false;
-                this.showCustomerModal = false;
-                this.showQrModal = false;
-                this.showHeldOrdersModal = false;
-                this.showShortcutsModal = false;
+                if (this.searchQuery) {
+                    this.searchQuery = '';
+                }
+            }
+        },
+
+        handleGlobalKeyup(e) {
+            // When Control or Meta is released, clear digit buffer after a 500ms grace period
+            if (e.key === 'Control' || e.key === 'Meta') {
+                if (this.qtyBufferTimeout) {
+                    clearTimeout(this.qtyBufferTimeout);
+                }
+                this.qtyBufferTimeout = setTimeout(() => {
+                    this.qtyKeyBuffer = '';
+                }, 500);
             }
         }
     };
