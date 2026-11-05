@@ -637,12 +637,12 @@
         function adminApp() {
             return {
                 sidebarOpen: false,
-                bellCount: {{ (int) \App\Models\Order::where('order_status', 'pending_payment_verification')->count() }},
+                bellCount: {{ (int) \App\Models\Order::where('order_status', 'pending_payment_verification')->where('delivery_zone', '!=', 'pos_counter')->where('order_number', 'NOT LIKE', 'POS-%')->count() }},
                 notificationsOpen: false,
                 userMenuOpen: false,
                 soundAlertsEnabled: true,
                 desktopNotifPermission: (typeof Notification !== 'undefined') ? Notification.permission : 'denied',
-                lastOrderId: {{ (int) (\App\Models\Order::max('id') ?? 0) }},
+                lastOrderId: {{ (int) (\App\Models\Order::where('delivery_zone', '!=', 'pos_counter')->where('order_number', 'NOT LIKE', 'POS-%')->max('id') ?? 0) }},
                 latestNewOrderToast: null,
                 toastTimer: null,
                 titleFlashInterval: null,
@@ -967,6 +967,10 @@
 
                         if (data.has_new_orders && data.new_orders && data.new_orders.length > 0) {
                             data.new_orders.forEach(ord => {
+                                // Strictly skip in-store walk-in POS counter orders (no chime/bell, no popups)
+                                if (ord.order_number && (ord.order_number.startsWith('POS-') || ord.order_number.includes('POS'))) {
+                                    return;
+                                }
                                 this.triggerNewOrderAlert(ord);
                             });
                         }

@@ -1937,7 +1937,7 @@ function posApp() {
                 const data = await res.json();
 
                 if (data.success) {
-                    this.playChime();
+                    // Do NOT play chime or notification bell on walk-in sale
                     this.completedOrder = data;
                     this.showReceiptModal = true;
 

@@ -153,18 +153,31 @@ class AdminDashboardController extends Controller
 
     /**
      * Poll endpoint for in-app notification bell and instantaneous order alert (every 5-6 seconds).
+     * Excludes in-store walk-in POS counter orders so bell sound & popups only trigger for online customer orders.
      */
     public function pollNotifications(Request $request): JsonResponse
     {
         $lastOrderId = (int) $request->query('last_order_id', 0);
-        $pendingPayments = Order::where('order_status', 'pending_payment_verification')->count();
-        $latestOrder = Order::latest('id')->first();
-        $latestOrderId = $latestOrder ? (int) $latestOrder->id : 0;
+
+        // Only count online orders awaiting payment verification (excludes walk-in POS sales)
+        $pendingPayments = Order::where('order_status', 'pending_payment_verification')
+            ->where('delivery_zone', '!=', 'pos_counter')
+            ->where('order_number', 'NOT LIKE', 'POS-%')
+            ->count();
+
+        // Only track latest online storefront orders
+        $latestOnlineOrder = Order::where('delivery_zone', '!=', 'pos_counter')
+            ->where('order_number', 'NOT LIKE', 'POS-%')
+            ->latest('id')
+            ->first();
+        $latestOrderId = $latestOnlineOrder ? (int) $latestOnlineOrder->id : 0;
 
         $newOrders = [];
         if ($lastOrderId > 0 && $latestOrderId > $lastOrderId) {
             $newOrders = Order::with('items')
                 ->where('id', '>', $lastOrderId)
+                ->where('delivery_zone', '!=', 'pos_counter')
+                ->where('order_number', 'NOT LIKE', 'POS-%')
                 ->orderBy('id', 'desc')
                 ->take(5)
                 ->get()
@@ -188,8 +201,8 @@ class AdminDashboardController extends Controller
         return response()->json([
             'pending_payments' => $pendingPayments,
             'latest_order_id' => $latestOrderId,
-            'latest_order_number' => $latestOrder?->order_number,
-            'latest_order_time' => $latestOrder?->created_at?->diffForHumans(),
+            'latest_order_number' => $latestOnlineOrder?->order_number,
+            'latest_order_time' => $latestOnlineOrder?->created_at?->diffForHumans(),
             'has_new_orders' => count($newOrders) > 0,
             'new_orders' => $newOrders,
         ]);
