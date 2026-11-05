@@ -60,25 +60,25 @@
         </div>
 
         {{-- 2. Total Gross Profit (Sale - Purchase = Profit) --}}
-        <div class="bg-gradient-to-br from-emerald-50/70 via-white to-white p-4 rounded-xl border border-emerald-300/80 shadow-2xs hover:shadow-xs transition relative overflow-hidden">
+        <div class="bg-white p-4 rounded-xl border border-emerald-200/90 shadow-2xs hover:shadow-xs transition relative overflow-hidden">
             <div class="flex items-center justify-between">
                 <div>
                     <span class="text-[10px] font-extrabold text-emerald-800 uppercase tracking-wider block">Gross Profit</span>
                     <span class="text-[9px] text-emerald-600 font-bold block">Sale &minus; Purchase</span>
                 </div>
-                <div class="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 border border-emerald-200 flex items-center justify-center font-bold shadow-2xs">
+                <div class="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center font-bold">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                 </div>
             </div>
             <div class="mt-2 text-xl sm:text-2xl font-black text-emerald-700 tracking-tight">
                 {{ format_currency($totalProfit) }}
             </div>
-            <div class="mt-1 flex items-center gap-1.5 text-[10px] font-semibold text-slate-600">
-                <span class="px-1.5 py-0.2 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200 font-extrabold text-[9px]">
+            <div class="mt-1 flex flex-wrap items-center gap-1.5 text-[11px] font-semibold">
+                <span class="px-1.5 py-0.5 rounded-md bg-emerald-100 text-emerald-800 font-bold text-[10px]">
                     +{{ $totalProfitMargin }}% margin
                 </span>
-                <span class="text-slate-400 text-[9px] hidden sm:inline">
-                    Today: {{ format_currency($todayProfit) }}
+                <span class="text-slate-500 text-[10px]">
+                    Today: <strong class="text-slate-700">{{ format_currency($todayProfit) }}</strong>
                 </span>
             </div>
         </div>
@@ -171,74 +171,75 @@
     </div>
 
     {{-- Store Profit Equation Card (Sale Price - Purchase Price = Profit) --}}
-    <div class="bg-gradient-to-r from-slate-900 via-slate-800 to-emerald-950 rounded-2xl p-4 sm:p-5 text-white shadow-md border border-emerald-500/30 relative overflow-hidden">
-        <div class="absolute -right-10 -bottom-10 w-44 h-44 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none"></div>
-        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 relative z-10">
+    <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/90 shadow-2xs relative overflow-hidden">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
             <div>
                 <div class="flex items-center gap-2">
-                    <span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 text-[10px] font-black uppercase tracking-wider">
+                    <span class="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-2xs">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                         Real-time Formula
                     </span>
-                    <span class="text-xs text-slate-300 font-medium">Store Profit Calculation</span>
+                    <span class="text-xs text-slate-500 font-bold">Store Profit Calculation</span>
                 </div>
-                <h3 class="text-base sm:text-lg font-black tracking-tight text-white mt-1 flex items-center gap-2">
+                <h3 class="text-base sm:text-lg font-black tracking-tight text-slate-900 mt-1.5 flex flex-wrap items-center gap-2">
                     <span>Sale Product Price</span>
-                    <span class="text-emerald-400 font-bold">&minus;</span>
+                    <span class="text-rose-500 font-black">&minus;</span>
                     <span>Purchase Product Price</span>
-                    <span class="text-emerald-400 font-bold">=</span>
-                    <span class="text-emerald-300 underline decoration-emerald-400 decoration-2 underline-offset-4">Net Profit</span>
+                    <span class="text-emerald-600 font-black">=</span>
+                    <span class="text-emerald-800 bg-emerald-100/80 px-2 py-0.5 rounded-lg border border-emerald-300 font-extrabold">Net Profit</span>
                 </h3>
             </div>
 
-            {{-- Dynamic Equation Breakdown Pills --}}
-            <div class="flex flex-wrap items-center gap-2 sm:gap-3 bg-white/10 backdrop-blur-md p-2 sm:p-3 rounded-xl border border-white/10 text-xs sm:text-sm">
-                <div class="text-center px-2 py-1 bg-white/5 rounded-lg border border-white/10">
-                    <div class="text-[9px] uppercase tracking-wider text-slate-300 font-semibold">Sale Revenue</div>
-                    <div class="font-extrabold text-white text-xs sm:text-sm">{{ format_currency($allTimeSaleRevenue) }}</div>
+            {{-- Dynamic Equation Breakdown Calculation Block --}}
+            <div class="flex flex-wrap items-center gap-2 sm:gap-2.5 bg-slate-50/90 p-2.5 sm:p-3 rounded-2xl border border-slate-200/90 shadow-inner">
+                <div class="text-center px-3 py-1.5 bg-white rounded-xl border border-slate-200 shadow-2xs">
+                    <div class="text-[9px] uppercase tracking-wider text-slate-500 font-bold">Sale Revenue</div>
+                    <div class="font-black text-slate-900 text-xs sm:text-sm">{{ format_currency($allTimeSaleRevenue) }}</div>
                 </div>
 
-                <div class="text-emerald-400 font-black text-base">&minus;</div>
+                <div class="text-rose-500 font-black text-base px-0.5">&minus;</div>
 
-                <div class="text-center px-2 py-1 bg-white/5 rounded-lg border border-white/10">
-                    <div class="text-[9px] uppercase tracking-wider text-slate-300 font-semibold">Purchase Cost</div>
-                    <div class="font-extrabold text-rose-300 text-xs sm:text-sm">{{ format_currency($allTimePurchaseCost) }}</div>
+                <div class="text-center px-3 py-1.5 bg-white rounded-xl border border-slate-200 shadow-2xs">
+                    <div class="text-[9px] uppercase tracking-wider text-slate-500 font-bold">Purchase Cost</div>
+                    <div class="font-black text-rose-600 text-xs sm:text-sm">{{ format_currency($allTimePurchaseCost) }}</div>
                 </div>
 
-                <div class="text-emerald-400 font-black text-base">=</div>
+                <div class="text-emerald-600 font-black text-base px-0.5">=</div>
 
-                <div class="text-center px-3 py-1 bg-emerald-500/30 rounded-lg border border-emerald-400/40 shadow-inner">
-                    <div class="text-[9px] uppercase tracking-wider text-emerald-200 font-bold">Total Profit</div>
-                    <div class="font-black text-emerald-300 text-sm sm:text-base">{{ format_currency($totalProfit) }}</div>
+                <div class="text-center px-3.5 py-1.5 bg-emerald-600 text-white rounded-xl shadow-xs">
+                    <div class="text-[9px] uppercase tracking-wider text-emerald-100 font-bold">Total Profit</div>
+                    <div class="font-black text-white text-xs sm:text-sm">{{ format_currency($totalProfit) }}</div>
                 </div>
 
-                <div class="pl-1 border-l border-white/20 text-[11px] text-emerald-300 font-bold">
-                    +{{ $totalProfitMargin }}% margin
+                <div class="pl-2 border-l border-slate-200 flex flex-col justify-center text-left">
+                    <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Margin</span>
+                    <span class="text-xs font-black text-emerald-700">+{{ $totalProfitMargin }}%</span>
                 </div>
             </div>
         </div>
 
-        {{-- Mini Secondary Stats: Today Realized vs Stock Inventory Potential --}}
-        <div class="mt-3.5 pt-3 border-t border-white/10 grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-slate-300">
-            <div class="flex items-center justify-between bg-black/20 px-3 py-1.5 rounded-lg border border-white/5">
-                <span class="flex items-center gap-1.5">
-                    <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+        {{-- Secondary Insight Tiles: Today Realized vs Stock Inventory Potential --}}
+        <div class="mt-3.5 pt-3 border-t border-slate-100 grid grid-cols-1 md:grid-cols-2 gap-2.5 text-xs">
+            <div class="flex flex-wrap items-center justify-between gap-1.5 bg-emerald-50/60 px-3.5 py-2 rounded-xl border border-emerald-200/80">
+                <span class="flex items-center gap-2 font-bold text-slate-700">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
                     <span>Today's Realized Profit:</span>
                 </span>
-                <span class="font-mono font-bold text-emerald-300">
-                    {{ format_currency($todayProfit) }}
-                    <span class="text-[10px] text-slate-400 font-normal">({{ format_currency($todaySaleRevenue) }} &minus; {{ format_currency($todayPurchaseCost) }})</span>
-                </span>
+                <div class="flex items-center gap-1.5">
+                    <span class="font-black text-emerald-800 text-xs sm:text-sm">{{ format_currency($todayProfit) }}</span>
+                    <span class="text-[10px] text-slate-500 font-medium">({{ format_currency($todaySaleRevenue) }} &minus; {{ format_currency($todayPurchaseCost) }})</span>
+                </div>
             </div>
 
-            <div class="flex items-center justify-between bg-black/20 px-3 py-1.5 rounded-lg border border-white/5">
-                <span class="flex items-center gap-1.5">
-                    <span class="w-2 h-2 rounded-full bg-sky-400"></span>
+            <div class="flex flex-wrap items-center justify-between gap-1.5 bg-sky-50/60 px-3.5 py-2 rounded-xl border border-sky-200/80">
+                <span class="flex items-center gap-2 font-bold text-slate-700">
+                    <span class="w-2 h-2 rounded-full bg-sky-500"></span>
                     <span>Warehouse Inventory Profit Potential:</span>
                 </span>
-                <span class="font-mono font-bold text-sky-300">
-                    {{ format_currency($potentialInventoryProfit) }}
-                    <span class="text-[10px] text-slate-400 font-normal">({{ format_currency($totalInventoryValue) }} &minus; {{ format_currency($totalInventoryCost) }})</span>
-                </span>
+                <div class="flex items-center gap-1.5">
+                    <span class="font-black text-sky-800 text-xs sm:text-sm">{{ format_currency($potentialInventoryProfit) }}</span>
+                    <span class="text-[10px] text-slate-500 font-medium">({{ format_currency($totalInventoryValue) }} &minus; {{ format_currency($totalInventoryCost) }})</span>
+                </div>
             </div>
         </div>
     </div>
