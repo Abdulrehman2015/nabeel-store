@@ -13,7 +13,9 @@
 /.zed
 /auth.json
 /node_modules
-/public/build
+# /public/build (tracked for production FTP deployment)
+!/public/build
+!/public/build/**
 /public/hot
 /public/storage
 /storage/*.key

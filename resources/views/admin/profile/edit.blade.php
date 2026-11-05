@@ -297,7 +297,7 @@
             
             {{-- Admin Identity Card --}}
             <div class="bg-white rounded-3xl p-6 border border-slate-200/90 shadow-2xs text-center space-y-3">
-                <div class="w-20 h-20 mx-auto rounded-3xl bg-gradient-to-br from-sky-600 to-sky-700 text-white flex items-center justify-center text-2xl font-black shadow-md shadow-sky-600/20">
+                <div class="w-20 h-20 mx-auto rounded-3xl bg-sky-600 bg-gradient-to-br from-sky-600 to-sky-700 text-white flex items-center justify-center text-2xl font-black shadow-md shadow-sky-600/20">
                     {{ strtoupper(substr($user->name, 0, 1)) }}
                 </div>
 
@@ -332,7 +332,7 @@
             </div>
 
             {{-- Security Overview Card --}}
-            <div class="bg-gradient-to-br from-slate-900 to-slate-950 text-white rounded-3xl p-6 border border-slate-800 space-y-3 shadow-sm">
+            <div class="bg-slate-900 bg-gradient-to-br from-slate-900 to-slate-950 text-white rounded-3xl p-6 border border-slate-800 space-y-3 shadow-sm">
                 <div class="flex items-center gap-2">
                     <div class="w-7 h-7 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-xs font-bold">
                         🛡️
@@ -344,16 +344,16 @@
                     Your administrative account has full read & write privileges to orders, customer personal records, stock pricing, and payments.
                 </p>
 
-                <div class="pt-2 border-t border-slate-800 space-y-1.5 text-[11px]">
-                    <div class="flex items-center gap-2 text-slate-400">
+                <div class="pt-2 border-t border-slate-800 space-y-2 text-[11px]">
+                    <div class="flex items-center gap-2 text-slate-200 font-medium">
                         <svg class="w-3.5 h-3.5 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
                         <span>Encrypted bcrypt (12 rounds) hash</span>
                     </div>
-                    <div class="flex items-center gap-2 text-slate-400">
+                    <div class="flex items-center gap-2 text-slate-200 font-medium">
                         <svg class="w-3.5 h-3.5 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
                         <span>CSRF token & session protected</span>
                     </div>
-                    <div class="flex items-center gap-2 text-slate-400">
+                    <div class="flex items-center gap-2 text-slate-200 font-medium">
                         <svg class="w-3.5 h-3.5 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
                         <span>Activity log audit tracking active</span>
                     </div>

@@ -226,7 +226,7 @@
     <div class="flex-1 lg:pl-64 flex flex-col {{ request()->routeIs('admin.pos.*') ? 'h-screen max-h-screen overflow-hidden' : 'min-h-screen' }}">
         
         {{-- Admin Top Bar --}}
-        <header class="shrink-0 h-16 bg-white/95 backdrop-blur-md border-b border-slate-200/90 flex items-center justify-between px-4 sm:px-6 sticky top-0 z-30 shadow-2xs">
+        <header class="shrink-0 h-16 bg-white border-b border-slate-200/90 flex items-center justify-between px-4 sm:px-6 sticky top-0 z-30 shadow-xs">
             
             {{-- Left Section: Mobile Toggle & Store Status --}}
             <div class="flex items-center gap-3 shrink-0">
