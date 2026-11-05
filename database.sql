@@ -1068,3 +1068,8 @@ UNLOCK TABLES;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
 -- Dump completed on 2026-11-05  6:13:46
+
+
+-- Schema update: Add purchase_price to products
+ALTER TABLE `products` ADD COLUMN IF NOT EXISTS `purchase_price` DECIMAL(10,2) DEFAULT 0.00 AFTER `price`;
+UPDATE `products` SET `purchase_price` = ROUND(`price` * 0.70, 2) WHERE `purchase_price` IS NULL OR `purchase_price` <= 0;

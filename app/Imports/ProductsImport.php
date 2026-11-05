@@ -68,6 +68,7 @@ class ProductsImport implements ToModel, WithHeadingRow
                 'unit_description' => $row['unit_description'] ?? null,
                 'weight_volume' => $row['weight_volume'] ?? null,
                 'price' => (float) ($row['price_rm'] ?? $row['price'] ?? 0),
+                'purchase_price' => (float) ($row['purchase_price_rm'] ?? $row['purchase_price'] ?? $row['cost_price'] ?? 0),
                 'sale_price' => !empty($row['sale_price_rm'] ?? $row['sale_price'] ?? null) ? (float) ($row['sale_price_rm'] ?? $row['sale_price']) : null,
                 'stock_quantity' => (int) ($row['stock_quantity'] ?? 0),
                 'is_active' => (bool) ($row['is_active_10'] ?? $row['is_active'] ?? 1),

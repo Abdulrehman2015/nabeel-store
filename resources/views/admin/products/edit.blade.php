@@ -34,6 +34,7 @@
     metaDesc: '{{ old('meta_description', addslashes($product->meta_description ?? '')) }}',
     slug: '{{ old('slug', $product->slug) }}',
     price: '{{ old('price', $product->price) }}',
+    purchasePrice: '{{ old('purchase_price', $product->purchase_price ?? '') }}',
     salePrice: '{{ old('sale_price', $product->sale_price ?? '') }}',
     stock: {{ old('stock_quantity', $product->stock_quantity ?? 0) }},
     isActive: {{ old('is_active', $product->is_active) ? 'true' : 'false' }},
@@ -56,6 +57,26 @@
             return Math.round(((p - sp) / p) * 100);
         }
         return 0;
+    },
+
+    get effectiveSellPrice() {
+        let sp = parseFloat(this.salePrice);
+        let p = parseFloat(this.price);
+        if (sp > 0 && sp < p) return sp;
+        return p > 0 ? p : 0;
+    },
+
+    get unitProfit() {
+        let sell = this.effectiveSellPrice;
+        let cost = parseFloat(this.purchasePrice) || 0;
+        return sell > 0 ? (sell - cost).toFixed(2) : '0.00';
+    },
+
+    get profitMargin() {
+        let sell = this.effectiveSellPrice;
+        let cost = parseFloat(this.purchasePrice) || 0;
+        if (sell <= 0) return 0;
+        return Math.round(((sell - cost) / sell) * 100);
     },
 
     copyLink() {
@@ -391,7 +412,21 @@
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Regular Price *</label>
+                        <div class="flex items-center justify-between mb-1.5">
+                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">Purchase Price (Cost Price)</label>
+                            <span class="text-[10px] text-slate-400 font-medium">Wholesale / Supplier Cost</span>
+                        </div>
+                        <div class="flex rounded-xl shadow-2xs border border-slate-300 overflow-hidden focus-within:border-sky-500 focus-within:ring-4 focus-within:ring-sky-500/10 bg-slate-50 transition">
+                            <span class="inline-flex items-center px-3.5 text-xs font-bold text-slate-600 bg-slate-100 border-r border-slate-200 select-none">
+                                {{ setting('currency_symbol', 'RM') }}
+                            </span>
+                            <input type="number" step="0.01" name="purchase_price" x-model="purchasePrice" value="{{ old('purchase_price', $product->purchase_price) }}" placeholder="0.00" class="flex-1 min-w-0 block w-full px-3 py-2 text-base font-black text-sky-700 bg-white border-0 focus:ring-0 focus:outline-none">
+                        </div>
+                        <p class="text-[10px] text-slate-400 mt-1">Used to calculate dashboard profit (Sale Price - Purchase Price = Profit).</p>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Regular Price (Selling Price) *</label>
                         <div class="flex rounded-xl shadow-2xs border border-slate-300 overflow-hidden focus-within:border-emerald-500 focus-within:ring-4 focus-within:ring-emerald-500/10 bg-slate-50 transition">
                             <span class="inline-flex items-center px-3.5 text-xs font-bold text-slate-600 bg-slate-100 border-r border-slate-200 select-none">
                                 {{ setting('currency_symbol', 'RM') }}
@@ -414,6 +449,20 @@
                             <input type="number" step="0.01" name="sale_price" x-model="salePrice" value="{{ old('sale_price', $product->sale_price) }}" placeholder="Optional discount" class="flex-1 min-w-0 block w-full px-3 py-2 text-base font-black text-rose-600 bg-white border-0 focus:ring-0 focus:outline-none">
                         </div>
                         <p class="text-[10px] text-slate-400 mt-1">Leave blank to sell at standard regular price.</p>
+                    </div>
+
+                    {{-- Live Profit Preview Badge --}}
+                    <div class="p-3 bg-gradient-to-br from-slate-50 to-slate-100/70 border border-slate-200 rounded-xl flex items-center justify-between text-xs" x-show="price > 0">
+                        <div>
+                            <span class="text-slate-600 font-bold block text-[11px] uppercase tracking-wider">Unit Profit (Margin)</span>
+                            <span class="text-[10px] text-slate-400">Sale - Purchase = Profit</span>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-sm font-black" :class="unitProfit >= 0 ? 'text-emerald-700' : 'text-rose-600'">
+                                {{ setting('currency_symbol', 'RM') }} <span x-text="unitProfit"></span>
+                            </span>
+                            <span class="ml-1 text-[10px] font-extrabold px-1.5 py-0.5 rounded-full" :class="profitMargin >= 0 ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' : 'bg-rose-100 text-rose-800 border border-rose-200'" x-text="profitMargin + '%'"></span>
+                        </div>
                     </div>
                 </div>
 

@@ -262,6 +262,13 @@
                                 <div class="font-black text-slate-900 text-sm">
                                     {{ format_currency($product->current_price) }}
                                 </div>
+                                <div class="flex items-center gap-1.5 mt-0.5 text-[10px]">
+                                    <span class="text-slate-400 font-medium">Cost: <strong class="text-slate-600">{{ format_currency($product->purchase_price ?? 0) }}</strong></span>
+                                    <span class="text-slate-300">&bull;</span>
+                                    <span class="font-extrabold {{ ($product->unit_profit ?? 0) >= 0 ? 'text-emerald-700' : 'text-rose-600' }}">
+                                        +{{ format_currency($product->unit_profit ?? 0) }}
+                                    </span>
+                                </div>
                                 @if($product->is_on_sale)
                                     <div class="flex items-center gap-1.5 mt-0.5">
                                         <span class="text-[10px] text-slate-400 line-through font-medium">

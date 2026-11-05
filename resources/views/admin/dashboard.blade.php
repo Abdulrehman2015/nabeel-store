@@ -39,8 +39,8 @@
         </div>
     </div>
 
-    {{-- 5 High-Density KPI Metric Cards --}}
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-3.5">
+    {{-- 6 High-Density KPI Metric Cards (Includes Realized Profit) --}}
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3 sm:gap-3.5">
         
         {{-- 1. Today's Revenue --}}
         <div class="bg-white p-4 rounded-xl border border-slate-200/90 shadow-2xs hover:shadow-xs transition relative overflow-hidden">
@@ -56,6 +56,30 @@
             <div class="mt-1 flex items-center gap-1.5 text-[11px] text-emerald-600 font-semibold">
                 <svg class="w-3 h-3 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
                 <span>Confirmed & Delivered</span>
+            </div>
+        </div>
+
+        {{-- 2. Total Gross Profit (Sale - Purchase = Profit) --}}
+        <div class="bg-gradient-to-br from-emerald-50/70 via-white to-white p-4 rounded-xl border border-emerald-300/80 shadow-2xs hover:shadow-xs transition relative overflow-hidden">
+            <div class="flex items-center justify-between">
+                <div>
+                    <span class="text-[10px] font-extrabold text-emerald-800 uppercase tracking-wider block">Gross Profit</span>
+                    <span class="text-[9px] text-emerald-600 font-bold block">Sale &minus; Purchase</span>
+                </div>
+                <div class="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 border border-emerald-200 flex items-center justify-center font-bold shadow-2xs">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                </div>
+            </div>
+            <div class="mt-2 text-xl sm:text-2xl font-black text-emerald-700 tracking-tight">
+                {{ format_currency($totalProfit) }}
+            </div>
+            <div class="mt-1 flex items-center gap-1.5 text-[10px] font-semibold text-slate-600">
+                <span class="px-1.5 py-0.2 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200 font-extrabold text-[9px]">
+                    +{{ $totalProfitMargin }}% margin
+                </span>
+                <span class="text-slate-400 text-[9px] hidden sm:inline">
+                    Today: {{ format_currency($todayProfit) }}
+                </span>
             </div>
         </div>
 
@@ -144,6 +168,79 @@
             </div>
         </div>
 
+    </div>
+
+    {{-- Store Profit Equation Card (Sale Price - Purchase Price = Profit) --}}
+    <div class="bg-gradient-to-r from-slate-900 via-slate-800 to-emerald-950 rounded-2xl p-4 sm:p-5 text-white shadow-md border border-emerald-500/30 relative overflow-hidden">
+        <div class="absolute -right-10 -bottom-10 w-44 h-44 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none"></div>
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 relative z-10">
+            <div>
+                <div class="flex items-center gap-2">
+                    <span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 text-[10px] font-black uppercase tracking-wider">
+                        Real-time Formula
+                    </span>
+                    <span class="text-xs text-slate-300 font-medium">Store Profit Calculation</span>
+                </div>
+                <h3 class="text-base sm:text-lg font-black tracking-tight text-white mt-1 flex items-center gap-2">
+                    <span>Sale Product Price</span>
+                    <span class="text-emerald-400 font-bold">&minus;</span>
+                    <span>Purchase Product Price</span>
+                    <span class="text-emerald-400 font-bold">=</span>
+                    <span class="text-emerald-300 underline decoration-emerald-400 decoration-2 underline-offset-4">Net Profit</span>
+                </h3>
+            </div>
+
+            {{-- Dynamic Equation Breakdown Pills --}}
+            <div class="flex flex-wrap items-center gap-2 sm:gap-3 bg-white/10 backdrop-blur-md p-2 sm:p-3 rounded-xl border border-white/10 text-xs sm:text-sm">
+                <div class="text-center px-2 py-1 bg-white/5 rounded-lg border border-white/10">
+                    <div class="text-[9px] uppercase tracking-wider text-slate-300 font-semibold">Sale Revenue</div>
+                    <div class="font-extrabold text-white text-xs sm:text-sm">{{ format_currency($allTimeSaleRevenue) }}</div>
+                </div>
+
+                <div class="text-emerald-400 font-black text-base">&minus;</div>
+
+                <div class="text-center px-2 py-1 bg-white/5 rounded-lg border border-white/10">
+                    <div class="text-[9px] uppercase tracking-wider text-slate-300 font-semibold">Purchase Cost</div>
+                    <div class="font-extrabold text-rose-300 text-xs sm:text-sm">{{ format_currency($allTimePurchaseCost) }}</div>
+                </div>
+
+                <div class="text-emerald-400 font-black text-base">=</div>
+
+                <div class="text-center px-3 py-1 bg-emerald-500/30 rounded-lg border border-emerald-400/40 shadow-inner">
+                    <div class="text-[9px] uppercase tracking-wider text-emerald-200 font-bold">Total Profit</div>
+                    <div class="font-black text-emerald-300 text-sm sm:text-base">{{ format_currency($totalProfit) }}</div>
+                </div>
+
+                <div class="pl-1 border-l border-white/20 text-[11px] text-emerald-300 font-bold">
+                    +{{ $totalProfitMargin }}% margin
+                </div>
+            </div>
+        </div>
+
+        {{-- Mini Secondary Stats: Today Realized vs Stock Inventory Potential --}}
+        <div class="mt-3.5 pt-3 border-t border-white/10 grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-slate-300">
+            <div class="flex items-center justify-between bg-black/20 px-3 py-1.5 rounded-lg border border-white/5">
+                <span class="flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                    <span>Today's Realized Profit:</span>
+                </span>
+                <span class="font-mono font-bold text-emerald-300">
+                    {{ format_currency($todayProfit) }}
+                    <span class="text-[10px] text-slate-400 font-normal">({{ format_currency($todaySaleRevenue) }} &minus; {{ format_currency($todayPurchaseCost) }})</span>
+                </span>
+            </div>
+
+            <div class="flex items-center justify-between bg-black/20 px-3 py-1.5 rounded-lg border border-white/5">
+                <span class="flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-sky-400"></span>
+                    <span>Warehouse Inventory Profit Potential:</span>
+                </span>
+                <span class="font-mono font-bold text-sky-300">
+                    {{ format_currency($potentialInventoryProfit) }}
+                    <span class="text-[10px] text-slate-400 font-normal">({{ format_currency($totalInventoryValue) }} &minus; {{ format_currency($totalInventoryCost) }})</span>
+                </span>
+            </div>
+        </div>
     </div>
 
     {{-- Order Pipeline Strip (At-a-Glance Queue Status) --}}

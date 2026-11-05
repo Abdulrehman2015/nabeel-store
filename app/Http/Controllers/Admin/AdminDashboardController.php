@@ -17,9 +17,53 @@ class AdminDashboardController extends Controller
 
         // Key Metrics
         $todayOrdersCount = Order::whereDate('created_at', $today)->count();
+        $validStatuses = ['confirmed', 'processing', 'out_for_delivery', 'delivered'];
         $todayRevenue = Order::whereDate('created_at', $today)
-            ->whereIn('order_status', ['confirmed', 'processing', 'out_for_delivery', 'delivered'])
+            ->whereIn('order_status', $validStatuses)
             ->sum('grand_total');
+
+        // Sales Profit Engine: Sale Product Price - Purchase Product Price = Profit
+        $salesProfitQuery = \DB::table('order_items')
+            ->join('orders', 'orders.id', '=', 'order_items.order_id')
+            ->leftJoin('products', 'products.id', '=', 'order_items.product_id')
+            ->whereIn('orders.order_status', $validStatuses);
+
+        // All-time confirmed sales breakdown
+        $allTimeSales = (clone $salesProfitQuery)->selectRaw('
+            COALESCE(SUM(order_items.line_total), 0) as total_sale,
+            COALESCE(SUM(order_items.quantity * COALESCE(products.purchase_price, 0)), 0) as total_cost
+        ')->first();
+
+        $allTimeSaleRevenue = (float) ($allTimeSales->total_sale ?? 0);
+        $allTimePurchaseCost = (float) ($allTimeSales->total_cost ?? 0);
+        $totalProfit = round($allTimeSaleRevenue - $allTimePurchaseCost, 2);
+        $totalProfitMargin = $allTimeSaleRevenue > 0 ? round(($totalProfit / $allTimeSaleRevenue) * 100, 1) : 0;
+
+        // Today's realized sales profit
+        $todaySales = (clone $salesProfitQuery)
+            ->whereDate('orders.created_at', $today)
+            ->selectRaw('
+                COALESCE(SUM(order_items.line_total), 0) as total_sale,
+                COALESCE(SUM(order_items.quantity * COALESCE(products.purchase_price, 0)), 0) as total_cost
+            ')->first();
+
+        $todaySaleRevenue = (float) ($todaySales->total_sale ?? 0);
+        $todayPurchaseCost = (float) ($todaySales->total_cost ?? 0);
+        $todayProfit = round($todaySaleRevenue - $todayPurchaseCost, 2);
+        $todayProfitMargin = $todaySaleRevenue > 0 ? round(($todayProfit / $todaySaleRevenue) * 100, 1) : 0;
+
+        // Catalog inventory stock potential profit
+        $catalogStats = Product::where('is_active', true)->selectRaw('
+            COALESCE(SUM(price * stock_quantity), 0) as total_retail_value,
+            COALESCE(SUM(COALESCE(purchase_price, 0) * stock_quantity), 0) as total_inventory_cost,
+            COALESCE(SUM(price), 0) as total_catalog_sale,
+            COALESCE(SUM(COALESCE(purchase_price, 0)), 0) as total_catalog_purchase
+        ')->first();
+
+        $totalInventoryValue = (float) ($catalogStats->total_retail_value ?? 0);
+        $totalInventoryCost = (float) ($catalogStats->total_inventory_cost ?? 0);
+        $potentialInventoryProfit = round($totalInventoryValue - $totalInventoryCost, 2);
+        $inventoryProfitMargin = $totalInventoryValue > 0 ? round(($potentialInventoryProfit / $totalInventoryValue) * 100, 1) : 0;
 
         $pendingPaymentsCount = Order::where('order_status', 'pending_payment_verification')->count();
         $pendingOrdersCount = Order::whereIn('order_status', ['confirmed', 'processing'])->count();
@@ -79,6 +123,18 @@ class AdminDashboardController extends Controller
         return view('admin.dashboard', compact(
             'todayOrdersCount',
             'todayRevenue',
+            'allTimeSaleRevenue',
+            'allTimePurchaseCost',
+            'totalProfit',
+            'totalProfitMargin',
+            'todaySaleRevenue',
+            'todayPurchaseCost',
+            'todayProfit',
+            'todayProfitMargin',
+            'totalInventoryValue',
+            'totalInventoryCost',
+            'potentialInventoryProfit',
+            'inventoryProfitMargin',
             'pendingPaymentsCount',
             'pendingOrdersCount',
             'lowStockProducts',

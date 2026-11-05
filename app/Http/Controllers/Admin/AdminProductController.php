@@ -94,6 +94,7 @@ class AdminProductController extends Controller
             'unit_description' => 'nullable|string|max:150',
             'weight_volume' => 'nullable|string|max:50',
             'price' => 'required|numeric|min:0.01',
+            'purchase_price' => 'nullable|numeric|min:0',
             'sale_price' => 'nullable|numeric|lt:price',
             'stock_quantity' => 'required|integer|min:0',
             'short_description' => 'nullable|string|max:500',
@@ -117,6 +118,7 @@ class AdminProductController extends Controller
         ]);
 
         $validated['slug'] = !empty($validated['slug']) ? Str::slug($validated['slug']) : Str::slug($validated['name']);
+        $validated['purchase_price'] = $request->filled('purchase_price') ? (float) $request->input('purchase_price') : 0.00;
         $validated['is_active'] = $request->boolean('is_active');
         $validated['is_featured'] = $request->boolean('is_featured');
         $validated['is_new'] = $request->boolean('is_new');
@@ -165,6 +167,7 @@ class AdminProductController extends Controller
             'unit_description' => 'nullable|string|max:150',
             'weight_volume' => 'nullable|string|max:50',
             'price' => 'required|numeric|min:0.01',
+            'purchase_price' => 'nullable|numeric|min:0',
             'sale_price' => 'nullable|numeric|lt:price',
             'stock_quantity' => 'required|integer|min:0',
             'short_description' => 'nullable|string|max:500',
@@ -188,6 +191,7 @@ class AdminProductController extends Controller
         ]);
 
         $validated['slug'] = !empty($validated['slug']) ? Str::slug($validated['slug']) : Str::slug($validated['name']);
+        $validated['purchase_price'] = $request->filled('purchase_price') ? (float) $request->input('purchase_price') : 0.00;
         $validated['is_active'] = $request->boolean('is_active');
         $validated['is_featured'] = $request->boolean('is_featured');
         $validated['is_new'] = $request->boolean('is_new');

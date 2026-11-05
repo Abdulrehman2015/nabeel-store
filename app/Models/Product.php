@@ -21,6 +21,7 @@ class Product extends Model
         'unit_description',
         'weight_volume',
         'price',
+        'purchase_price',
         'sale_price',
         'stock_quantity',
         'short_description',
@@ -46,6 +47,7 @@ class Product extends Model
 
     protected $casts = [
         'price' => 'decimal:2',
+        'purchase_price' => 'decimal:2',
         'sale_price' => 'decimal:2',
         'stock_quantity' => 'integer',
         'is_active' => 'boolean',
@@ -113,6 +115,20 @@ class Product extends Model
             return 0;
         }
         return (int) round((($this->price - $this->sale_price) / $this->price) * 100);
+    }
+
+    public function getUnitProfitAttribute(): float
+    {
+        $cost = (float) ($this->purchase_price ?? 0);
+        return round($this->current_price - $cost, 2);
+    }
+
+    public function getMarginPercentAttribute(): int
+    {
+        if ($this->current_price <= 0) {
+            return 0;
+        }
+        return (int) round(($this->unit_profit / $this->current_price) * 100);
     }
 
     public function getInStockAttribute(): bool
