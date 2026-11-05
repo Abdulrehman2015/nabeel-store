@@ -110,7 +110,7 @@
                             type="text" 
                             x-ref="barcodeInput"
                             x-model="searchQuery" 
-                            @keydown.enter.prevent="handleBarcodeEnter()"
+                            @keydown.enter.prevent.stop="handleBarcodeEnter()"
                             placeholder="Scan barcode, SKU or search item (F2 or /)..."
                             class="w-full pl-9 pr-14 py-2 bg-slate-50/80 hover:bg-slate-50 focus:bg-white text-xs sm:text-sm font-semibold rounded-xl border border-slate-200 focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 text-slate-900 placeholder-slate-400 transition"
                             autofocus
@@ -1106,6 +1106,8 @@ function posApp() {
         barcodeScanBuffer: '',
         lastScanTime: 0,
         scanBufferTimeout: null,
+        scanAutoProcessTimeout: null,
+        audioCtx: null,
         shortcutToast: {
             show: false,
             message: '',
@@ -1172,28 +1174,60 @@ function posApp() {
             this.currentTime = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
         },
 
-        // Web Audio Synthesizer Beeps (100% reliable, zero external files)
-        playBeep() {
+        // Persistent Audio Context for Zero-Delay Web Audio (avoids Chrome hardware limit)
+        getAudioContext() {
+            if (!this.audioCtx) {
+                const AudioCtxClass = window.AudioContext || window.webkitAudioContext;
+                if (AudioCtxClass) {
+                    this.audioCtx = new AudioCtxClass();
+                }
+            }
+            if (this.audioCtx && this.audioCtx.state === 'suspended') {
+                this.audioCtx.resume();
+            }
+            return this.audioCtx;
+        },
+
+        // Crisp Supermarket Barcode Scanner Beep (1850Hz) & Warning Buzz
+        playBeep(type = 'success') {
             if (!this.soundEnabled) return;
             try {
-                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const ctx = this.getAudioContext();
+                if (!ctx) return;
+
+                const now = ctx.currentTime;
                 const osc = ctx.createOscillator();
                 const gain = ctx.createGain();
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(1200, ctx.currentTime);
-                gain.gain.setValueAtTime(0.12, ctx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.08);
-                osc.connect(gain);
-                gain.connect(ctx.destination);
-                osc.start();
-                osc.stop(ctx.currentTime + 0.08);
+
+                if (type === 'success') {
+                    // Crisp supermarket barcode scanner beep (1850 Hz)
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(1850, now);
+                    gain.gain.setValueAtTime(0.35, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.12);
+                } else if (type === 'warning') {
+                    // Low double buzz for warning / out-of-stock
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(320, now);
+                    gain.gain.setValueAtTime(0.25, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.2);
+                }
             } catch(e) {}
         },
 
         playChime() {
             if (!this.soundEnabled) return;
             try {
-                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const ctx = this.getAudioContext();
+                if (!ctx) return;
                 const now = ctx.currentTime;
                 // Double chime: 880Hz then 1320Hz
                 [880, 1320].forEach((freq, idx) => {
@@ -1201,12 +1235,12 @@ function posApp() {
                     const gain = ctx.createGain();
                     osc.type = 'sine';
                     osc.frequency.setValueAtTime(freq, now + (idx * 0.12));
-                    gain.gain.setValueAtTime(0.15, now + (idx * 0.12));
-                    gain.gain.exponentialRampToValueAtTime(0.01, now + (idx * 0.12) + 0.2);
+                    gain.gain.setValueAtTime(0.25, now + (idx * 0.12));
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + (idx * 0.12) + 0.22);
                     osc.connect(gain);
                     gain.connect(ctx.destination);
                     osc.start(now + (idx * 0.12));
-                    osc.stop(now + (idx * 0.12) + 0.2);
+                    osc.stop(now + (idx * 0.12) + 0.22);
                 });
             } catch(e) {}
         },
@@ -1347,55 +1381,77 @@ function posApp() {
 
         // Barcode enter event
         handleBarcodeEnter() {
+            if (this.scanAutoProcessTimeout) clearTimeout(this.scanAutoProcessTimeout);
             const code = this.barcodeScanBuffer.trim() || this.searchQuery.trim();
             if (code) {
+                this.barcodeScanBuffer = '';
                 this.processBarcodeScan(code);
             }
         },
 
+        // Robust Product Resolver by Code, SKU, ID, or Clean Alphanumeric String
+        findProductByCode(rawCode) {
+            if (!rawCode) return null;
+            const code = rawCode.replace(/[\r\n\t]/g, '').trim();
+            if (!code) return null;
+            const q = code.toLowerCase();
+
+            // 1. Exact SKU match
+            let p = this.products.find(item => item.sku && item.sku.trim().toLowerCase() === q);
+            if (p) return p;
+
+            // 2. Exact ID match
+            p = this.products.find(item => String(item.id).trim() === q);
+            if (p) return p;
+
+            // 3. Exact Name match
+            p = this.products.find(item => item.name && item.name.trim().toLowerCase() === q);
+            if (p) return p;
+
+            // 4. Case-insensitive SKU without hyphens/spaces (e.g. BEV10003 matching BEV-100-03)
+            const cleanQ = q.replace(/[^a-z0-9]/g, '');
+            if (cleanQ.length >= 3) {
+                p = this.products.find(item => {
+                    const cleanSku = (item.sku || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+                    return cleanSku === cleanQ;
+                });
+                if (p) return p;
+            }
+
+            // 5. Fallback: single partial match on SKU or Name
+            const partial = this.products.filter(item => 
+                (item.sku && item.sku.toLowerCase().includes(q)) ||
+                (item.name && item.name.toLowerCase().includes(q))
+            );
+            if (partial.length === 1) {
+                return partial[0];
+            }
+
+            return null;
+        },
+
         // Universal Barcode Processor (searches across all products, adds to cart, provides audio/visual feedback)
-        processBarcodeScan(code) {
-            if (!code || !code.trim()) return;
-            const q = code.trim().toLowerCase();
+        processBarcodeScan(rawCode) {
+            if (this.scanAutoProcessTimeout) clearTimeout(this.scanAutoProcessTimeout);
+            if (!rawCode) return;
+            const code = rawCode.replace(/[\r\n\t]/g, '').trim();
+            if (!code) return;
 
-            // 1. Exact match on SKU across ALL products
-            let product = this.products.find(p => p.sku && p.sku.toLowerCase() === q);
-
-            // 2. Exact match on ID
-            if (!product) {
-                product = this.products.find(p => String(p.id) === q);
-            }
-
-            // 3. Exact match on Name
-            if (!product) {
-                product = this.products.find(p => p.name && p.name.toLowerCase() === q);
-            }
-
-            // 4. Fallback: single partial match across all products
-            if (!product) {
-                const matches = this.products.filter(p => 
-                    (p.sku && p.sku.toLowerCase().includes(q)) ||
-                    (p.name && p.name.toLowerCase().includes(q))
-                );
-                if (matches.length === 1) {
-                    product = matches[0];
-                }
-            }
+            const product = this.findProductByCode(code);
 
             if (product) {
                 if (product.stock_quantity <= 0) {
                     this.showToast(`Out of stock: ${product.name}`, '⚠️', 'warning');
-                    this.playBeep();
+                    this.playBeep('warning');
                 } else {
                     this.addToCart(product);
-                    this.showToast(`Scanned: ${product.name}`, '🛒', 'success');
                 }
                 this.searchQuery = '';
                 this.barcodeScanBuffer = '';
             } else {
-                this.showToast(`Barcode not found: "${code.trim()}"`, '❌', 'warning');
-                this.playBeep();
-                this.searchQuery = code.trim();
+                this.showToast(`Barcode not found: "${code}"`, '❌', 'warning');
+                this.playBeep('warning');
+                this.searchQuery = code;
             }
 
             this.$nextTick(() => {
@@ -1403,39 +1459,50 @@ function posApp() {
             });
         },
 
-        // Cart Actions
+        // Cart Actions (Updates existing entry quantity if scanned again; otherwise appends new item)
         addToCart(product) {
-            if (product.stock_quantity <= 0) return;
+            if (!product || product.stock_quantity <= 0) return;
 
-            const existingIndex = this.cart.findIndex(i => i.id === product.id);
+            // String-safe ID check to ensure existing cart item is matched every time
+            const existingIndex = this.cart.findIndex(i => String(i.id) === String(product.id));
+
             if (existingIndex > -1) {
-                if (this.cart[existingIndex].quantity < product.stock_quantity) {
-                    this.cart[existingIndex].quantity++;
+                // Same product scanned again -> Keep existing row, increment quantity
+                const item = this.cart[existingIndex];
+                const maxStock = Number(item.max_stock || product.stock_quantity || 9999);
+
+                if (item.quantity < maxStock) {
+                    item.quantity++;
                     this.selectedCartIndex = existingIndex;
-                    this.playBeep();
+                    this.playBeep('success');
+                    this.showToast(`${item.name} (Qty: ${item.quantity})`, '🛒', 'success');
                 } else {
-                    alert('Cannot add more: Available stock limit reached (' + product.stock_quantity + ').');
+                    this.showToast(`Max stock reached for ${item.name} (${maxStock})`, '⚠️', 'warning');
+                    this.playBeep('warning');
                 }
             } else {
+                // New product scanned -> Add new row with Qty 1
                 this.cart.push({
                     id: product.id,
                     name: product.name,
                     sku: product.sku,
-                    price: product.effective_price,
+                    price: Number(product.effective_price || product.price),
                     quantity: 1,
-                    max_stock: product.stock_quantity,
+                    max_stock: Number(product.stock_quantity || 9999),
                     image_url: product.image_url,
                     pack_size: product.pack_size,
                 });
                 this.selectedCartIndex = this.cart.length - 1;
-                this.playBeep();
+                this.playBeep('success');
+                this.showToast(`Added: ${product.name}`, '🛒', 'success');
             }
 
-            // Default cash tendered to grand total
+            // Sync total cash tendered
             this.amountTendered = this.grandTotal;
 
-            // Maintain auto-focus on barcode scanner input
+            // Auto-scroll basket to keep the active item in view & keep focus
             this.$nextTick(() => {
+                this.scrollSelectedCartItemIntoView();
                 this.focusBarcodeInput();
             });
         },
@@ -1894,6 +1961,19 @@ function posApp() {
                     if (active !== this.$refs.barcodeInput) {
                         this.focusBarcodeInput();
                         this.searchQuery = this.barcodeScanBuffer;
+                    }
+
+                    // Automatic scanner timeout fallback:
+                    // If a rapid burst of characters (>= 3 chars, < 60ms apart) finishes and no Enter comes within 85ms:
+                    if (this.scanAutoProcessTimeout) clearTimeout(this.scanAutoProcessTimeout);
+                    if (this.barcodeScanBuffer.length >= 3 && timeDiff < 60) {
+                        this.scanAutoProcessTimeout = setTimeout(() => {
+                            if (this.barcodeScanBuffer.length >= 3) {
+                                const autoCode = this.barcodeScanBuffer.trim();
+                                this.barcodeScanBuffer = '';
+                                this.processBarcodeScan(autoCode);
+                            }
+                        }, 85);
                     }
 
                     if (this.scanBufferTimeout) clearTimeout(this.scanBufferTimeout);
