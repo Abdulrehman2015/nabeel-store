@@ -96,3 +96,4 @@ class AdminProfileController extends Controller
         return redirect()->route('admin.profile.edit')->with('success', 'Security password changed successfully! Use your new password on your next login.');
     }
 }
+
