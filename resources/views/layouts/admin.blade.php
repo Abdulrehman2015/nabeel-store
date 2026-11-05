@@ -648,8 +648,21 @@
                 titleFlashInterval: null,
                 originalTitle: document.title,
                 audioUnlocked: false,
+                shopifyAudioUrl: '{{ asset('sounds/shopify-order.mp3') }}',
+                shopifyAudioBuffer: null,
+                htmlAudioEl: null,
 
                 initAdmin() {
+                    // Preload authentic Shopify audio element immediately
+                    try {
+                        this.htmlAudioEl = new Audio(this.shopifyAudioUrl);
+                        this.htmlAudioEl.preload = 'auto';
+                        this.htmlAudioEl.volume = 1.0;
+                    } catch(e) {}
+
+                    // Pre-fetch & decode authentic Shopify MP3 into Web Audio buffer
+                    this.loadShopifyAudioBuffer();
+
                     // Auto-unlock Web Audio on first user interaction anywhere
                     const unlockAudio = () => {
                         this.ensureAudioUnlocked();
@@ -708,6 +721,26 @@
                     });
                 },
 
+                loadShopifyAudioBuffer() {
+                    try {
+                        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                        if (!AudioCtx) return;
+                        if (!window.__njAudioContext) {
+                            window.__njAudioContext = new AudioCtx();
+                        }
+                        fetch(this.shopifyAudioUrl)
+                            .then(res => {
+                                if (!res.ok) throw new Error('Network error');
+                                return res.arrayBuffer();
+                            })
+                            .then(buffer => window.__njAudioContext.decodeAudioData(buffer))
+                            .then(decoded => {
+                                this.shopifyAudioBuffer = decoded;
+                            })
+                            .catch(() => {});
+                    } catch(e) {}
+                },
+
                 ensureAudioUnlocked() {
                     try {
                         const AudioCtx = window.AudioContext || window.webkitAudioContext;
@@ -718,13 +751,85 @@
                         if (window.__njAudioContext.state === 'suspended') {
                             window.__njAudioContext.resume();
                         }
+                        if (!this.shopifyAudioBuffer) {
+                            this.loadShopifyAudioBuffer();
+                        }
                         this.audioUnlocked = true;
                     } catch(e) {}
                 },
 
-                // Shopify Signature Metallic Register Bell ("Ka-Ching! 🔔")
+                // Authentic Shopify Order "Cha-Ching!" Notification Bell with Studio Loudness
                 playShopifyOrderBell() {
                     if (!this.soundAlertsEnabled) return;
+
+                    let playedSuccess = false;
+
+                    // 1. Primary Engine: Web Audio Buffer Source with 2.2x High-Volume Gain & Limiter
+                    try {
+                        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                        if (AudioCtx) {
+                            if (!window.__njAudioContext) {
+                                window.__njAudioContext = new AudioCtx();
+                            }
+                            const ctx = window.__njAudioContext;
+                            if (ctx.state === 'suspended') {
+                                ctx.resume();
+                            }
+
+                            if (this.shopifyAudioBuffer) {
+                                const source = ctx.createBufferSource();
+                                source.buffer = this.shopifyAudioBuffer;
+
+                                // Limiting Compressor prevents clipping while maximizing room loudness
+                                const compressor = ctx.createDynamicsCompressor();
+                                compressor.threshold.setValueAtTime(-10, ctx.currentTime);
+                                compressor.knee.setValueAtTime(4, ctx.currentTime);
+                                compressor.ratio.setValueAtTime(12, ctx.currentTime);
+                                compressor.attack.setValueAtTime(0.002, ctx.currentTime);
+                                compressor.release.setValueAtTime(0.2, ctx.currentTime);
+                                compressor.connect(ctx.destination);
+
+                                // Master Gain boosted to 2.2 for maximum loudness across rooms/minimized windows
+                                const gainNode = ctx.createGain();
+                                gainNode.gain.setValueAtTime(2.2, ctx.currentTime);
+
+                                source.connect(gainNode);
+                                gainNode.connect(compressor);
+                                source.start(0);
+                                playedSuccess = true;
+                            }
+                        }
+                    } catch (e) {
+                        console.warn('WebAudio Shopify bell error:', e);
+                    }
+
+                    // 2. HTML5 Audio Element Playback at 100% volume
+                    try {
+                        if (!this.htmlAudioEl) {
+                            this.htmlAudioEl = new Audio(this.shopifyAudioUrl);
+                            this.htmlAudioEl.preload = 'auto';
+                        }
+                        this.htmlAudioEl.currentTime = 0;
+                        this.htmlAudioEl.volume = 1.0;
+                        const playPromise = this.htmlAudioEl.play();
+                        if (playPromise) {
+                            playPromise.then(() => {
+                                playedSuccess = true;
+                            }).catch(() => {
+                                if (!playedSuccess) {
+                                    this.playSynthesizedOrderBell();
+                                }
+                            });
+                        }
+                    } catch (e) {
+                        if (!playedSuccess) {
+                            this.playSynthesizedOrderBell();
+                        }
+                    }
+                },
+
+                // Fallback Engine: Multi-harmonic Brass Cash Register Synthesizer
+                playSynthesizedOrderBell() {
                     try {
                         const AudioCtx = window.AudioContext || window.webkitAudioContext;
                         if (!AudioCtx) return;
@@ -737,22 +842,19 @@
                         }
 
                         const now = ctx.currentTime;
-
-                        // Compressor / Master Limiter to maximize volume without clipping
                         const compressor = ctx.createDynamicsCompressor();
-                        compressor.threshold.setValueAtTime(-16, now);
-                        compressor.knee.setValueAtTime(6, now);
-                        compressor.ratio.setValueAtTime(14, now);
+                        compressor.threshold.setValueAtTime(-14, now);
+                        compressor.knee.setValueAtTime(4, now);
+                        compressor.ratio.setValueAtTime(12, now);
                         compressor.attack.setValueAtTime(0.002, now);
-                        compressor.release.setValueAtTime(0.25, now);
+                        compressor.release.setValueAtTime(0.2, now);
                         compressor.connect(ctx.destination);
 
-                        // Master Gain (boosted for loud presence across the room)
                         const masterGain = ctx.createGain();
-                        masterGain.gain.setValueAtTime(0.9, now);
+                        masterGain.gain.setValueAtTime(1.8, now);
                         masterGain.connect(compressor);
 
-                        // --- 1. Mechanical Register Click / Drawer Slide ("Ka-") ---
+                        // Mechanical Click / Drawer Slide
                         const bufferSize = Math.floor(ctx.sampleRate * 0.05);
                         const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
                         const output = noiseBuffer.getChannelData(0);
@@ -768,7 +870,7 @@
                         noiseFilter.Q.setValueAtTime(4, now);
 
                         const noiseGain = ctx.createGain();
-                        noiseGain.gain.setValueAtTime(0.35, now);
+                        noiseGain.gain.setValueAtTime(0.5, now);
                         noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
 
                         whiteNoise.connect(noiseFilter);
@@ -777,29 +879,14 @@
                         whiteNoise.start(now);
                         whiteNoise.stop(now + 0.05);
 
-                        // --- 2. Strike 1: Crisp Brass Bell Attack at 0.035s ---
-                        const t1 = now + 0.035;
-                        [1567.98, 2093.00, 3135.96].forEach((freq, idx) => {
-                            const osc = ctx.createOscillator();
-                            const g = ctx.createGain();
-                            osc.type = idx === 0 ? 'sine' : 'triangle';
-                            osc.frequency.setValueAtTime(freq, t1);
-                            g.gain.setValueAtTime(0.35, t1);
-                            g.gain.exponentialRampToValueAtTime(0.0001, t1 + 0.45);
-                            osc.connect(g);
-                            g.connect(masterGain);
-                            osc.start(t1);
-                            osc.stop(t1 + 0.5);
-                        });
-
-                        // --- 3. Strike 2: The Iconic High-Register Bell ("-Ching! 🔔") at 0.13s ---
-                        const t2 = now + 0.13;
+                        // Brass Bell Strikes ("Cha-Ching!")
+                        const t2 = now + 0.08;
                         const harmonics = [
-                            { f: 2093.00, type: 'sine', vol: 0.65 },    // C7 (Fundamental)
-                            { f: 2637.02, type: 'sine', vol: 0.55 },    // E7 (Bright Major Third)
-                            { f: 3135.96, type: 'sine', vol: 0.5 },     // G7 (Fifth)
-                            { f: 4186.01, type: 'triangle', vol: 0.35 },// C8 (Crystal Sparkle)
-                            { f: 6271.93, type: 'sine', vol: 0.25 }     // G8 (Airy Overtones)
+                            { f: 2093.00, type: 'sine', vol: 0.8 },
+                            { f: 2637.02, type: 'sine', vol: 0.7 },
+                            { f: 3135.96, type: 'sine', vol: 0.6 },
+                            { f: 4186.01, type: 'triangle', vol: 0.4 },
+                            { f: 6271.93, type: 'sine', vol: 0.3 }
                         ];
 
                         harmonics.forEach(note => {
@@ -808,30 +895,13 @@
                             osc.type = note.type;
                             osc.frequency.setValueAtTime(note.f, t2);
                             g.gain.setValueAtTime(note.vol, t2);
-                            // Long sustained 1.8s metallic ring
                             g.gain.exponentialRampToValueAtTime(0.0001, t2 + 1.8);
                             osc.connect(g);
                             g.connect(masterGain);
                             osc.start(t2);
                             osc.stop(t2 + 1.85);
                         });
-
-                        // --- 4. Echo Chime at 0.22s ---
-                        const t3 = now + 0.22;
-                        const chime = ctx.createOscillator();
-                        const chimeG = ctx.createGain();
-                        chime.type = 'sine';
-                        chime.frequency.setValueAtTime(3520.00, t3);
-                        chimeG.gain.setValueAtTime(0.3, t3);
-                        chimeG.gain.exponentialRampToValueAtTime(0.0001, t3 + 1.2);
-                        chime.connect(chimeG);
-                        chimeG.connect(masterGain);
-                        chime.start(t3);
-                        chime.stop(t3 + 1.25);
-
-                    } catch (e) {
-                        console.warn('Audio bell error:', e);
-                    }
+                    } catch(e) {}
                 },
 
                 triggerNewOrderAlert(order) {
