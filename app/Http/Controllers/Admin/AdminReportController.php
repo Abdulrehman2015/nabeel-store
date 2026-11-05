@@ -445,3 +445,4 @@ class AdminReportController extends Controller
         ];
     }
 }
+

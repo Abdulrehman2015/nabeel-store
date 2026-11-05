@@ -147,6 +147,11 @@ class Product extends Model
         return asset('images/product-placeholder.png');
     }
 
+    public function getFeaturedImageUrlAttribute(): string
+    {
+        return $this->image_url;
+    }
+
     public function getSeoTitleAttribute(): string
     {
         return $this->meta_title ?: ($this->name . ' (' . $this->pack_size . ') - ' . setting('site_name', 'Bulk Mart'));

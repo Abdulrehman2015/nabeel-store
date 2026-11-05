@@ -261,8 +261,8 @@
                                         #{{ $index + 1 }}
                                     </span>
 
-                                    <div class="w-10 h-10 rounded-xl bg-slate-50 border border-slate-100 p-0.5 shrink-0 overflow-hidden">
-                                        <img src="{{ $item->featured_image_url }}" alt="{{ $item->name }}" class="w-full h-full object-contain">
+                                    <div class="w-10 h-10 rounded-xl bg-slate-50 border border-slate-100 p-0.5 shrink-0 overflow-hidden flex items-center justify-center">
+                                        <img src="{{ $item->image_url }}" alt="{{ $item->name }}" class="max-h-full max-w-full object-contain" loading="lazy" onerror="this.onerror=null; this.src='{{ asset('images/product-placeholder.png') }}';">
                                     </div>
 
                                     <div class="min-w-0">
@@ -340,8 +340,8 @@
                             
                             {{-- Image & Product Info --}}
                             <div class="flex items-center gap-2.5 min-w-0">
-                                <div class="w-10 h-10 rounded-xl bg-slate-50 border border-slate-100 p-0.5 shrink-0 overflow-hidden">
-                                    <img src="{{ $item->featured_image_url }}" alt="{{ $item->name }}" class="w-full h-full object-contain">
+                                <div class="w-10 h-10 rounded-xl bg-slate-50 border border-slate-100 p-0.5 shrink-0 overflow-hidden flex items-center justify-center">
+                                    <img src="{{ $item->image_url }}" alt="{{ $item->name }}" class="max-h-full max-w-full object-contain" loading="lazy" onerror="this.onerror=null; this.src='{{ asset('images/product-placeholder.png') }}';">
                                 </div>
 
                                 <div class="min-w-0">
@@ -557,8 +557,8 @@
                             </td>
                             <td class="py-2.5 px-3 font-semibold text-slate-900">
                                 <div class="flex items-center gap-2">
-                                    <div class="w-7 h-7 rounded-lg bg-slate-50 border border-slate-100 p-0.5 shrink-0 overflow-hidden">
-                                        <img src="{{ $prod->featured_image_url }}" alt="{{ $prod->name }}" class="w-full h-full object-contain">
+                                    <div class="w-7 h-7 rounded-lg bg-slate-50 border border-slate-100 p-0.5 shrink-0 overflow-hidden flex items-center justify-center">
+                                        <img src="{{ $prod->image_url }}" alt="{{ $prod->name }}" class="max-h-full max-w-full object-contain" loading="lazy" onerror="this.onerror=null; this.src='{{ asset('images/product-placeholder.png') }}';">
                                     </div>
                                     <div class="min-w-0 max-w-xs">
                                         <a href="{{ route('admin.products.edit', $prod->id) }}" class="font-bold text-slate-900 hover:text-sky-600 truncate block">
@@ -630,3 +630,4 @@
 
 </div>
 @endsection
+
