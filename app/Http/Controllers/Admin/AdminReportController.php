@@ -217,6 +217,11 @@ class AdminReportController extends Controller
         $totalOrders = (int) $ordersQuery->count();
 
         // Calculate Units Sold and COGS
+        $hasPurchasePrice = \Illuminate\Support\Facades\Schema::hasColumn('products', 'purchase_price');
+        $cogsExpr = $hasPurchasePrice
+            ? 'COALESCE(products.purchase_price, products.price * 0.70)'
+            : '(products.price * 0.70)';
+
         $soldItems = DB::table('order_items')
             ->join('orders', 'order_items.order_id', '=', 'orders.id')
             ->leftJoin('products', 'order_items.product_id', '=', 'products.id')
@@ -225,7 +230,7 @@ class AdminReportController extends Controller
             ->select(
                 DB::raw('COALESCE(SUM(order_items.quantity), 0) as total_units_sold'),
                 DB::raw('COALESCE(SUM(order_items.line_total), 0) as total_items_revenue'),
-                DB::raw('COALESCE(SUM(order_items.quantity * COALESCE(products.purchase_price, products.price * 0.7)), 0) as total_cogs')
+                DB::raw("COALESCE(SUM(order_items.quantity * {$cogsExpr}), 0) as total_cogs")
             )
             ->first();
 

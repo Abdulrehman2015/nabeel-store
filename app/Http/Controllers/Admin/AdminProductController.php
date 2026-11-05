@@ -118,7 +118,11 @@ class AdminProductController extends Controller
         ]);
 
         $validated['slug'] = !empty($validated['slug']) ? Str::slug($validated['slug']) : Str::slug($validated['name']);
-        $validated['purchase_price'] = $request->filled('purchase_price') ? (float) $request->input('purchase_price') : 0.00;
+        if (\Illuminate\Support\Facades\Schema::hasColumn('products', 'purchase_price')) {
+            $validated['purchase_price'] = $request->filled('purchase_price') ? (float) $request->input('purchase_price') : 0.00;
+        } else {
+            unset($validated['purchase_price']);
+        }
         $validated['is_active'] = $request->boolean('is_active');
         $validated['is_featured'] = $request->boolean('is_featured');
         $validated['is_new'] = $request->boolean('is_new');
@@ -191,7 +195,11 @@ class AdminProductController extends Controller
         ]);
 
         $validated['slug'] = !empty($validated['slug']) ? Str::slug($validated['slug']) : Str::slug($validated['name']);
-        $validated['purchase_price'] = $request->filled('purchase_price') ? (float) $request->input('purchase_price') : 0.00;
+        if (\Illuminate\Support\Facades\Schema::hasColumn('products', 'purchase_price')) {
+            $validated['purchase_price'] = $request->filled('purchase_price') ? (float) $request->input('purchase_price') : 0.00;
+        } else {
+            unset($validated['purchase_price']);
+        }
         $validated['is_active'] = $request->boolean('is_active');
         $validated['is_featured'] = $request->boolean('is_featured');
         $validated['is_new'] = $request->boolean('is_new');

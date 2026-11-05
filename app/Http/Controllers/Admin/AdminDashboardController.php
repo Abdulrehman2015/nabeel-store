@@ -22,6 +22,11 @@ class AdminDashboardController extends Controller
             ->whereIn('order_status', $validStatuses)
             ->sum('grand_total');
 
+        // Check if purchase_price exists in DB schema (handles legacy / unmigrated hosting gracefully)
+        $hasPurchasePrice = \Illuminate\Support\Facades\Schema::hasColumn('products', 'purchase_price');
+        $itemCostSql = $hasPurchasePrice ? 'COALESCE(products.purchase_price, products.price * 0.70, 0)' : 'COALESCE(products.price * 0.70, 0)';
+        $inventoryCostSql = $hasPurchasePrice ? 'COALESCE(purchase_price, price * 0.70, 0)' : 'COALESCE(price * 0.70, 0)';
+
         // Sales Profit Engine: Sale Product Price - Purchase Product Price = Profit
         $salesProfitQuery = \DB::table('order_items')
             ->join('orders', 'orders.id', '=', 'order_items.order_id')
@@ -29,10 +34,10 @@ class AdminDashboardController extends Controller
             ->whereIn('orders.order_status', $validStatuses);
 
         // All-time confirmed sales breakdown
-        $allTimeSales = (clone $salesProfitQuery)->selectRaw('
+        $allTimeSales = (clone $salesProfitQuery)->selectRaw("
             COALESCE(SUM(order_items.line_total), 0) as total_sale,
-            COALESCE(SUM(order_items.quantity * COALESCE(products.purchase_price, 0)), 0) as total_cost
-        ')->first();
+            COALESCE(SUM(order_items.quantity * {$itemCostSql}), 0) as total_cost
+        ")->first();
 
         $allTimeSaleRevenue = (float) ($allTimeSales->total_sale ?? 0);
         $allTimePurchaseCost = (float) ($allTimeSales->total_cost ?? 0);
@@ -42,10 +47,10 @@ class AdminDashboardController extends Controller
         // Today's realized sales profit
         $todaySales = (clone $salesProfitQuery)
             ->whereDate('orders.created_at', $today)
-            ->selectRaw('
+            ->selectRaw("
                 COALESCE(SUM(order_items.line_total), 0) as total_sale,
-                COALESCE(SUM(order_items.quantity * COALESCE(products.purchase_price, 0)), 0) as total_cost
-            ')->first();
+                COALESCE(SUM(order_items.quantity * {$itemCostSql}), 0) as total_cost
+            ")->first();
 
         $todaySaleRevenue = (float) ($todaySales->total_sale ?? 0);
         $todayPurchaseCost = (float) ($todaySales->total_cost ?? 0);
@@ -53,12 +58,12 @@ class AdminDashboardController extends Controller
         $todayProfitMargin = $todaySaleRevenue > 0 ? round(($todayProfit / $todaySaleRevenue) * 100, 1) : 0;
 
         // Catalog inventory stock potential profit
-        $catalogStats = Product::where('is_active', true)->selectRaw('
+        $catalogStats = Product::where('is_active', true)->selectRaw("
             COALESCE(SUM(price * stock_quantity), 0) as total_retail_value,
-            COALESCE(SUM(COALESCE(purchase_price, 0) * stock_quantity), 0) as total_inventory_cost,
+            COALESCE(SUM({$inventoryCostSql} * stock_quantity), 0) as total_inventory_cost,
             COALESCE(SUM(price), 0) as total_catalog_sale,
-            COALESCE(SUM(COALESCE(purchase_price, 0)), 0) as total_catalog_purchase
-        ')->first();
+            COALESCE(SUM({$inventoryCostSql}), 0) as total_catalog_purchase
+        ")->first();
 
         $totalInventoryValue = (float) ($catalogStats->total_retail_value ?? 0);
         $totalInventoryCost = (float) ($catalogStats->total_inventory_cost ?? 0);

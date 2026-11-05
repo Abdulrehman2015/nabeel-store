@@ -31,5 +31,20 @@ class AppServiceProvider extends ServiceProvider
         ) {
             URL::forceScheme('https');
         }
+
+        // Auto-migrate missing columns for shared hosting environments (InfinityFree) where CLI migrate cannot run
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasTable('products') && !\Illuminate\Support\Facades\Schema::hasColumn('products', 'purchase_price')) {
+                \Illuminate\Support\Facades\Schema::table('products', function (\Illuminate\Database\Schema\Blueprint $table) {
+                    $table->decimal('purchase_price', 10, 2)->default(0.00)->after('price');
+                });
+                \Illuminate\Support\Facades\DB::table('products')
+                    ->whereNull('purchase_price')
+                    ->orWhere('purchase_price', '<=', 0)
+                    ->update(['purchase_price' => \Illuminate\Support\Facades\DB::raw('ROUND(price * 0.70, 2)')]);
+            }
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Auto-migration purchase_price notice: ' . $e->getMessage());
+        }
     }
 }
