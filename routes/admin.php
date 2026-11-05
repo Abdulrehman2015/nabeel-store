@@ -31,6 +31,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     // Point of Sale (POS) Cashier Register
     Route::get('pos', [AdminPosController::class, 'index'])->name('pos.index');
     Route::post('pos/checkout', [AdminPosController::class, 'checkout'])->name('pos.checkout');
+    Route::get('pos/receipt-test', [AdminPosController::class, 'testReceipt'])->name('pos.receipt.test');
     Route::get('pos/receipt/{order}', [AdminPosController::class, 'receipt'])->name('pos.receipt');
     Route::post('pos/customer', [AdminPosController::class, 'quickCustomer'])->name('pos.customer');
 

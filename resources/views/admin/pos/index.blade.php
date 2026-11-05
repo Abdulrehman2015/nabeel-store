@@ -77,6 +77,17 @@
                 <span class="hidden md:inline text-[11px]" x-text="isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'"></span>
             </button>
 
+            {{-- Thermal Printer Configuration --}}
+            <button 
+                type="button" 
+                @click="showPrinterConfigModal = true"
+                class="px-2.5 py-1.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                title="Slip Printer & Thermal Receipt Configuration"
+            >
+                <svg class="w-3.5 h-3.5 text-sky-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                <span class="hidden md:inline text-[11px]">Print Config</span>
+            </button>
+
             {{-- Keyboard Shortcuts Info --}}
             <button 
                 type="button" 
@@ -815,24 +826,39 @@
             </div>
 
             {{-- Action Buttons --}}
-            <div class="grid grid-cols-2 gap-3 pt-2">
-                <a 
-                    :href="completedOrder.receipt_url" 
-                    target="_blank"
-                    class="py-2.5 px-4 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-bold shadow-md shadow-sky-600/20 flex items-center justify-center gap-1.5 transition"
-                >
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
-                    <span>Print Receipt</span>
-                </a>
+            <div class="space-y-2.5 pt-2">
+                <div class="grid grid-cols-2 gap-3">
+                    <button 
+                        type="button" 
+                        @click="printReceipt(completedOrder.receipt_url)" 
+                        class="py-2.5 px-4 bg-sky-600 hover:bg-sky-500 active:scale-98 text-white rounded-xl text-xs font-bold shadow-md shadow-sky-600/20 flex items-center justify-center gap-1.5 transition cursor-pointer"
+                    >
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                        <span>Print Receipt</span>
+                    </button>
 
-                <button 
-                    type="button" 
-                    @click="resetForNextSale()"
-                    class="py-2.5 px-4 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
-                >
-                    <span>Next Customer</span>
-                    <span class="text-[10px] text-slate-400 font-mono">(Space)</span>
-                </button>
+                    <button 
+                        type="button" 
+                        @click="resetForNextSale()"
+                        class="py-2.5 px-4 bg-slate-900 hover:bg-slate-800 active:scale-98 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
+                    >
+                        <span>Next Customer</span>
+                        <span class="text-[10px] text-slate-400 font-mono">(Space)</span>
+                    </button>
+                </div>
+
+                {{-- Quick Config Link & Active Printer Status --}}
+                <div class="flex items-center justify-between text-[11px] text-slate-500 pt-1.5 border-t border-slate-100">
+                    <button 
+                        type="button" 
+                        @click="showPrinterConfigModal = true" 
+                        class="text-sky-600 hover:text-sky-700 font-semibold flex items-center gap-1 cursor-pointer transition hover:underline"
+                    >
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                        <span>Printer Settings</span>
+                    </button>
+                    <span class="font-mono text-[10px] text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md" x-text="printerConfig.paperWidth + (printerConfig.autoPrint ? ' • Auto-Print ON' : '')"></span>
+                </div>
             </div>
         </div>
     </div>
@@ -1055,6 +1081,220 @@
         </div>
     </div>
 
+    {{-- ======================================================== --}}
+    {{-- THERMAL PRINTER & RECEIPT CONFIGURATION MODAL            --}}
+    {{-- ======================================================== --}}
+    <div 
+        x-show="showPrinterConfigModal" 
+        x-cloak 
+        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto"
+    >
+        <div 
+            @click.outside="showPrinterConfigModal = false"
+            class="bg-white rounded-3xl max-w-xl w-full p-5 sm:p-6 shadow-2xl border border-slate-100 space-y-4 my-8"
+        >
+            {{-- Modal Header --}}
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-2xl bg-sky-50 text-sky-600 border border-sky-100 flex items-center justify-center font-bold text-base shadow-2xs">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                    </div>
+                    <div>
+                        <h3 class="text-sm sm:text-base font-extrabold text-slate-900">POS Slip Printer Configuration</h3>
+                        <p class="text-[11px] text-slate-500">Configure thermal receipt printer machine, paper size & auto-print settings.</p>
+                    </div>
+                </div>
+                <button type="button" @click="showPrinterConfigModal = false" class="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition cursor-pointer">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+
+            <div class="space-y-4 max-h-[70vh] overflow-y-auto pr-1 text-xs">
+                
+                {{-- 1. Paper Width Selection (80mm vs 58mm) --}}
+                <div class="space-y-1.5">
+                    <label class="block text-slate-700 font-extrabold">Thermal Paper Roll Width</label>
+                    <div class="grid grid-cols-2 gap-2.5">
+                        <button 
+                            type="button" 
+                            @click="printerConfig.paperWidth = '80mm'"
+                            class="p-3 rounded-2xl border text-left transition flex items-center justify-between cursor-pointer"
+                            :class="printerConfig.paperWidth === '80mm' ? 'bg-sky-50/90 border-sky-400 ring-2 ring-sky-400/30' : 'bg-slate-50 border-slate-200 hover:bg-white'"
+                        >
+                            <div>
+                                <span class="font-extrabold text-slate-900 block text-xs">80mm (Standard)</span>
+                                <span class="text-[10px] text-slate-500 block mt-0.5">Most common POS thermal printers (Epson, Sunmi, Xprinter 80mm)</span>
+                            </div>
+                            <span class="w-4 h-4 rounded-full border flex items-center justify-center shrink-0" :class="printerConfig.paperWidth === '80mm' ? 'border-sky-600 bg-sky-600 text-white text-[9px]' : 'border-slate-300'">
+                                <template x-if="printerConfig.paperWidth === '80mm'">✓</template>
+                            </span>
+                        </button>
+
+                        <button 
+                            type="button" 
+                            @click="printerConfig.paperWidth = '58mm'"
+                            class="p-3 rounded-2xl border text-left transition flex items-center justify-between cursor-pointer"
+                            :class="printerConfig.paperWidth === '58mm' ? 'bg-sky-50/90 border-sky-400 ring-2 ring-sky-400/30' : 'bg-slate-50 border-slate-200 hover:bg-white'"
+                        >
+                            <div>
+                                <span class="font-extrabold text-slate-900 block text-xs">58mm (Mini Roll)</span>
+                                <span class="text-[10px] text-slate-500 block mt-0.5">Compact Bluetooth/USB mobile slip printers (58mm roll)</span>
+                            </div>
+                            <span class="w-4 h-4 rounded-full border flex items-center justify-center shrink-0" :class="printerConfig.paperWidth === '58mm' ? 'border-sky-600 bg-sky-600 text-white text-[9px]' : 'border-slate-300'">
+                                <template x-if="printerConfig.paperWidth === '58mm'">✓</template>
+                            </span>
+                        </button>
+                    </div>
+                </div>
+
+                {{-- 2. Print Automation & Output Mode --}}
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 bg-slate-50/80 rounded-2xl border border-slate-200/80">
+                    {{-- Auto-Print Switch --}}
+                    <div>
+                        <div class="flex items-center justify-between">
+                            <span class="font-bold text-slate-800">Auto-Print on Checkout</span>
+                            <button 
+                                type="button" 
+                                @click="printerConfig.autoPrint = !printerConfig.autoPrint" 
+                                class="relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
+                                :class="printerConfig.autoPrint ? 'bg-emerald-600' : 'bg-slate-300'"
+                            >
+                                <span class="pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out" :class="printerConfig.autoPrint ? 'translate-x-4' : 'translate-x-0'"></span>
+                            </button>
+                        </div>
+                        <p class="text-[10px] text-slate-500 mt-1 leading-normal">
+                            Instantly triggers receipt print as soon as sale is completed without requiring manual button click.
+                        </p>
+                    </div>
+
+                    {{-- Print Delivery Mode --}}
+                    <div>
+                        <label class="block font-bold text-slate-800 mb-1">Print Execution Mode</label>
+                        <select 
+                            x-model="printerConfig.printMode" 
+                            class="w-full py-1.5 px-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
+                        >
+                            <option value="iframe">Direct Slip Print (Instant In-Page Dialog)</option>
+                            <option value="popup">Popup Preview Window (Visual Review)</option>
+                        </select>
+                        <p class="text-[10px] text-slate-400 mt-0.5">Use "Direct Slip Print" for fast counter checkout.</p>
+                    </div>
+                </div>
+
+                {{-- 3. Print Copies & Display Options --}}
+                <div class="p-3 bg-slate-50/80 rounded-2xl border border-slate-200/80 space-y-2.5">
+                    <div class="flex items-center justify-between">
+                        <span class="font-bold text-slate-800">Number of Receipt Copies</span>
+                        <div class="inline-flex p-0.5 bg-white border border-slate-200 rounded-xl">
+                            <button 
+                                type="button" 
+                                @click="printerConfig.copies = 1"
+                                class="px-2.5 py-1 rounded-lg text-xs font-bold transition"
+                                :class="printerConfig.copies == 1 ? 'bg-sky-600 text-white' : 'text-slate-600 hover:text-slate-900'"
+                            >
+                                1x (Customer)
+                            </button>
+                            <button 
+                                type="button" 
+                                @click="printerConfig.copies = 2"
+                                class="px-2.5 py-1 rounded-lg text-xs font-bold transition"
+                                :class="printerConfig.copies == 2 ? 'bg-sky-600 text-white' : 'text-slate-600 hover:text-slate-900'"
+                            >
+                                2x (Customer + Merchant)
+                            </button>
+                        </div>
+                    </div>
+
+                    {{-- Checkbox Toggles --}}
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 border-t border-slate-200/80">
+                        <label class="flex items-center gap-1.5 cursor-pointer">
+                            <input type="checkbox" x-model="printerConfig.showLogo" class="rounded border-slate-300 text-sky-600 focus:ring-sky-500">
+                            <span class="text-[11px] text-slate-700">Store Logo</span>
+                        </label>
+                        <label class="flex items-center gap-1.5 cursor-pointer">
+                            <input type="checkbox" x-model="printerConfig.showBarcode" class="rounded border-slate-300 text-sky-600 focus:ring-sky-500">
+                            <span class="text-[11px] text-slate-700">Receipt Barcode</span>
+                        </label>
+                        <label class="flex items-center gap-1.5 cursor-pointer">
+                            <input type="checkbox" x-model="printerConfig.showCashier" class="rounded border-slate-300 text-sky-600 focus:ring-sky-500">
+                            <span class="text-[11px] text-slate-700">Cashier Name</span>
+                        </label>
+                        <label class="flex items-center gap-1.5 cursor-pointer">
+                            <input type="checkbox" x-model="printerConfig.showCustomer" class="rounded border-slate-300 text-sky-600 focus:ring-sky-500">
+                            <span class="text-[11px] text-slate-700">Customer Info</span>
+                        </label>
+                    </div>
+                </div>
+
+                {{-- 4. Store Branding & Header Details --}}
+                <div class="space-y-2">
+                    <span class="font-bold text-slate-800 block">Receipt Header Details</span>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-[10px] text-slate-500 font-semibold mb-0.5">Store / Business Name</label>
+                            <input type="text" x-model="printerConfig.storeName" placeholder="e.g. N&J MINI MART" class="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:bg-white focus:border-sky-500">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] text-slate-500 font-semibold mb-0.5">Tagline / Subtitle</label>
+                            <input type="text" x-model="printerConfig.storeTagline" placeholder="e.g. Retail Mart & Everyday Essentials" class="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:bg-white focus:border-sky-500">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] text-slate-500 font-semibold mb-0.5">Address / Location</label>
+                            <input type="text" x-model="printerConfig.storeAddress" placeholder="e.g. Puchong Central Distribution Hub" class="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:bg-white focus:border-sky-500">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] text-slate-500 font-semibold mb-0.5">Contact Telephone</label>
+                            <input type="text" x-model="printerConfig.storePhone" placeholder="e.g. +60 12-859 9900" class="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:bg-white focus:border-sky-500">
+                        </div>
+                        <div class="sm:col-span-2">
+                            <label class="block text-[10px] text-slate-500 font-semibold mb-0.5">Business Registration / SSM No.</label>
+                            <input type="text" x-model="printerConfig.regNo" placeholder="e.g. SSM: 202401023456 (1549876-X)" class="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:bg-white focus:border-sky-500">
+                        </div>
+                    </div>
+                </div>
+
+                {{-- 5. Custom Footer Message --}}
+                <div>
+                    <label class="block text-[10px] text-slate-500 font-semibold mb-0.5">Receipt Footer Message / Return Policy</label>
+                    <textarea x-model="printerConfig.footerMessage" rows="2" class="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:bg-white focus:border-sky-500"></textarea>
+                </div>
+
+            </div>
+
+            {{-- Modal Actions Footer --}}
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-2.5 pt-3 border-t border-slate-100">
+                <button 
+                    type="button" 
+                    @click="testPrintReceipt()"
+                    class="w-full sm:w-auto px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
+                >
+                    <svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                    <span>🧪 Test Print (Slip Machine)</span>
+                </button>
+
+                <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+                    <button 
+                        type="button" 
+                        @click="resetPrinterConfig()" 
+                        class="px-3 py-2 text-slate-400 hover:text-slate-600 text-xs font-semibold cursor-pointer"
+                    >
+                        Reset Defaults
+                    </button>
+                    <button 
+                        type="button" 
+                        @click="savePrinterConfig()" 
+                        class="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-extrabold shadow-md shadow-emerald-600/20 transition cursor-pointer"
+                    >
+                        Save Configuration
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Hidden Print Iframe for Instant/Silent POS Slip Output --}}
+    <iframe id="pos-thermal-print-iframe" class="hidden" style="position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden;"></iframe>
+
     {{-- Toast Notification for Shortcut Quantity / Action HUD --}}
     <div 
         x-show="shortcutToast.show"
@@ -1135,8 +1375,27 @@ function posApp() {
         showQrModal: false,
         showHeldOrdersModal: false,
         showShortcutsModal: false,
+        showPrinterConfigModal: false,
         completedOrder: {},
         currentTime: '',
+
+        // Thermal Slip Printer Configuration
+        printerConfig: {
+            paperWidth: '80mm',
+            autoPrint: false,
+            printMode: 'iframe',
+            copies: 1,
+            showLogo: true,
+            showBarcode: true,
+            showCashier: true,
+            showCustomer: true,
+            storeName: '{{ setting("site_name", "N&J MINI MART") }}',
+            storeTagline: 'Retail Mart & Everyday Essentials',
+            storeAddress: 'Puchong Central Distribution Hub, Selangor',
+            storePhone: '+60 12-859 9900',
+            regNo: 'SSM: 202401023456 (1549876-X)',
+            footerMessage: 'Thank you for shopping at N&J Mini Mart! Goods sold are non-refundable. Exchange allowed within 3 days with original receipt.',
+        },
 
         initPos() {
             // Update clock
@@ -1147,6 +1406,14 @@ function posApp() {
             try {
                 const saved = localStorage.getItem('nj_pos_held_baskets');
                 if (saved) this.heldOrders = JSON.parse(saved);
+            } catch(e) {}
+
+            // Load saved thermal printer configuration
+            try {
+                const savedPrinter = localStorage.getItem('pos_thermal_printer_config');
+                if (savedPrinter) {
+                    this.printerConfig = Object.assign({}, this.printerConfig, JSON.parse(savedPrinter));
+                }
             } catch(e) {}
 
             // Auto-focus barcode scanner input on POS launch
@@ -1684,6 +1951,13 @@ function posApp() {
                     this.cart = [];
                     this.discountAmount = 0;
                     this.paymentReference = '';
+
+                    // Auto-print thermal slip if enabled in settings
+                    if (this.printerConfig && this.printerConfig.autoPrint) {
+                        setTimeout(() => {
+                            this.printReceipt(this.completedOrder.receipt_url);
+                        }, 350);
+                    }
                 } else {
                     alert(data.message || 'Checkout failed. Please check stock or inputs.');
                 }
@@ -1729,7 +2003,8 @@ function posApp() {
                    this.showCustomerModal || 
                    this.showQrModal || 
                    this.showHeldOrdersModal || 
-                   this.showShortcutsModal;
+                   this.showShortcutsModal ||
+                   this.showPrinterConfigModal;
         },
 
         extractDigit(e) {
@@ -1866,6 +2141,7 @@ function posApp() {
                     this.showQrModal = false;
                     this.showHeldOrdersModal = false;
                     this.showShortcutsModal = false;
+                    this.showPrinterConfigModal = false;
                     this.$nextTick(() => this.focusBarcodeInput());
                 }
                 // Space to reset next sale on receipt modal
@@ -2007,6 +2283,100 @@ function posApp() {
                 this.barcodeScanBuffer = '';
                 this.$nextTick(() => this.focusBarcodeInput());
             }
+        },
+
+        // Thermal Printer Configuration Actions
+        savePrinterConfig() {
+            try {
+                localStorage.setItem('pos_thermal_printer_config', JSON.stringify(this.printerConfig));
+                this.showToast('Printer settings saved successfully!', '🖨️', 'success');
+                this.showPrinterConfigModal = false;
+            } catch (e) {
+                alert('Failed to save printer configuration.');
+            }
+        },
+
+        resetPrinterConfig() {
+            this.printerConfig = {
+                paperWidth: '80mm',
+                autoPrint: false,
+                printMode: 'iframe',
+                copies: 1,
+                showLogo: true,
+                showBarcode: true,
+                showCashier: true,
+                showCustomer: true,
+                storeName: '{{ setting("site_name", "N&J MINI MART") }}',
+                storeTagline: 'Retail Mart & Everyday Essentials',
+                storeAddress: 'Puchong Central Distribution Hub, Selangor',
+                storePhone: '+60 12-859 9900',
+                regNo: 'SSM: 202401023456 (1549876-X)',
+                footerMessage: 'Thank you for shopping at N&J Mini Mart! Goods sold are non-refundable. Exchange allowed within 3 days with original receipt.',
+            };
+            localStorage.removeItem('pos_thermal_printer_config');
+            this.showToast('Printer settings restored to defaults', '🔄', 'info');
+        },
+
+        // Universal Thermal Receipt Printer Dispatcher
+        printReceipt(rawUrl) {
+            if (!rawUrl) return;
+            const cfg = this.printerConfig || {};
+            const params = new URLSearchParams();
+            params.set('print', '1');
+            params.set('paper', cfg.paperWidth || '80mm');
+            params.set('copies', cfg.copies || 1);
+            params.set('show_logo', cfg.showLogo ? '1' : '0');
+            params.set('show_barcode', cfg.showBarcode ? '1' : '0');
+            params.set('show_cashier', cfg.showCashier ? '1' : '0');
+            params.set('show_customer', cfg.showCustomer ? '1' : '0');
+            if (cfg.storeName) params.set('header_name', cfg.storeName);
+            if (cfg.storeTagline) params.set('tagline', cfg.storeTagline);
+            if (cfg.storeAddress) params.set('address', cfg.storeAddress);
+            if (cfg.storePhone) params.set('phone', cfg.storePhone);
+            if (cfg.regNo) params.set('reg_no', cfg.regNo);
+            if (cfg.footerMessage) params.set('footer', cfg.footerMessage);
+
+            const delim = rawUrl.includes('?') ? '&' : '?';
+            const finalUrl = `${rawUrl}${delim}${params.toString()}`;
+
+            if (cfg.printMode === 'popup') {
+                const width = cfg.paperWidth === '58mm' ? 330 : 420;
+                const win = window.open(`${finalUrl}&popup=1`, 'ThermalReceiptSlip', `width=${width},height=700,left=150,top=100,scrollbars=yes,status=no`);
+                if (win) {
+                    win.focus();
+                } else {
+                    this.printViaIframe(finalUrl);
+                }
+            } else {
+                this.printViaIframe(finalUrl);
+            }
+
+            this.showToast('Sending slip to printer...', '🖨️', 'success');
+        },
+
+        printViaIframe(url) {
+            let iframe = document.getElementById('pos-thermal-print-iframe');
+            if (!iframe) {
+                iframe = document.createElement('iframe');
+                iframe.id = 'pos-thermal-print-iframe';
+                iframe.style.position = 'fixed';
+                iframe.style.right = '0';
+                iframe.style.bottom = '0';
+                iframe.style.width = '0';
+                iframe.style.height = '0';
+                iframe.style.border = '0';
+                iframe.style.visibility = 'hidden';
+                document.body.appendChild(iframe);
+            }
+            iframe.src = 'about:blank';
+            setTimeout(() => {
+                iframe.src = url;
+            }, 60);
+        },
+
+        testPrintReceipt() {
+            const testUrl = "{{ route('admin.pos.receipt.test') }}";
+            this.printReceipt(testUrl);
         },
 
         handleGlobalKeyup(e) {

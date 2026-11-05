@@ -271,6 +271,55 @@ class AdminPosController extends Controller
     }
 
     /**
+     * Display a sample printable thermal POS receipt for testing printer slip machines.
+     */
+    public function testReceipt(Request $request): View
+    {
+        $dummyOrder = new Order([
+            'id' => 99999,
+            'order_number' => 'POS-' . date('Y') . '-TEST',
+            'customer_name' => 'Walk-in Retail Customer',
+            'customer_email' => 'pos@nandjminimart.com',
+            'customer_phone' => '+60 12-345 6789',
+            'subtotal' => 45.00,
+            'discount_amount' => 5.00,
+            'delivery_fee' => 0.00,
+            'grand_total' => 40.00,
+            'payment_method' => 'cash',
+            'payment_status' => 'paid',
+            'order_status' => 'delivered',
+            'delivery_zone' => 'pos_counter',
+            'delivery_address' => 'N&J Mini Mart Counter (Walk-in POS)',
+            'internal_notes' => 'TEST PRINT SLIP: Tendered: 50.00, Change: 10.00',
+            'created_at' => now(),
+        ]);
+
+        $dummyItems = collect([
+            new OrderItem([
+                'product_name' => 'AYAM BRAND BAKED BEANS 24*425G',
+                'sku' => 'CAN-AYM-01',
+                'quantity' => 2,
+                'unit_price' => 15.00,
+                'line_total' => 30.00,
+            ]),
+            new OrderItem([
+                'product_name' => '100 PLUS ISOTONIC 24*325ML',
+                'sku' => 'BEV-100-01',
+                'quantity' => 1,
+                'unit_price' => 15.00,
+                'line_total' => 15.00,
+            ]),
+        ]);
+
+        $dummyOrder->setRelation('items', $dummyItems);
+
+        return view('admin.pos.receipt', [
+            'order' => $dummyOrder,
+            'isTest' => true,
+        ]);
+    }
+
+    /**
      * Quick create customer from POS terminal.
      */
     public function quickCustomer(Request $request): JsonResponse
