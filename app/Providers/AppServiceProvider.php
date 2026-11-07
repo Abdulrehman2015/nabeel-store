@@ -57,6 +57,14 @@ class AppServiceProvider extends ServiceProvider
                     ->where('key', 'store_address')
                     ->where('value', 'LIKE', '%Puchong%')
                     ->update(['value' => "34, Jalan Perkasa 3, Taman Ungku Tun Aminah, 81300 Skudai, Johor Darul Ta'zim, Malaysia"]);
+
+                \Illuminate\Support\Facades\DB::table('settings')
+                    ->where('key', 'store_phone')
+                    ->where(function($q) {
+                        $q->where('value', 'LIKE', '%859%')
+                          ->orWhere('value', 'LIKE', '%889%');
+                    })
+                    ->update(['value' => '+60 11-6412 9173']);
             }
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::warning('Auto-migration column notice: ' . $e->getMessage());

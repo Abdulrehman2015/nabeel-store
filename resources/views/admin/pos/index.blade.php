@@ -1265,7 +1265,7 @@
                         </div>
                         <div>
                             <label class="block text-[10px] text-slate-500 font-semibold mb-0.5">Contact Telephone</label>
-                            <input type="text" x-model="printerConfig.storePhone" placeholder="e.g. +60 12-859 9900" class="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:bg-white focus:border-sky-500">
+                            <input type="text" x-model="printerConfig.storePhone" placeholder="e.g. +60 11-6412 9173" class="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:bg-white focus:border-sky-500">
                         </div>
                         <div class="sm:col-span-2">
                             <label class="block text-[10px] text-slate-500 font-semibold mb-0.5">Business Registration / SSM No.</label>
@@ -1413,7 +1413,7 @@ function posApp() {
             storeName: {!! json_encode(html_entity_decode(setting('site_name', 'N&J MINI MART'), ENT_QUOTES, 'UTF-8')) !!},
             storeTagline: 'Retail Mart & Everyday Essentials',
             storeAddress: "34, Jalan Perkasa 3, Taman Ungku Tun Aminah, 81300 Skudai, Johor Darul Ta'zim, Malaysia",
-            storePhone: '+60 12-859 9900',
+            storePhone: '+60 11-6412 9173',
             regNo: '',
             footerMessage: 'Thank you for shopping at N&J Mini Mart',
         },
@@ -1436,6 +1436,9 @@ function posApp() {
                     const parsed = JSON.parse(savedPrinter);
                     if (!parsed.storeAddress || parsed.storeAddress.includes('Puchong')) {
                         parsed.storeAddress = "34, Jalan Perkasa 3, Taman Ungku Tun Aminah, 81300 Skudai, Johor Darul Ta'zim, Malaysia";
+                    }
+                    if (!parsed.storePhone || parsed.storePhone.includes('859') || parsed.storePhone.includes('889')) {
+                        parsed.storePhone = "+60 11-6412 9173";
                     }
                     if (!parsed.footerMessage || parsed.footerMessage.includes('non-refundable') || parsed.footerMessage.includes('Exchange allowed')) {
                         parsed.footerMessage = 'Thank you for shopping at N&J Mini Mart';
@@ -2359,7 +2362,7 @@ function posApp() {
                 storeName: {!! json_encode(html_entity_decode(setting('site_name', 'N&J MINI MART'), ENT_QUOTES, 'UTF-8')) !!},
                 storeTagline: 'Retail Mart & Everyday Essentials',
                 storeAddress: "34, Jalan Perkasa 3, Taman Ungku Tun Aminah, 81300 Skudai, Johor Darul Ta'zim, Malaysia",
-                storePhone: '+60 12-859 9900',
+                storePhone: '+60 11-6412 9173',
                 regNo: '',
                 footerMessage: 'Thank you for shopping at N&J Mini Mart',
             };

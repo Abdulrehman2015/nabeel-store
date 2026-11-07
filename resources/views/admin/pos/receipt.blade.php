@@ -20,7 +20,15 @@
     $rawAddress = request('address');
     $storeAddress = ($rawAddress && !str_contains($rawAddress, 'Puchong')) ? $rawAddress : $defaultAddress;
 
-    $storePhone = request('phone') ?: '+60 12-859 9900';
+    $rawPhone = request('phone');
+    if (!$rawPhone || str_contains($rawPhone, '859') || str_contains($rawPhone, '889')) {
+        $storePhone = setting('store_phone', '+60 11-6412 9173');
+        if (str_contains($storePhone, '859') || str_contains($storePhone, '889')) {
+            $storePhone = '+60 11-6412 9173';
+        }
+    } else {
+        $storePhone = $rawPhone;
+    }
 
     // Clean single line footer message:
     $rawFooter = request('footer');
@@ -77,7 +85,7 @@
                 width: {{ $is58mm ? '44mm' : '72mm' }} !important;
                 max-width: {{ $is58mm ? '44mm' : '72mm' }} !important;
                 margin: 0 auto !important;
-                padding: 0 1mm !important;
+                padding: 6mm 1mm 4mm 1mm !important; /* Top empty space so cutter doesn't clip logo */
                 box-shadow: none !important;
                 border: none !important;
                 page-break-after: always;
@@ -87,7 +95,7 @@
                 page-break-after: avoid;
             }
             .paper-cut-feed {
-                height: 12mm !important;
+                height: 18mm !important; /* Bottom empty space so cutter leaves slip intact */
                 display: block !important;
             }
             table {
@@ -112,10 +120,10 @@
                 margin-left: auto;
                 margin-right: auto;
                 box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
-                padding: 16px 12px;
+                padding: 24px 14px 20px 14px;
             }
             .paper-cut-feed {
-                height: 8mm;
+                height: 18mm;
                 display: block;
             }
             table {
@@ -192,14 +200,14 @@
                 </div>
             @endif
 
-            {{-- Store Branding & Header (Website Header Logo + Clean Professional Typography) --}}
+            {{-- Store Branding & Header (Prominent Dark Receipt Logo + Clean Typography) --}}
             <div class="text-center pb-2 border-b border-dashed border-black">
                 @if($showLogo)
-                    <div class="flex items-center justify-center mb-1">
+                    <div class="flex items-center justify-center mb-1.5 pt-1">
                         <img 
-                            src="{{ asset('images/logo.png') }}" 
+                            src="{{ asset('images/logo-receipt.png') }}" 
                             alt="{{ $storeName }}" 
-                            class="h-8 sm:h-9 w-auto max-w-[125px] object-contain mx-auto block"
+                            class="h-9 sm:h-10 w-auto max-w-[135px] object-contain mx-auto block filter contrast-125"
                         >
                     </div>
                 @endif
@@ -331,11 +339,11 @@
                     </div>
                 @endif
 
-                {{-- Clean Single-Line Footer Message --}}
-                <div class="pt-1 text-center overflow-hidden">
+                {{-- Clean Single-Line Footer Message (Never Crops on 44mm / 58mm) --}}
+                <div class="pt-1.5 text-center w-full">
                     <div 
-                        class="font-semibold text-black uppercase tracking-tight whitespace-nowrap overflow-hidden text-ellipsis"
-                        style="color: #000000 !important; font-weight: 600 !important; white-space: nowrap !important; font-size: 8px !important; letter-spacing: -0.15px;"
+                        class="font-bold text-black uppercase block text-center"
+                        style="color: #000000 !important; font-weight: 700 !important; white-space: nowrap !important; font-size: 7.2px !important; letter-spacing: -0.22px; line-height: 1.2; width: 100%;"
                     >
                         {!! $footerMessage !!}
                     </div>
