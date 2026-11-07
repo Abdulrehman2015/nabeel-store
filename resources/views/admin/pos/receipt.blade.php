@@ -80,16 +80,15 @@
             .no-print {
                 display: none !important;
             }
-            /* Narrowed to 38mm on 58mm paper with explicit right padding to prevent ANY right-edge clipping */
+            /* Perfectly centered on paper with exactly equal margins on left & right */
             .receipt-sheet {
-                width: {{ $is58mm ? '38mm' : '70mm' }} !important;
-                max-width: {{ $is58mm ? '38mm' : '70mm' }} !important;
-                margin-left: 1.5mm !important;
-                margin-right: auto !important;
+                width: {{ $is58mm ? '41.5mm' : '72mm' }} !important;
+                max-width: {{ $is58mm ? '41.5mm' : '72mm' }} !important;
+                margin: 0 auto !important;
                 padding-top: 5mm !important;
                 padding-bottom: 2mm !important;
-                padding-left: 1mm !important;
-                padding-right: 2.5mm !important; /* Extra safety margin on right side */
+                padding-left: 0.5mm !important;
+                padding-right: 0.5mm !important;
                 box-shadow: none !important;
                 border: none !important;
                 page-break-after: always;
@@ -244,21 +243,21 @@
             <div class="py-1.5 text-[8.5px] sm:text-[9px] space-y-0.5 border-b border-dashed border-black">
                 <div class="flex justify-between">
                     <span class="text-black">Receipt #:</span>
-                    <span class="font-bold text-black pr-1">{{ $order->order_number }}</span>
+                    <span class="font-bold text-black">{{ $order->order_number }}</span>
                 </div>
                 <div class="flex justify-between">
                     <span class="text-black">Date/Time:</span>
-                    <span class="text-black pr-1">{{ $order->created_at ? $order->created_at->format('d/m/Y h:i A') : now()->format('d/m/Y h:i A') }}</span>
+                    <span class="text-black">{{ $order->created_at ? $order->created_at->format('d/m/Y h:i A') : now()->format('d/m/Y h:i A') }}</span>
                 </div>
                 @if($showCustomer && $order->customer_name)
                     <div class="flex justify-between">
                         <span class="text-black">Customer:</span>
-                        <span class="font-semibold text-black truncate max-w-[110px] pr-1">{{ $order->customer_name }}</span>
+                        <span class="font-semibold text-black truncate max-w-[120px]">{{ $order->customer_name }}</span>
                     </div>
                 @endif
             </div>
 
-            {{-- Itemized Products Table (Strict 38mm Width, Never Cuts off Text) --}}
+            {{-- Itemized Products Table (Strict Column Widths, Equal Left/Right Margins) --}}
             <div class="py-1.5 border-b border-dashed border-black">
                 <table class="w-full text-[8.5px] sm:text-[9px] leading-tight" style="table-layout: fixed; width: 100%;">
                     <thead>
@@ -266,7 +265,7 @@
                             <th style="width: 44%; text-align: left;" class="pb-1 font-bold text-black">Item</th>
                             <th style="width: 10%; text-align: center;" class="pb-1 font-bold text-black">Qty</th>
                             <th style="width: 23%; text-align: right;" class="pb-1 font-bold text-black">Price</th>
-                            <th style="width: 23%; text-align: right;" class="pb-1 font-bold text-black pr-1">Total</th>
+                            <th style="width: 23%; text-align: right;" class="pb-1 font-bold text-black">Total</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-dotted divide-slate-300">
@@ -277,7 +276,7 @@
                                 </td>
                                 <td style="width: 10%;" class="py-1 text-center font-medium text-black align-top">{{ $item->quantity }}</td>
                                 <td style="width: 23%;" class="py-1 text-right font-medium text-black align-top whitespace-nowrap">{{ number_format($item->unit_price, 2) }}</td>
-                                <td style="width: 23%;" class="py-1 text-right font-semibold text-black align-top whitespace-nowrap pr-1">{{ number_format($item->line_total, 2) }}</td>
+                                <td style="width: 23%;" class="py-1 text-right font-semibold text-black align-top whitespace-nowrap">{{ number_format($item->line_total, 2) }}</td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -288,7 +287,7 @@
             <div class="py-1.5 text-[8.5px] sm:text-[9px] space-y-0.5 border-b border-dashed border-black">
                 <div class="flex justify-between text-black">
                     <span>Items Subtotal:</span>
-                    <span class="font-bold pr-1">RM {{ number_format($order->subtotal, 2) }}</span>
+                    <span class="font-bold">RM {{ number_format($order->subtotal, 2) }}</span>
                 </div>
 
                 @if($order->subtotal > $order->grand_total || ($order->discount_amount && $order->discount_amount > 0))
@@ -299,33 +298,33 @@
                     @endphp
                     <div class="flex justify-between text-black font-semibold">
                         <span>Discount Savings:</span>
-                        <span class="pr-1">-RM {{ number_format($calcDiscount, 2) }}</span>
+                        <span>-RM {{ number_format($calcDiscount, 2) }}</span>
                     </div>
                 @endif
 
                 {{-- Prominent Clean Total --}}
                 <div class="flex justify-between font-bold text-[10.5px] sm:text-[11.5px] pt-1 border-t border-black text-black">
                     <span class="font-bold text-black">TOTAL PAID:</span>
-                    <span class="font-bold text-black pr-1">RM {{ number_format($order->grand_total, 2) }}</span>
+                    <span class="font-bold text-black">RM {{ number_format($order->grand_total, 2) }}</span>
                 </div>
 
                 {{-- Payment Method & Tender Details --}}
                 <div class="pt-1 space-y-0.5 text-[8px] text-black">
                     <div class="flex justify-between">
                         <span class="uppercase font-normal text-black">Payment Method:</span>
-                        <span class="font-semibold uppercase text-black pr-1">{{ str_replace('_', ' ', $order->payment_method ?? 'CASH') }}</span>
+                        <span class="font-semibold uppercase text-black">{{ str_replace('_', ' ', $order->payment_method ?? 'CASH') }}</span>
                     </div>
 
                     @if($order->internal_notes && str_contains($order->internal_notes, 'Tendered:'))
                         <div class="flex justify-between">
                             <span class="text-black">Cash Tendered:</span>
-                            <span class="font-bold text-black pr-1">
+                            <span class="font-bold text-black">
                                 {{ Str::between($order->internal_notes, 'Tendered: ', ', Change:') }}
                             </span>
                         </div>
                         <div class="flex justify-between font-semibold">
                             <span class="text-black">Change Returned:</span>
-                            <span class="font-bold text-black pr-1">
+                            <span class="font-bold text-black">
                                 {{ Str::after($order->internal_notes, 'Change: ') }}
                             </span>
                         </div>
@@ -339,7 +338,7 @@
                     <div class="py-0.5 flex flex-col items-center justify-center">
                         {{-- 1D Code 128 Barcode for Admin / Counter Scanner --}}
                         <div class="w-full flex justify-center py-0.5">
-                            <svg id="barcode-{{ $copyIndex }}" class="max-w-[90%] h-7"></svg>
+                            <svg id="barcode-{{ $copyIndex }}" class="max-w-[95%] h-7"></svg>
                         </div>
 
                         <div class="text-[9.5px] font-mono font-bold text-black tracking-wider leading-none mt-0.5">
@@ -375,8 +374,8 @@
                     if (typeof JsBarcode !== 'undefined') {
                         JsBarcode("#barcode-{{ $i }}", "{{ $order->order_number }}", {
                             format: "CODE128",
-                            width: {{ $is58mm ? 1.05 : 1.6 }},
-                            height: {{ $is58mm ? 22 : 32 }},
+                            width: {{ $is58mm ? 1.15 : 1.6 }},
+                            height: {{ $is58mm ? 24 : 32 }},
                             displayValue: false,
                             margin: 0,
                             lineColor: "#000000"
