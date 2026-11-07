@@ -34,13 +34,17 @@ class AdminProductController extends Controller
             $query->where('brand_id', $request->query('brand'));
         }
 
+        $hasThreshold = \Illuminate\Support\Facades\Schema::hasColumn('products', 'low_stock_threshold');
+        $lowCondition = $hasThreshold ? 'stock_quantity <= COALESCE(low_stock_threshold, 10) AND stock_quantity > 0' : 'stock_quantity <= 10 AND stock_quantity > 0';
+        $inStockCondition = $hasThreshold ? 'stock_quantity > COALESCE(low_stock_threshold, 10)' : 'stock_quantity > 10';
+
         if ($request->filled('stock_status')) {
             if ($request->query('stock_status') === 'low') {
-                $query->whereRaw('stock_quantity <= COALESCE(low_stock_threshold, 10) AND stock_quantity > 0');
+                $query->whereRaw($lowCondition);
             } elseif ($request->query('stock_status') === 'out') {
                 $query->where('stock_quantity', '<=', 0);
             } elseif ($request->query('stock_status') === 'in_stock') {
-                $query->whereRaw('stock_quantity > COALESCE(low_stock_threshold, 10)');
+                $query->whereRaw($inStockCondition);
             }
         }
 
@@ -66,7 +70,7 @@ class AdminProductController extends Controller
         $stats = [
             'total' => Product::count(),
             'active' => Product::where('is_active', true)->count(),
-            'low_stock' => Product::where('is_active', true)->whereRaw('stock_quantity <= COALESCE(low_stock_threshold, 10) AND stock_quantity > 0')->count(),
+            'low_stock' => Product::where('is_active', true)->whereRaw($lowCondition)->count(),
             'out_of_stock' => Product::where('stock_quantity', '<=', 0)->count(),
             'promo' => Product::where('is_promo', true)->count(),
         ];
@@ -119,7 +123,11 @@ class AdminProductController extends Controller
         ]);
 
         $validated['slug'] = !empty($validated['slug']) ? Str::slug($validated['slug']) : Str::slug($validated['name']);
-        $validated['low_stock_threshold'] = $request->filled('low_stock_threshold') ? max(0, (int) $request->input('low_stock_threshold')) : 10;
+        if (\Illuminate\Support\Facades\Schema::hasColumn('products', 'low_stock_threshold')) {
+            $validated['low_stock_threshold'] = $request->filled('low_stock_threshold') ? max(0, (int) $request->input('low_stock_threshold')) : 10;
+        } else {
+            unset($validated['low_stock_threshold']);
+        }
         if (\Illuminate\Support\Facades\Schema::hasColumn('products', 'purchase_price')) {
             $validated['purchase_price'] = $request->filled('purchase_price') ? (float) $request->input('purchase_price') : 0.00;
         } else {
@@ -198,7 +206,11 @@ class AdminProductController extends Controller
         ]);
 
         $validated['slug'] = !empty($validated['slug']) ? Str::slug($validated['slug']) : Str::slug($validated['name']);
-        $validated['low_stock_threshold'] = $request->filled('low_stock_threshold') ? max(0, (int) $request->input('low_stock_threshold')) : 10;
+        if (\Illuminate\Support\Facades\Schema::hasColumn('products', 'low_stock_threshold')) {
+            $validated['low_stock_threshold'] = $request->filled('low_stock_threshold') ? max(0, (int) $request->input('low_stock_threshold')) : 10;
+        } else {
+            unset($validated['low_stock_threshold']);
+        }
         if (\Illuminate\Support\Facades\Schema::hasColumn('products', 'purchase_price')) {
             $validated['purchase_price'] = $request->filled('purchase_price') ? (float) $request->input('purchase_price') : 0.00;
         } else {

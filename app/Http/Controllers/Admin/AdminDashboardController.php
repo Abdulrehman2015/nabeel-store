@@ -74,14 +74,17 @@ class AdminDashboardController extends Controller
         $pendingOrdersCount = Order::whereIn('order_status', ['confirmed', 'processing'])->count();
 
         // Low stock products alert (<= individual low_stock_threshold, default 10)
+        $hasThreshold = \Illuminate\Support\Facades\Schema::hasColumn('products', 'low_stock_threshold');
+        $rawCondition = $hasThreshold ? 'stock_quantity <= COALESCE(low_stock_threshold, 10)' : 'stock_quantity <= 10';
+
         $lowStockProducts = Product::where('is_active', true)
-            ->whereRaw('stock_quantity <= COALESCE(low_stock_threshold, 10)')
+            ->whereRaw($rawCondition)
             ->orderBy('stock_quantity', 'asc')
             ->take(8)
             ->get();
 
         $lowStockCount = Product::where('is_active', true)
-            ->whereRaw('stock_quantity <= COALESCE(low_stock_threshold, 10)')
+            ->whereRaw($rawCondition)
             ->count();
 
         // Recent Orders
@@ -204,8 +207,11 @@ class AdminDashboardController extends Controller
         }
 
         // Track low stock products based on individual low_stock_threshold
+        $hasThreshold = \Illuminate\Support\Facades\Schema::hasColumn('products', 'low_stock_threshold');
+        $rawCondition = $hasThreshold ? 'stock_quantity <= COALESCE(low_stock_threshold, 10)' : 'stock_quantity <= 10';
+
         $lowStockProducts = Product::where('is_active', true)
-            ->whereRaw('stock_quantity <= COALESCE(low_stock_threshold, 10)')
+            ->whereRaw($rawCondition)
             ->orderBy('stock_quantity', 'asc')
             ->take(6)
             ->get()
@@ -220,7 +226,7 @@ class AdminDashboardController extends Controller
                 ];
             });
         $lowStockCount = Product::where('is_active', true)
-            ->whereRaw('stock_quantity <= COALESCE(low_stock_threshold, 10)')
+            ->whereRaw($rawCondition)
             ->count();
 
         return response()->json([

@@ -100,8 +100,9 @@ class Product extends Model
 
     public function scopeLowStock($query)
     {
+        $hasThreshold = \Illuminate\Support\Facades\Schema::hasColumn('products', 'low_stock_threshold');
         return $query->where('is_active', true)
-            ->whereRaw('stock_quantity <= COALESCE(low_stock_threshold, 10)')
+            ->whereRaw($hasThreshold ? 'stock_quantity <= COALESCE(low_stock_threshold, 10)' : 'stock_quantity <= 10')
             ->where('stock_quantity', '>', 0);
     }
 

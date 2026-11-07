@@ -682,7 +682,7 @@
             return {
                 sidebarOpen: false,
                 pendingPaymentsCount: {{ (int) \App\Models\Order::where('order_status', 'pending_payment_verification')->where('delivery_zone', '!=', 'pos_counter')->where('order_number', 'NOT LIKE', 'POS-%')->count() }},
-                lowStockCount: {{ (int) \App\Models\Product::where('is_active', true)->whereRaw('stock_quantity <= COALESCE(low_stock_threshold, 10)')->count() }},
+                lowStockCount: {{ (int) \App\Models\Product::where('is_active', true)->whereRaw(\Illuminate\Support\Facades\Schema::hasColumn('products', 'low_stock_threshold') ? 'stock_quantity <= COALESCE(low_stock_threshold, 10)' : 'stock_quantity <= 10')->count() }},
                 lowStockItems: [],
                 get bellCount() {
                     return (this.pendingPaymentsCount || 0) + (this.lowStockCount || 0);

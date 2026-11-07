@@ -29,6 +29,24 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/', [AdminDashboardController::class, 'index'])->name('dashboard');
     Route::get('/notifications/poll', [AdminDashboardController::class, 'pollNotifications'])->name('notifications.poll');
 
+    // One-click Database Migration Runner for Shared Hosting
+    Route::get('/migrate-db', function () {
+        try {
+            \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+            $output = \Illuminate\Support\Facades\Artisan::output();
+            return response()->json([
+                'success' => true,
+                'message' => 'Migrations executed successfully!',
+                'output' => $output,
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    })->name('migrate-db');
+
     // Point of Sale (POS) Cashier Register
     Route::get('pos', [AdminPosController::class, 'index'])->name('pos.index');
     Route::post('pos/checkout', [AdminPosController::class, 'checkout'])->name('pos.checkout');
