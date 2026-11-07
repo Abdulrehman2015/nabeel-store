@@ -421,8 +421,9 @@
                             <span class="text-[10px] text-slate-400 font-medium">Live Sync 6s</span>
                         </div>
 
-                        <div class="max-h-72 overflow-y-auto divide-y divide-slate-100 text-xs">
-                            <template x-if="bellCount > 0">
+                        <div class="max-h-80 overflow-y-auto divide-y divide-slate-100 text-xs">
+                            {{-- 1. Pending Payments Alert --}}
+                            <template x-if="pendingPaymentsCount > 0">
                                 <a 
                                     href="{{ route('admin.orders.index', ['status' => 'pending_payment_verification']) }}" 
                                     class="p-3.5 hover:bg-slate-50 flex items-start gap-3 transition block"
@@ -433,10 +434,10 @@
                                     <div class="flex-1 min-w-0">
                                         <div class="font-bold text-slate-900 flex items-center justify-between">
                                             <span>Payment Proof Awaiting Review</span>
-                                            <span class="text-[10px] text-amber-600 font-bold">Action Req.</span>
+                                            <span class="text-[10px] text-amber-600 font-bold" x-text="pendingPaymentsCount + ' pending'"></span>
                                         </div>
                                         <p class="text-[11px] text-slate-500 mt-0.5">
-                                            <span x-text="bellCount"></span> customer order(s) submitted with DuitNow / TNG receipts requiring admin sign-off.
+                                            <span x-text="pendingPaymentsCount"></span> customer order(s) submitted with payment receipts requiring admin sign-off.
                                         </p>
                                         <span class="text-[11px] text-sky-600 font-bold mt-1.5 inline-flex items-center gap-1">
                                             <span>Verify Receipts Now</span>
@@ -446,11 +447,43 @@
                                 </a>
                             </template>
 
+                            {{-- 2. Low Stock Inventory Alert --}}
+                            <template x-if="lowStockCount > 0">
+                                <div class="p-3.5 hover:bg-amber-50/40 bg-amber-50/20 transition block">
+                                    <div class="flex items-start gap-3">
+                                        <div class="w-8 h-8 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center shrink-0 text-sm">
+                                            ⚠️
+                                        </div>
+                                        <div class="flex-1 min-w-0">
+                                            <div class="font-bold text-slate-900 flex items-center justify-between">
+                                                <span>Low Stock Inventory Alert</span>
+                                                <span class="text-[10px] text-rose-700 font-extrabold bg-rose-100 px-1.5 py-0.5 rounded-full" x-text="lowStockCount + ' alert' + (lowStockCount > 1 ? 's' : '')"></span>
+                                            </div>
+                                            <p class="text-[11px] text-slate-500 mt-0.5">
+                                                Item(s) dropped to or below their alert quantity:
+                                            </p>
+                                            <div class="mt-2 space-y-1.5 max-h-36 overflow-y-auto pr-1">
+                                                <template x-for="item in lowStockItems" :key="item.id">
+                                                    <a :href="item.url" class="flex items-center justify-between p-1.5 rounded-lg bg-white border border-slate-200 hover:border-amber-400 hover:bg-amber-50/50 text-[11px] transition group">
+                                                        <span class="font-semibold text-slate-800 truncate mr-2 group-hover:text-amber-900" x-text="item.name"></span>
+                                                        <span class="shrink-0 font-bold text-rose-700 font-mono text-[10px]" x-text="item.stock_quantity + ' left (limit: ' + item.low_stock_threshold + ')'"></span>
+                                                    </a>
+                                                </template>
+                                            </div>
+                                            <a href="{{ route('admin.products.index', ['stock_status' => 'low']) }}" class="text-[11px] text-sky-600 hover:text-sky-800 font-bold mt-2 inline-flex items-center gap-1">
+                                                <span>Manage All Low Stock Items &rarr;</span>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
+
+                            {{-- 3. All Clear Placeholder --}}
                             <template x-if="bellCount === 0">
                                 <div class="p-6 text-center text-slate-400">
                                     <svg class="w-8 h-8 mx-auto text-emerald-500 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                     <p class="font-bold text-slate-700 text-xs">All Clear & Caught Up</p>
-                                    <p class="text-[11px] text-slate-400 mt-0.5">No pending payment receipts awaiting verification.</p>
+                                    <p class="text-[11px] text-slate-400 mt-0.5">No pending payment receipts or low stock alerts.</p>
                                 </div>
                             </template>
                         </div>
@@ -648,7 +681,12 @@
         function adminApp() {
             return {
                 sidebarOpen: false,
-                bellCount: {{ (int) \App\Models\Order::where('order_status', 'pending_payment_verification')->where('delivery_zone', '!=', 'pos_counter')->where('order_number', 'NOT LIKE', 'POS-%')->count() }},
+                pendingPaymentsCount: {{ (int) \App\Models\Order::where('order_status', 'pending_payment_verification')->where('delivery_zone', '!=', 'pos_counter')->where('order_number', 'NOT LIKE', 'POS-%')->count() }},
+                lowStockCount: {{ (int) \App\Models\Product::where('is_active', true)->whereRaw('stock_quantity <= COALESCE(low_stock_threshold, 10)')->count() }},
+                lowStockItems: [],
+                get bellCount() {
+                    return (this.pendingPaymentsCount || 0) + (this.lowStockCount || 0);
+                },
                 notificationsOpen: false,
                 userMenuOpen: false,
                 soundAlertsEnabled: true,
@@ -974,7 +1012,9 @@
                         if (!res.ok) return;
                         let data = await res.json();
 
-                        this.bellCount = data.pending_payments;
+                        this.pendingPaymentsCount = data.pending_payments || 0;
+                        this.lowStockCount = data.low_stock_count || 0;
+                        this.lowStockItems = data.low_stock_items || [];
 
                         if (data.has_new_orders && data.new_orders && data.new_orders.length > 0) {
                             data.new_orders.forEach(ord => {

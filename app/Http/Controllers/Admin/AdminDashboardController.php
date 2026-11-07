@@ -73,15 +73,15 @@ class AdminDashboardController extends Controller
         $pendingPaymentsCount = Order::where('order_status', 'pending_payment_verification')->count();
         $pendingOrdersCount = Order::whereIn('order_status', ['confirmed', 'processing'])->count();
 
-        // Low stock products alert (<= 20 cartons)
+        // Low stock products alert (<= individual low_stock_threshold, default 10)
         $lowStockProducts = Product::where('is_active', true)
-            ->where('stock_quantity', '<=', 20)
+            ->whereRaw('stock_quantity <= COALESCE(low_stock_threshold, 10)')
             ->orderBy('stock_quantity', 'asc')
-            ->take(5)
+            ->take(8)
             ->get();
 
         $lowStockCount = Product::where('is_active', true)
-            ->where('stock_quantity', '<=', 20)
+            ->whereRaw('stock_quantity <= COALESCE(low_stock_threshold, 10)')
             ->count();
 
         // Recent Orders
@@ -203,8 +203,31 @@ class AdminDashboardController extends Controller
                 });
         }
 
+        // Track low stock products based on individual low_stock_threshold
+        $lowStockProducts = Product::where('is_active', true)
+            ->whereRaw('stock_quantity <= COALESCE(low_stock_threshold, 10)')
+            ->orderBy('stock_quantity', 'asc')
+            ->take(6)
+            ->get()
+            ->map(function ($product) {
+                return [
+                    'id' => $product->id,
+                    'name' => $product->name,
+                    'sku' => $product->sku,
+                    'stock_quantity' => (int) $product->stock_quantity,
+                    'low_stock_threshold' => (int) ($product->low_stock_threshold ?? 10),
+                    'url' => route('admin.products.edit', $product),
+                ];
+            });
+        $lowStockCount = Product::where('is_active', true)
+            ->whereRaw('stock_quantity <= COALESCE(low_stock_threshold, 10)')
+            ->count();
+
         return response()->json([
             'pending_payments' => $pendingPayments,
+            'low_stock_count' => $lowStockCount,
+            'low_stock_items' => $lowStockProducts,
+            'total_alerts' => $pendingPayments + $lowStockCount,
             'latest_order_id' => $latestOrderId,
             'latest_order_number' => $latestOnlineOrder?->order_number,
             'latest_order_time' => $latestOnlineOrder?->created_at?->diffForHumans(),

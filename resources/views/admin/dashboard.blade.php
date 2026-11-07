@@ -156,7 +156,7 @@
                 @if($lowStockCount > 0)
                     <a href="{{ route('admin.products.index', ['stock_status' => 'low']) }}" class="inline-flex items-center gap-1 text-[11px] text-rose-800 font-extrabold hover:text-rose-900 group">
                         <span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse"></span>
-                        <span>&le; 20 items left</span>
+                        <span>Below alert threshold</span>
                         <span class="group-hover:translate-x-0.5 transition-transform">&rarr;</span>
                     </a>
                 @else
@@ -337,7 +337,7 @@
                             <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
                             Inventory Health
                         </h2>
-                        <span class="text-[11px] text-slate-400">Safety threshold: &le; 20 items</span>
+                        <span class="text-[11px] text-slate-400">At or below product alert limit</span>
                     </div>
                     <a href="{{ route('admin.products.index') }}" class="text-[11px] font-bold text-sky-600 hover:text-sky-700">
                         View All &rarr;
@@ -358,8 +358,8 @@
                                         <span class="text-slate-500 font-sans font-medium">{{ $p->pack_size }}</span>
                                     </div>
                                 </div>
-                                <span class="px-2 py-0.5 rounded-md text-[11px] font-extrabold shrink-0 {{ $p->stock_quantity <= 5 ? 'bg-rose-100 text-rose-800 border border-rose-200' : 'bg-amber-100 text-amber-800 border border-amber-200' }}">
-                                    {{ $p->stock_quantity }} ctn
+                                <span class="px-2 py-0.5 rounded-md text-[11px] font-extrabold shrink-0 {{ $p->stock_quantity <= ($p->low_stock_threshold ?? 10) ? 'bg-rose-100 text-rose-800 border border-rose-200' : 'bg-amber-100 text-amber-800 border border-amber-200' }}">
+                                    {{ $p->stock_quantity }} left (limit: {{ $p->low_stock_threshold ?? 10 }})
                                 </span>
                             </div>
                         @endforeach

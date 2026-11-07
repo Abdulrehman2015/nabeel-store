@@ -36,11 +36,11 @@ class AdminProductController extends Controller
 
         if ($request->filled('stock_status')) {
             if ($request->query('stock_status') === 'low') {
-                $query->where('stock_quantity', '<=', 20)->where('stock_quantity', '>', 0);
+                $query->whereRaw('stock_quantity <= COALESCE(low_stock_threshold, 10) AND stock_quantity > 0');
             } elseif ($request->query('stock_status') === 'out') {
                 $query->where('stock_quantity', '<=', 0);
             } elseif ($request->query('stock_status') === 'in_stock') {
-                $query->where('stock_quantity', '>', 20);
+                $query->whereRaw('stock_quantity > COALESCE(low_stock_threshold, 10)');
             }
         }
 
@@ -66,7 +66,7 @@ class AdminProductController extends Controller
         $stats = [
             'total' => Product::count(),
             'active' => Product::where('is_active', true)->count(),
-            'low_stock' => Product::where('stock_quantity', '<=', 20)->where('stock_quantity', '>', 0)->count(),
+            'low_stock' => Product::where('is_active', true)->whereRaw('stock_quantity <= COALESCE(low_stock_threshold, 10) AND stock_quantity > 0')->count(),
             'out_of_stock' => Product::where('stock_quantity', '<=', 0)->count(),
             'promo' => Product::where('is_promo', true)->count(),
         ];
@@ -97,6 +97,7 @@ class AdminProductController extends Controller
             'purchase_price' => 'nullable|numeric|min:0',
             'sale_price' => 'nullable|numeric|lt:price',
             'stock_quantity' => 'required|integer|min:0',
+            'low_stock_threshold' => 'nullable|integer|min:0',
             'short_description' => 'nullable|string|max:500',
             'description' => 'nullable|string',
             'featured_image' => 'nullable|image|max:3072',
@@ -118,6 +119,7 @@ class AdminProductController extends Controller
         ]);
 
         $validated['slug'] = !empty($validated['slug']) ? Str::slug($validated['slug']) : Str::slug($validated['name']);
+        $validated['low_stock_threshold'] = $request->filled('low_stock_threshold') ? max(0, (int) $request->input('low_stock_threshold')) : 10;
         if (\Illuminate\Support\Facades\Schema::hasColumn('products', 'purchase_price')) {
             $validated['purchase_price'] = $request->filled('purchase_price') ? (float) $request->input('purchase_price') : 0.00;
         } else {
@@ -174,6 +176,7 @@ class AdminProductController extends Controller
             'purchase_price' => 'nullable|numeric|min:0',
             'sale_price' => 'nullable|numeric|lt:price',
             'stock_quantity' => 'required|integer|min:0',
+            'low_stock_threshold' => 'nullable|integer|min:0',
             'short_description' => 'nullable|string|max:500',
             'description' => 'nullable|string',
             'featured_image' => 'nullable|image|max:3072',
@@ -195,6 +198,7 @@ class AdminProductController extends Controller
         ]);
 
         $validated['slug'] = !empty($validated['slug']) ? Str::slug($validated['slug']) : Str::slug($validated['name']);
+        $validated['low_stock_threshold'] = $request->filled('low_stock_threshold') ? max(0, (int) $request->input('low_stock_threshold')) : 10;
         if (\Illuminate\Support\Facades\Schema::hasColumn('products', 'purchase_price')) {
             $validated['purchase_price'] = $request->filled('purchase_price') ? (float) $request->input('purchase_price') : 0.00;
         } else {

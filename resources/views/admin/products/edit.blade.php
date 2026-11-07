@@ -28,70 +28,9 @@
 @endpush
 
 @section('content')
-<div class="max-w-6xl mx-auto space-y-6" x-data="{
-    title: '{{ old('name', addslashes($product->name)) }}',
-    metaTitle: '{{ old('meta_title', addslashes($product->meta_title ?? '')) }}',
-    metaDesc: '{{ old('meta_description', addslashes($product->meta_description ?? '')) }}',
-    slug: '{{ old('slug', $product->slug) }}',
-    price: '{{ old('price', $product->price) }}',
-    purchasePrice: '{{ old('purchase_price', $product->purchase_price ?? '') }}',
-    salePrice: '{{ old('sale_price', $product->sale_price ?? '') }}',
-    stock: {{ old('stock_quantity', $product->stock_quantity ?? 0) }},
-    isActive: {{ old('is_active', $product->is_active) ? 'true' : 'false' }},
-    isFeatured: {{ old('is_featured', $product->is_featured) ? 'true' : 'false' }},
-    isNew: {{ old('is_new', $product->is_new) ? 'true' : 'false' }},
-    isPromo: {{ old('is_promo', $product->is_promo) ? 'true' : 'false' }},
-    bannerPreview: null,
-    copied: false,
-    
-    get liveUrl() {
-        let base = '{{ url('/product') }}';
-        let s = (this.slug || '').trim();
-        return s ? (base + '/' + s) : '{{ route('product.show', $product->slug) }}';
-    },
-
-    get discountPercent() {
-        let p = parseFloat(this.price);
-        let sp = parseFloat(this.salePrice);
-        if (p > 0 && sp > 0 && sp < p) {
-            return Math.round(((p - sp) / p) * 100);
-        }
-        return 0;
-    },
-
-    get effectiveSellPrice() {
-        let sp = parseFloat(this.salePrice);
-        let p = parseFloat(this.price);
-        if (sp > 0 && sp < p) return sp;
-        return p > 0 ? p : 0;
-    },
-
-    get unitProfit() {
-        let sell = this.effectiveSellPrice;
-        let cost = parseFloat(this.purchasePrice) || 0;
-        return sell > 0 ? (sell - cost).toFixed(2) : '0.00';
-    },
-
-    get profitMargin() {
-        let sell = this.effectiveSellPrice;
-        let cost = parseFloat(this.purchasePrice) || 0;
-        if (sell <= 0) return 0;
-        return Math.round(((sell - cost) / sell) * 100);
-    },
-
-    copyLink() {
-        navigator.clipboard.writeText(this.liveUrl);
-        this.copied = true;
-        setTimeout(() => this.copied = false, 2500);
-    },
-
-    previewBanner(event) {
-        const file = event.target.files[0];
-        if (file) {
-            this.bannerPreview = URL.createObjectURL(file);
-        }
-    }
-}">
+<div class="max-w-6xl mx-auto space-y-6" 
+    @keydown.window="handleGlobalBarcodeKeydown($event)"
+    x-data="productEditForm()">
     <!-- Top Action Bar -->
     <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-slate-200">
         <div>
@@ -166,8 +105,14 @@
 
                     {{-- Product Title --}}
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Product Title *</label>
-                        <input type="text" name="name" x-model="title" required value="{{ old('name', $product->name) }}" placeholder="e.g. Dutch Lady Full Cream Milk 1L" class="w-full text-base font-semibold border-slate-300 rounded-xl focus:ring-4 focus:ring-sky-500/10 focus:border-sky-500 transition px-3.5 py-2.5 bg-slate-50/40 hover:bg-white focus:bg-white">
+                        <div class="flex items-center justify-between mb-1.5">
+                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">Product Title *</label>
+                            <span class="text-[10px] text-sky-600 font-semibold flex items-center gap-1">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+                                <span>Used to generate clean URL slug automatically</span>
+                            </span>
+                        </div>
+                        <input type="text" name="name" x-model="title" @input="onTitleInput()" required value="{{ old('name', $product->name) }}" placeholder="e.g. Dutch Lady Full Cream Milk 1L" class="w-full text-base font-semibold border-slate-300 rounded-xl focus:ring-4 focus:ring-sky-500/10 focus:border-sky-500 transition px-3.5 py-2.5 bg-slate-50/40 hover:bg-white focus:bg-white">
                     </div>
 
                     {{-- Dedicated Live Hyperlink Banner --}}
@@ -199,20 +144,59 @@
                     {{-- SKU and URL Slug Row --}}
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">SKU / Barcode *</label>
-                            <div class="relative rounded-xl shadow-2xs">
-                                <input type="text" name="sku" required value="{{ old('sku', $product->sku) }}" placeholder="e.g. BEV-DL-001" class="w-full text-xs font-mono font-bold border-slate-300 rounded-xl focus:ring-4 focus:ring-sky-500/10 focus:border-sky-500 py-2.5 px-3 bg-slate-50/40 hover:bg-white focus:bg-white">
+                            <div class="flex items-center justify-between mb-1">
+                                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">SKU / Barcode *</label>
+                                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 transition"
+                                    :class="scanSuccessFlash ? 'bg-emerald-100 text-emerald-800 ring-2 ring-emerald-400 font-black' : 'bg-slate-100 text-slate-600 border border-slate-200'">
+                                    <svg class="w-3 h-3 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
+                                    <span x-text="scanSuccessFlash ? '⚡ Barcode Scanned!' : 'Scanner Active'"></span>
+                                </span>
                             </div>
-                            <p class="text-[10px] text-slate-400 mt-1">Unique store stock keeping unit or manufacturer barcode.</p>
+                            <div class="relative rounded-xl shadow-2xs">
+                                <input 
+                                    type="text" 
+                                    name="sku" 
+                                    x-ref="skuField"
+                                    x-model="sku" 
+                                    required 
+                                    value="{{ old('sku', $product->sku) }}" 
+                                    placeholder="e.g. BEV-DL-001 or 955600123456" 
+                                    class="w-full text-xs font-mono font-bold border-slate-300 rounded-xl focus:ring-4 focus:ring-sky-500/10 focus:border-sky-500 py-2.5 px-3 bg-slate-50/40 hover:bg-white focus:bg-white transition"
+                                    :class="scanSuccessFlash ? 'ring-4 ring-emerald-400 border-emerald-500 bg-emerald-50/40' : ''"
+                                >
+                            </div>
+                            <div class="flex items-center justify-between text-[10px] text-slate-400 mt-1">
+                                <span>Scan barcode anywhere on page &bull; isolated from URL</span>
+                                <span x-show="lastScannedBarcode" class="text-emerald-700 font-bold" x-text="'Scanned: ' + lastScannedBarcode"></span>
+                            </div>
                         </div>
 
                         <div>
-                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">URL Slug</label>
+                            <div class="flex items-center justify-between mb-1">
+                                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">URL Slug</label>
+                                <button 
+                                    type="button" 
+                                    @click="resetSlugToTitle()" 
+                                    class="text-[10px] font-bold text-sky-600 hover:text-sky-800 hover:underline cursor-pointer flex items-center gap-1"
+                                    title="Auto-sync slug cleanly from product title"
+                                >
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                                    <span>Sync from Title</span>
+                                </button>
+                            </div>
                             <div class="flex rounded-xl shadow-2xs border border-slate-300 overflow-hidden focus-within:border-sky-500 focus-within:ring-4 focus-within:ring-sky-500/10 bg-slate-50 transition">
                                 <span class="inline-flex items-center px-2.5 text-[11px] font-mono text-slate-400 bg-slate-100 border-r border-slate-200 select-none">
                                     /product/
                                 </span>
-                                <input type="text" name="slug" x-model="slug" value="{{ old('slug', $product->slug) }}" placeholder="product-url-slug" class="flex-1 min-w-0 block w-full px-3 py-2 text-xs font-mono font-semibold text-slate-800 bg-white border-0 focus:ring-0 focus:outline-none">
+                                <input 
+                                    type="text" 
+                                    name="slug" 
+                                    x-model="slug" 
+                                    @input="onSlugInput()" 
+                                    value="{{ old('slug', $product->slug) }}" 
+                                    placeholder="product-url-slug" 
+                                    class="flex-1 min-w-0 block w-full px-3 py-2 text-xs font-mono font-semibold text-slate-800 bg-white border-0 focus:ring-0 focus:outline-none"
+                                >
                             </div>
                             <p class="text-[10px] text-slate-400 mt-1">
                                 Hyperlink: <a :href="liveUrl" target="_blank" class="text-sky-600 hover:underline font-mono" x-text="liveUrl"></a>
@@ -485,25 +469,43 @@
                             <input type="number" name="stock_quantity" x-model.number="stock" required min="0" placeholder="0" class="w-full text-center text-base font-black text-slate-900 border-0 focus:ring-0 focus:outline-none">
                             <button type="button" @click="stock = stock + 1" class="px-3.5 py-2.5 text-slate-600 hover:bg-slate-100 font-bold text-sm select-none cursor-pointer bg-slate-50">+</button>
                         </div>
+                    </div>
 
-                        {{-- Stock Status Indicator --}}
-                        <div class="mt-2.5">
-                            <template x-if="stock > 20">
-                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                                    <span x-text="stock + ' units available (Healthy Stock)'"></span>
-                                </span>
-                            </template>
-                            <template x-if="stock > 0 && stock <= 20">
-                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
-                                    <span x-text="stock + ' units left (Low Stock Warning)'"></span>
-                                </span>
-                            </template>
+                    {{-- Low Stock Alert Quantity Field --}}
+                    <div class="pt-3 border-t border-slate-100 space-y-2">
+                        <div class="flex items-center justify-between">
+                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">Low Stock Alert Quantity *</label>
+                            <span class="text-[10px] font-black text-amber-800 bg-amber-100/90 border border-amber-200/90 px-2 py-0.5 rounded-full flex items-center gap-1">
+                                <span>⚠️ Threshold</span>
+                            </span>
+                        </div>
+                        <div class="flex items-center border border-slate-300 rounded-xl overflow-hidden shadow-2xs focus-within:border-amber-500 focus-within:ring-4 focus-within:ring-amber-500/10 bg-slate-50 transition">
+                            <button type="button" @click="lowStockThreshold = Math.max(0, lowStockThreshold - 1)" class="px-3 py-2 text-slate-600 hover:bg-slate-200 font-bold text-sm select-none cursor-pointer bg-slate-100 border-r border-slate-200">-</button>
+                            <input type="number" name="low_stock_threshold" x-model.number="lowStockThreshold" required min="0" placeholder="10" class="w-full text-center text-sm font-black text-slate-900 bg-white border-0 focus:ring-0 focus:outline-none py-2">
+                            <button type="button" @click="lowStockThreshold = lowStockThreshold + 1" class="px-3 py-2 text-slate-600 hover:bg-slate-200 font-bold text-sm select-none cursor-pointer bg-slate-100 border-l border-slate-200">+</button>
+                        </div>
+                        <p class="text-[10px] text-slate-400">
+                            Notify admin when available stock drops to or below this quantity.
+                        </p>
+
+                        {{-- Dynamic Stock Health Status Badge --}}
+                        <div class="pt-1">
                             <template x-if="stock <= 0">
                                 <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200">
                                     <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
                                     <span>Out of Stock (Shows as Sold Out)</span>
+                                </span>
+                            </template>
+                            <template x-if="stock > 0 && stock <= lowStockThreshold">
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-800 border border-amber-300 ring-2 ring-amber-100">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                                    <span x-text="'⚠️ Low Stock Warning: ' + stock + ' units remaining (Threshold &le; ' + lowStockThreshold + ')'"></span>
+                                </span>
+                            </template>
+                            <template x-if="stock > lowStockThreshold">
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                    <span x-text="stock + ' units available (Healthy Stock &bull; Alert at &le; ' + lowStockThreshold + ')'"></span>
                                 </span>
                             </template>
                         </div>
@@ -622,6 +624,217 @@
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
 <script>
+    function productEditForm() {
+        return {
+            title: @json(old('name', $product->name)),
+            metaTitle: @json(old('meta_title', $product->meta_title ?? '')),
+            metaDesc: @json(old('meta_description', $product->meta_description ?? '')),
+            slug: @json(old('slug', $product->slug)),
+            sku: @json(old('sku', $product->sku ?? '')),
+            price: @json(old('price', $product->price)),
+            purchasePrice: @json(old('purchase_price', $product->purchase_price ?? '')),
+            salePrice: @json(old('sale_price', $product->sale_price ?? '')),
+            stock: {{ (int) old('stock_quantity', $product->stock_quantity ?? 0) }},
+            lowStockThreshold: {{ (int) old('low_stock_threshold', $product->low_stock_threshold ?? 10) }},
+            isActive: {{ old('is_active', $product->is_active) ? 'true' : 'false' }},
+            isFeatured: {{ old('is_featured', $product->is_featured) ? 'true' : 'false' }},
+            isNew: {{ old('is_new', $product->is_new) ? 'true' : 'false' }},
+            isPromo: {{ old('is_promo', $product->is_promo) ? 'true' : 'false' }},
+            bannerPreview: null,
+            copied: false,
+            autoSlug: false,
+            barcodeScanBuffer: '',
+            lastScanTime: 0,
+            scanAutoTimeout: null,
+            lastScannedBarcode: '',
+            scanSuccessFlash: false,
+            audioCtx: null,
+            preScanFocusTarget: null,
+            preScanValue: '',
+
+            slugify(text) {
+                return (text || '')
+                    .toString()
+                    .toLowerCase()
+                    .trim()
+                    .replace(/[\s_]+/g, '-')
+                    .replace(/&/g, '-and-')
+                    .replace(/[^a-z0-9\-]+/g, '')
+                    .replace(/\-\-+/g, '-')
+                    .replace(/^-+/, '')
+                    .replace(/-+$/, '');
+            },
+
+            onTitleInput() {
+                if (!this.metaTitle) {
+                    this.metaTitle = this.title;
+                }
+                if (this.autoSlug) {
+                    this.slug = this.slugify(this.title);
+                }
+            },
+
+            onSlugInput() {
+                this.autoSlug = false;
+                this.slug = this.slugify(this.slug);
+            },
+
+            resetSlugToTitle() {
+                this.autoSlug = true;
+                this.slug = this.slugify(this.title);
+            },
+
+            playScannerBeep() {
+                try {
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    if (!AudioContext) return;
+                    if (!this.audioCtx) this.audioCtx = new AudioContext();
+                    if (this.audioCtx.state === 'suspended') this.audioCtx.resume();
+                    const osc = this.audioCtx.createOscillator();
+                    const gain = this.audioCtx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(1046.5, this.audioCtx.currentTime);
+                    gain.gain.setValueAtTime(0.2, this.audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, this.audioCtx.currentTime + 0.12);
+                    osc.connect(gain);
+                    gain.connect(this.audioCtx.destination);
+                    osc.start();
+                    osc.stop(this.audioCtx.currentTime + 0.12);
+                } catch(e) {}
+            },
+
+            applyScannedBarcode(code) {
+                if (!code) return;
+                this.sku = code;
+                this.lastScannedBarcode = code;
+                this.scanSuccessFlash = true;
+                setTimeout(() => this.scanSuccessFlash = false, 2500);
+
+                if (this.preScanFocusTarget) {
+                    if (this.preScanFocusTarget.name === 'name') {
+                        this.title = this.preScanValue;
+                        if (this.autoSlug) {
+                            this.slug = this.slugify(this.title);
+                        }
+                    } else if (this.preScanFocusTarget.value !== undefined) {
+                        this.preScanFocusTarget.value = this.preScanValue;
+                    }
+                    this.preScanFocusTarget = null;
+                }
+
+                const skuEl = this.$refs.skuField || document.querySelector('input[name="sku"]');
+                if (skuEl) {
+                    skuEl.focus();
+                    skuEl.select();
+                }
+                this.playScannerBeep();
+            },
+
+            handleGlobalBarcodeKeydown(e) {
+                if (e.ctrlKey || e.metaKey || e.altKey) return;
+
+                const now = Date.now();
+                const timeDiff = now - this.lastScanTime;
+                this.lastScanTime = now;
+
+                if (e.key === 'Enter' || e.key === 'Tab') {
+                    if (this.barcodeScanBuffer.length >= 3) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const code = this.barcodeScanBuffer.trim();
+                        this.barcodeScanBuffer = '';
+                        this.applyScannedBarcode(code);
+                        return;
+                    }
+                }
+
+                if (e.key && e.key.length === 1) {
+                    const activeEl = document.activeElement;
+                    const isSkuInput = (activeEl === this.$refs?.skuField) || (activeEl && activeEl.name === 'sku');
+
+                    if (timeDiff < 65) {
+                        if (!this.preScanFocusTarget && activeEl && activeEl !== document.body) {
+                            this.preScanFocusTarget = activeEl;
+                            this.preScanValue = activeEl.value || '';
+                        }
+                        this.barcodeScanBuffer += e.key;
+
+                        if (activeEl && !isSkuInput && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA' || activeEl.isContentEditable)) {
+                            e.preventDefault();
+                        }
+                    } else {
+                        if (!isSkuInput) {
+                            this.barcodeScanBuffer = e.key;
+                            this.preScanFocusTarget = activeEl;
+                            this.preScanValue = activeEl ? (activeEl.value || '') : '';
+                        } else {
+                            this.barcodeScanBuffer = '';
+                        }
+                    }
+
+                    if (this.scanAutoTimeout) clearTimeout(this.scanAutoTimeout);
+                    if (this.barcodeScanBuffer.length >= 4) {
+                        this.scanAutoTimeout = setTimeout(() => {
+                            if (this.barcodeScanBuffer.length >= 4) {
+                                const code = this.barcodeScanBuffer.trim();
+                                this.barcodeScanBuffer = '';
+                                this.applyScannedBarcode(code);
+                            }
+                        }, 90);
+                    }
+                }
+            },
+
+            get liveUrl() {
+                let base = @json(url('/product'));
+                let s = (this.slug || '').trim();
+                return s ? (base + '/' + s) : @json(route('product.show', $product->slug));
+            },
+
+            get discountPercent() {
+                let p = parseFloat(this.price);
+                let sp = parseFloat(this.salePrice);
+                if (p > 0 && sp > 0 && sp < p) {
+                    return Math.round(((p - sp) / p) * 100);
+                }
+                return 0;
+            },
+
+            get effectiveSellPrice() {
+                let sp = parseFloat(this.salePrice);
+                let p = parseFloat(this.price);
+                if (sp > 0 && sp < p) return sp;
+                return p > 0 ? p : 0;
+            },
+
+            get unitProfit() {
+                let sell = this.effectiveSellPrice;
+                let cost = parseFloat(this.purchasePrice) || 0;
+                return sell > 0 ? (sell - cost).toFixed(2) : '0.00';
+            },
+
+            get profitMargin() {
+                let sell = this.effectiveSellPrice;
+                let cost = parseFloat(this.purchasePrice) || 0;
+                if (sell <= 0) return 0;
+                return Math.round(((sell - cost) / sell) * 100);
+            },
+
+            copyLink() {
+                navigator.clipboard.writeText(this.liveUrl);
+                this.copied = true;
+                setTimeout(() => this.copied = false, 2500);
+            },
+
+            previewBanner(event) {
+                const file = event.target.files[0];
+                if (file) {
+                    this.bannerPreview = URL.createObjectURL(file);
+                }
+            }
+        };
+    }
+
     document.addEventListener('DOMContentLoaded', function () {
         const quill = new Quill('#quillEditorContainer', {
             theme: 'snow',

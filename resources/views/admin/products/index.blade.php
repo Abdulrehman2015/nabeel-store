@@ -155,8 +155,8 @@
                 <div class="lg:col-span-2">
                     <select name="stock_status" class="w-full text-xs py-2.5 px-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 bg-slate-50/50 text-slate-700">
                         <option value="">All Stock Levels</option>
-                        <option value="in_stock" {{ request('stock_status') === 'in_stock' ? 'selected' : '' }}>In Stock (> 20)</option>
-                        <option value="low" {{ request('stock_status') === 'low' ? 'selected' : '' }}>Low Stock (&le; 20)</option>
+                        <option value="in_stock" {{ request('stock_status') === 'in_stock' ? 'selected' : '' }}>In Stock (Optimal)</option>
+                        <option value="low" {{ request('stock_status') === 'low' ? 'selected' : '' }}>Low Stock (&le; Alert Limit)</option>
                         <option value="out" {{ request('stock_status') === 'out' ? 'selected' : '' }}>Out of Stock (0)</option>
                     </select>
                 </div>
@@ -288,13 +288,13 @@
                                         <span class="w-1.5 h-1.5 rounded-full bg-rose-600"></span>
                                         Out of Stock (0)
                                     </span>
-                                @elseif($product->stock_quantity <= 20)
-                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-black bg-amber-50 text-amber-800 border border-amber-200">
+                                @elseif($product->is_low_stock)
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-black bg-amber-50 text-amber-800 border border-amber-200" title="Low stock threshold: {{ $product->effective_low_stock_threshold }}">
                                         <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
-                                        Low: {{ $product->stock_quantity }} units
+                                        Low: {{ $product->stock_quantity }} (limit: {{ $product->effective_low_stock_threshold }})
                                     </span>
                                 @else
-                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200" title="Alert threshold: {{ $product->effective_low_stock_threshold }}">
                                         <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                                         {{ $product->stock_quantity }} units
                                     </span>

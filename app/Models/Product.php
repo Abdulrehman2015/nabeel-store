@@ -24,6 +24,7 @@ class Product extends Model
         'purchase_price',
         'sale_price',
         'stock_quantity',
+        'low_stock_threshold',
         'short_description',
         'description',
         'featured_image',
@@ -50,6 +51,7 @@ class Product extends Model
         'purchase_price' => 'decimal:2',
         'sale_price' => 'decimal:2',
         'stock_quantity' => 'integer',
+        'low_stock_threshold' => 'integer',
         'is_active' => 'boolean',
         'is_featured' => 'boolean',
         'is_new' => 'boolean',
@@ -94,6 +96,23 @@ class Product extends Model
     public function scopeInStock($query)
     {
         return $query->where('stock_quantity', '>', 0);
+    }
+
+    public function scopeLowStock($query)
+    {
+        return $query->where('is_active', true)
+            ->whereRaw('stock_quantity <= COALESCE(low_stock_threshold, 10)')
+            ->where('stock_quantity', '>', 0);
+    }
+
+    public function getEffectiveLowStockThresholdAttribute(): int
+    {
+        return (int) ($this->low_stock_threshold ?? 10);
+    }
+
+    public function getIsLowStockAttribute(): bool
+    {
+        return $this->stock_quantity <= $this->effective_low_stock_threshold && $this->stock_quantity > 0;
     }
 
     public function getCurrentPriceAttribute(): float
