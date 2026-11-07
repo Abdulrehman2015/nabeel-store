@@ -453,5 +453,84 @@ class AdminSettingsController extends Controller
 
         return redirect()->route('admin.settings.homepage')->with('success', 'Slide banner removed successfully.');
     }
+
+    /**
+     * Store Data Reset & Cleanup Tool
+     */
+    public function dataReset()
+    {
+        $counts = [
+            'products' => \App\Models\Product::count(),
+            'categories' => \App\Models\Category::count(),
+            'brands' => \App\Models\Brand::count(),
+            'customers' => \App\Models\User::where('role', 'customer')->count(),
+        ];
+
+        return view('admin.settings.data_reset', compact('counts'));
+    }
+
+    public function processDataReset(Request $request)
+    {
+        $request->validate([
+            'confirm_text' => 'required|in:DELETE,delete,CONFIRM,confirm',
+        ], [
+            'confirm_text.in' => 'You must type DELETE to confirm data wipe.',
+        ]);
+
+        $deleted = [];
+
+        if ($request->boolean('wipe_products')) {
+            $count = \App\Models\Product::count();
+            \App\Models\Product::query()->each(function ($p) {
+                if ($p->featured_image && !str_starts_with($p->featured_image, 'http')) {
+                    @\Illuminate\Support\Facades\Storage::disk('public')->delete($p->featured_image);
+                }
+                $p->delete();
+            });
+            \Illuminate\Support\Facades\DB::table('products')->delete();
+            $deleted[] = "{$count} Products";
+        }
+
+        if ($request->boolean('wipe_categories')) {
+            $count = \App\Models\Category::count();
+            \App\Models\Category::query()->each(function ($c) {
+                if ($c->image && !str_starts_with($c->image, 'http')) {
+                    @\Illuminate\Support\Facades\Storage::disk('public')->delete($c->image);
+                }
+                $c->delete();
+            });
+            \Illuminate\Support\Facades\DB::table('categories')->delete();
+            $deleted[] = "{$count} Categories";
+        }
+
+        if ($request->boolean('wipe_brands')) {
+            $count = \App\Models\Brand::count();
+            \App\Models\Brand::query()->each(function ($b) {
+                if ($b->logo && !str_starts_with($b->logo, 'http')) {
+                    @\Illuminate\Support\Facades\Storage::disk('public')->delete($b->logo);
+                }
+                $b->delete();
+            });
+            \Illuminate\Support\Facades\DB::table('brands')->delete();
+            $deleted[] = "{$count} Brands";
+        }
+
+        if ($request->boolean('wipe_customers')) {
+            $customers = \App\Models\User::where('role', 'customer')
+                ->where('id', '!=', auth()->id())
+                ->get();
+            $count = $customers->count();
+            foreach ($customers as $c) {
+                $c->delete();
+            }
+            $deleted[] = "{$count} Customers";
+        }
+
+        $summary = empty($deleted) ? 'No data categories were selected.' : implode(', ', $deleted) . ' permanently deleted.';
+
+        ActivityLog::log('store.data_reset', null, ['summary' => $summary]);
+
+        return redirect()->route('admin.data-reset')->with('success', "Store reset completed: {$summary}");
+    }
 }
 

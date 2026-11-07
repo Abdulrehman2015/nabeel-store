@@ -55,12 +55,15 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::post('pos/customer', [AdminPosController::class, 'quickCustomer'])->name('pos.customer');
 
     // Categories
+    Route::delete('categories/delete-all', [AdminCategoryController::class, 'deleteAll'])->name('categories.delete-all');
     Route::resource('categories', AdminCategoryController::class);
 
     // Brands
+    Route::delete('brands/delete-all', [AdminBrandController::class, 'deleteAll'])->name('brands.delete-all');
     Route::resource('brands', AdminBrandController::class);
 
     // Products & Bulk Import/Export
+    Route::delete('products/delete-all', [AdminProductController::class, 'deleteAll'])->name('products.delete-all');
     Route::get('products/export', [AdminProductImportExportController::class, 'export'])->name('products.export');
     Route::post('products/import', [AdminProductImportExportController::class, 'import'])->name('products.import');
     Route::resource('products', AdminProductController::class);
@@ -92,10 +95,15 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('reports/export', [AdminReportController::class, 'export'])->name('reports.export');
 
     // Customers
+    Route::delete('customers/delete-all', [AdminCustomerController::class, 'deleteAll'])->name('customers.delete-all');
     Route::get('customers', [AdminCustomerController::class, 'index'])->name('customers.index');
     Route::get('customers/{user}', [AdminCustomerController::class, 'show'])->name('customers.show');
     Route::post('customers/{user}/toggle-status', [AdminCustomerController::class, 'toggleStatus'])->name('customers.toggle-status');
     Route::delete('customers/{user}', [AdminCustomerController::class, 'destroy'])->name('customers.destroy');
+
+    // System Data Cleanup / Store Reset Tool
+    Route::get('data-reset', [AdminSettingsController::class, 'dataReset'])->name('data-reset');
+    Route::post('data-reset', [AdminSettingsController::class, 'processDataReset'])->name('data-reset.process');
 
     // Banners / Slider
     Route::resource('banners', AdminBannerController::class);

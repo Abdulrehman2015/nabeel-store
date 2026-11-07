@@ -3,7 +3,7 @@
 @section('title', 'Products Management')
 
 @section('content')
-<div class="space-y-6" x-data="{ importModal: false }">
+<div class="space-y-6" x-data="{ importModal: false, deleteAllModal: false, confirmInput: '' }">
 
     {{-- 1. Top Header with Breadcrumbs & Action Bar --}}
     <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-2 border-b border-slate-200">
@@ -44,6 +44,16 @@
                 <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                 <span>Export CSV</span>
             </a>
+
+            <button 
+                type="button" 
+                @click="deleteAllModal = true; confirmInput = ''" 
+                class="px-3.5 py-2 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-xl text-xs font-bold text-rose-700 shadow-2xs hover:border-rose-400 transition flex items-center gap-1.5 cursor-pointer"
+                title="Delete all products from store catalog"
+            >
+                <svg class="w-4 h-4 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                <span>Delete All</span>
+            </button>
 
             <a 
                 href="{{ route('admin.products.create') }}" 
@@ -452,6 +462,66 @@
                     </button>
                     <button type="submit" class="px-5 py-2.5 bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs rounded-xl shadow-md transition">
                         Upload & Import
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {{-- Delete All Products Confirmation Modal --}}
+    <div 
+        x-show="deleteAllModal" 
+        x-cloak 
+        class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4"
+    >
+        <div 
+            @click.away="deleteAllModal = false"
+            x-show="deleteAllModal"
+            x-transition:enter="transition ease-out duration-200"
+            x-transition:enter-start="opacity-0 scale-95"
+            x-transition:enter-end="opacity-100 scale-100"
+            class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-rose-200 relative"
+        >
+            <div class="w-12 h-12 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center mx-auto mb-4">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+            </div>
+            
+            <h3 class="text-lg font-black text-slate-900 text-center mb-1">Delete All Products?</h3>
+            <p class="text-xs text-slate-500 text-center leading-relaxed mb-4">
+                This will permanently delete <strong class="text-rose-600">ALL {{ number_format($stats['total'] ?? 0) }} products</strong> from your catalog. This action cannot be reversed.
+            </p>
+
+            <form method="POST" action="{{ route('admin.products.delete-all') }}" class="space-y-4">
+                @csrf
+                @method('DELETE')
+
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                        Type <span class="text-rose-600 font-mono">DELETE</span> to confirm:
+                    </label>
+                    <input 
+                        type="text" 
+                        x-model="confirmInput" 
+                        placeholder="Type DELETE" 
+                        class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-mono font-bold text-slate-900 focus:bg-white focus:border-rose-500 focus:ring-1 focus:ring-rose-500"
+                        required
+                    >
+                </div>
+
+                <div class="flex items-center justify-end gap-2 pt-2">
+                    <button 
+                        type="button" 
+                        @click="deleteAllModal = false" 
+                        class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition"
+                    >
+                        Cancel
+                    </button>
+                    <button 
+                        type="submit" 
+                        :disabled="confirmInput.trim().toUpperCase() !== 'DELETE'"
+                        class="px-4 py-2 bg-rose-600 hover:bg-rose-500 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-bold rounded-xl shadow-md shadow-rose-600/30 transition cursor-pointer"
+                    >
+                        Permanently Delete All
                     </button>
                 </div>
             </form>

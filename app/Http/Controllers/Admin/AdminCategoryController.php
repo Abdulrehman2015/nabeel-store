@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\ActivityLog;
 use App\Models\Category;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class AdminCategoryController extends Controller
@@ -128,5 +130,24 @@ class AdminCategoryController extends Controller
         $category->delete();
 
         return redirect()->route('admin.categories.index')->with('success', 'Category deleted successfully.');
+    }
+
+    public function deleteAll(Request $request)
+    {
+        $count = Category::count();
+
+        Category::query()->each(function ($cat) {
+            if ($cat->image && !str_starts_with($cat->image, 'http')) {
+                @Storage::disk('public')->delete($cat->image);
+            }
+            $cat->delete();
+        });
+
+        DB::table('categories')->delete();
+
+        ActivityLog::log('categories.deleted_all', null, ['count' => $count]);
+
+        return redirect()->route('admin.categories.index')
+            ->with('success', "All {$count} categories have been permanently deleted.");
     }
 }

@@ -134,5 +134,26 @@ class AdminCustomerController extends Controller
         return redirect()->route('admin.customers.index')
             ->with('success', "Customer '{$customerName}' has been permanently deleted.");
     }
+
+    public function deleteAll(Request $request)
+    {
+        $customers = User::where('role', 'customer')
+            ->where('id', '!=', auth()->id())
+            ->get();
+
+        $count = $customers->count();
+
+        foreach ($customers as $customer) {
+            $customer->delete();
+        }
+
+        ActivityLog::log('customers.deleted_all', null, [
+            'count' => $count,
+            'deleted_by' => auth()->id(),
+        ]);
+
+        return redirect()->route('admin.customers.index')
+            ->with('success', "All {$count} registered customer accounts have been permanently deleted.");
+    }
 }
 

@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\ActivityLog;
 use App\Models\Brand;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class AdminBrandController extends Controller
@@ -76,6 +78,25 @@ class AdminBrandController extends Controller
         $brand->delete();
 
         return redirect()->route('admin.brands.index')->with('success', 'Brand deleted.');
+    }
+
+    public function deleteAll(Request $request)
+    {
+        $count = Brand::count();
+
+        Brand::query()->each(function ($brand) {
+            if ($brand->logo && !str_starts_with($brand->logo, 'http')) {
+                @Storage::disk('public')->delete($brand->logo);
+            }
+            $brand->delete();
+        });
+
+        DB::table('brands')->delete();
+
+        ActivityLog::log('brands.deleted_all', null, ['count' => $count]);
+
+        return redirect()->route('admin.brands.index')
+            ->with('success', "All {$count} brands have been permanently deleted.");
     }
 }
 

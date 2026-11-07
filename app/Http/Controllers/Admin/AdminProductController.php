@@ -9,6 +9,8 @@ use App\Models\Category;
 use App\Models\Product;
 use App\Models\ProductImage;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class AdminProductController extends Controller
@@ -248,6 +250,25 @@ class AdminProductController extends Controller
         $product->delete();
 
         return redirect()->route('admin.products.index')->with('success', 'Product deleted.');
+    }
+
+    public function deleteAll(Request $request)
+    {
+        $count = Product::count();
+
+        Product::query()->each(function ($product) {
+            if ($product->featured_image && !str_starts_with($product->featured_image, 'http')) {
+                @Storage::disk('public')->delete($product->featured_image);
+            }
+            $product->delete();
+        });
+
+        DB::table('products')->delete();
+
+        ActivityLog::log('products.deleted_all', null, ['count' => $count]);
+
+        return redirect()->route('admin.products.index')
+            ->with('success', "All {$count} products have been permanently deleted.");
     }
 }
 
