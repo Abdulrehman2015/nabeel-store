@@ -1412,10 +1412,10 @@ function posApp() {
             showCustomer: true,
             storeName: {!! json_encode(html_entity_decode(setting('site_name', 'N&J MINI MART'), ENT_QUOTES, 'UTF-8')) !!},
             storeTagline: 'Retail Mart & Everyday Essentials',
-            storeAddress: 'Puchong Central Distribution Hub, Selangor',
+            storeAddress: "34, Jalan Perkasa 3, Taman Ungku Tun Aminah, 81300 Skudai, Johor Darul Ta'zim, Malaysia",
             storePhone: '+60 12-859 9900',
             regNo: '',
-            footerMessage: 'Thank you for Shopping at N&J Mini Mart',
+            footerMessage: 'Thank you for shopping at N&J Mini Mart',
         },
 
         initPos() {
@@ -1429,14 +1429,22 @@ function posApp() {
                 if (saved) this.heldOrders = JSON.parse(saved);
             } catch(e) {}
 
-            // Load saved thermal printer configuration
+            // Load saved thermal printer configuration & auto-migrate stale address/footer
             try {
                 const savedPrinter = localStorage.getItem('pos_thermal_printer_config');
                 if (savedPrinter) {
-                    this.printerConfig = Object.assign({}, this.printerConfig, JSON.parse(savedPrinter));
+                    const parsed = JSON.parse(savedPrinter);
+                    if (!parsed.storeAddress || parsed.storeAddress.includes('Puchong')) {
+                        parsed.storeAddress = "34, Jalan Perkasa 3, Taman Ungku Tun Aminah, 81300 Skudai, Johor Darul Ta'zim, Malaysia";
+                    }
+                    if (!parsed.footerMessage || parsed.footerMessage.includes('non-refundable') || parsed.footerMessage.includes('Exchange allowed')) {
+                        parsed.footerMessage = 'Thank you for shopping at N&J Mini Mart';
+                    }
+                    this.printerConfig = Object.assign({}, this.printerConfig, parsed);
                     if (this.printerConfig.storeName) {
                         this.printerConfig.storeName = this.printerConfig.storeName.replace(/&amp;/g, '&');
                     }
+                    localStorage.setItem('pos_thermal_printer_config', JSON.stringify(this.printerConfig));
                 }
             } catch(e) {}
 
@@ -2342,10 +2350,10 @@ function posApp() {
                 showCustomer: true,
                 storeName: {!! json_encode(html_entity_decode(setting('site_name', 'N&J MINI MART'), ENT_QUOTES, 'UTF-8')) !!},
                 storeTagline: 'Retail Mart & Everyday Essentials',
-                storeAddress: 'Puchong Central Distribution Hub, Selangor',
+                storeAddress: "34, Jalan Perkasa 3, Taman Ungku Tun Aminah, 81300 Skudai, Johor Darul Ta'zim, Malaysia",
                 storePhone: '+60 12-859 9900',
                 regNo: '',
-                footerMessage: 'Thank you for Shopping at N&J Mini Mart',
+                footerMessage: 'Thank you for shopping at N&J Mini Mart',
             };
             localStorage.removeItem('pos_thermal_printer_config');
             this.showToast('Printer settings restored to defaults (58mm)', '🔄', 'info');

@@ -14,10 +14,21 @@
 
     $storeName = request('header_name') ?: setting('site_name', 'N&J MINI MART');
     $storeTagline = request('tagline') ?: 'Retail Mart & Everyday Essentials';
-    $storeAddress = request('address') ?: 'Puchong Central Distribution Hub, Selangor';
+
+    // The user's new address:
+    $defaultAddress = "34, Jalan Perkasa 3, Taman Ungku Tun Aminah, 81300 Skudai, Johor Darul Ta'zim, Malaysia";
+    $rawAddress = request('address');
+    $storeAddress = ($rawAddress && !str_contains($rawAddress, 'Puchong')) ? $rawAddress : $defaultAddress;
+
     $storePhone = request('phone') ?: '+60 12-859 9900';
-    $footerMessage = request('footer') ?: 'Thank you for Shopping at N&J Mini Mart';
-    $orderScanUrl = route('checkout.success', $order->order_number);
+
+    // Single line footer message requested by user:
+    $rawFooter = request('footer');
+    if (!$rawFooter || str_contains($rawFooter, 'non-refundable') || str_contains($rawFooter, 'Exchange allowed')) {
+        $footerMessage = 'Thank you for shopping at N&J Mini Mart';
+    } else {
+        $footerMessage = $rawFooter;
+    }
 @endphp
 <!DOCTYPE html>
 <html lang="en">
@@ -26,9 +37,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Receipt #{{ $order->order_number }} - {{ $storeName }}</title>
     @vite(['resources/css/app.css'])
-    {{-- High-resolution client barcode and QR code libraries --}}
+    {{-- High-resolution client barcode library --}}
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
     <style>
         :root {
             --paper-width: {{ $paperWidth }};
@@ -176,18 +186,19 @@
             {{-- Store Branding & Header (High-contrast, Large & Visible) --}}
             <div class="text-center pb-2 border-b border-dashed border-black">
                 @if($showLogo)
-                    <div class="flex items-center justify-center mb-1.5">
+                    <div class="flex items-center justify-center mb-1">
                         <img 
+                            id="receipt-store-logo-{{ $copyIndex }}"
                             src="{{ asset('images/logo.png') }}" 
                             alt="{{ $storeName }}" 
-                            class="h-12 sm:h-14 max-w-[150px] object-contain mx-auto"
-                            style="filter: grayscale(100%) contrast(350%) brightness(0.65); -webkit-print-color-adjust: exact; print-color-adjust: exact;"
+                            class="receipt-logo h-14 sm:h-16 max-w-[170px] object-contain mx-auto"
+                            style="filter: grayscale(100%) contrast(400%) brightness(0.55); -webkit-print-color-adjust: exact; print-color-adjust: exact;"
                         >
                     </div>
                 @endif
                 <h1 
                     class="{{ $is58mm ? 'text-sm sm:text-base' : 'text-base sm:text-lg' }} font-black tracking-wide uppercase text-black"
-                    style="font-size: {{ $is58mm ? '14px' : '17px' }} !important; font-weight: 900 !important; color: #000000 !important; line-height: 1.2; letter-spacing: 0.5px;"
+                    style="font-size: {{ $is58mm ? '15px' : '18px' }} !important; font-weight: 900 !important; color: #000000 !important; line-height: 1.2; letter-spacing: 0.5px;"
                 >
                     {{ $storeName }}
                 </h1>
@@ -195,10 +206,10 @@
                     <p class="text-[9px] text-black font-semibold mt-0.5" style="color: #000 !important;">{{ $storeTagline }}</p>
                 @endif
                 @if($storeAddress)
-                    <p class="text-[8.5px] text-black" style="color: #000 !important;">{{ $storeAddress }}</p>
+                    <p class="text-[8.5px] text-black font-medium leading-tight max-w-[95%] mx-auto mt-0.5" style="color: #000 !important;">{{ $storeAddress }}</p>
                 @endif
                 @if($storePhone)
-                    <p class="text-[8.5px] text-black font-bold" style="color: #000 !important;">Tel: {{ $storePhone }}</p>
+                    <p class="text-[8.5px] text-black font-bold mt-0.5" style="color: #000 !important;">Tel: {{ $storePhone }}</p>
                 @endif
             </div>
 
@@ -298,40 +309,29 @@
                 </div>
             </div>
 
-            {{-- Scannable Order QR Code + Real Barcode --}}
+            {{-- Admin Barcode & Single-Line Footer --}}
             <div class="pt-2 text-center space-y-1">
                 @if($showBarcode)
                     <div class="py-1 flex flex-col items-center justify-center">
-                        {{-- High-contrast Thermal Scannable QR Code (Scan with phone to open order) --}}
-                        <div id="qrcode-wrap-{{ $copyIndex }}" class="inline-block p-1 bg-white border border-black rounded-xs">
-                            <div id="qr-canvas-{{ $copyIndex }}"></div>
-                            <img 
-                                id="qr-img-{{ $copyIndex }}"
-                                src="https://api.qrserver.com/v1/create-qr-code/?size=140x140&margin=0&data={{ urlencode($orderScanUrl) }}" 
-                                alt="Order #{{ $order->order_number }}"
-                                class="w-[95px] h-[95px] sm:w-[110px] sm:h-[110px] mx-auto block object-contain"
-                                style="image-rendering: pixelated; -webkit-print-color-adjust: exact; print-color-adjust: exact;"
-                                onerror="this.style.display='none'"
-                            />
+                        {{-- 1D Code 128 Barcode for Admin / Counter Scanner --}}
+                        <div class="w-full flex justify-center py-0.5">
+                            <svg id="barcode-{{ $copyIndex }}" class="max-w-[95%] h-8"></svg>
                         </div>
 
-                        {{-- Code 128 Barcode for Counter Handheld Scanner --}}
-                        <div class="w-full flex justify-center pt-1.5 pb-0.5">
-                            <svg id="barcode-{{ $copyIndex }}" class="max-w-[95%] h-7"></svg>
-                        </div>
-
-                        <div class="text-[10px] font-mono font-black text-black tracking-wider leading-none mt-0.5">
+                        <div class="text-[10.5px] font-mono font-black text-black tracking-wider leading-none mt-0.5">
                             {{ $order->order_number }}
-                        </div>
-                        <div class="text-[7.5px] font-bold text-black uppercase tracking-tight mt-0.5">
-                            Scan with camera to open order
                         </div>
                     </div>
                 @endif
 
-                {{-- Clean Footer Message --}}
-                <div class="text-[9px] font-black pt-1 text-black uppercase tracking-wide leading-tight" style="color: #000 !important; font-weight: 800 !important;">
-                    {!! $footerMessage !!}
+                {{-- Clean Single-Line Footer Message --}}
+                <div class="pt-1 text-center overflow-hidden">
+                    <div 
+                        class="text-[8px] sm:text-[8.5px] font-bold text-black uppercase tracking-tight whitespace-nowrap overflow-hidden text-ellipsis"
+                        style="color: #000000 !important; font-weight: 800 !important; white-space: nowrap !important; font-size: 8px !important; letter-spacing: -0.2px;"
+                    >
+                        {!! $footerMessage !!}
+                    </div>
                 </div>
             </div>
 
@@ -345,12 +345,12 @@
         function renderReceiptCodes() {
             @for($i = 1; $i <= $copies; $i++)
                 try {
-                    // Render 1D Code-128 Barcode for counter laser/CCD scanner
+                    // Render 1D Code-128 Barcode for admin scanner
                     if (typeof JsBarcode !== 'undefined') {
                         JsBarcode("#barcode-{{ $i }}", "{{ $order->order_number }}", {
                             format: "CODE128",
-                            width: {{ $is58mm ? 1.25 : 1.65 }},
-                            height: {{ $is58mm ? 26 : 34 }},
+                            width: {{ $is58mm ? 1.35 : 1.75 }},
+                            height: {{ $is58mm ? 30 : 38 }},
                             displayValue: false,
                             margin: 0,
                             lineColor: "#000000"
@@ -359,29 +359,41 @@
                 } catch(e) {
                     console.error('Barcode render error:', e);
                 }
-
-                try {
-                    // Render local client-side QR Code if QRCode library loaded
-                    const qrCanvasWrap = document.getElementById("qr-canvas-{{ $i }}");
-                    const qrImg = document.getElementById("qr-img-{{ $i }}");
-                    if (typeof QRCode !== 'undefined' && qrCanvasWrap) {
-                        new QRCode(qrCanvasWrap, {
-                            text: "{{ $orderScanUrl }}",
-                            width: {{ $is58mm ? 95 : 115 }},
-                            height: {{ $is58mm ? 95 : 115 }},
-                            colorDark: "#000000",
-                            colorLight: "#ffffff",
-                            correctLevel: QRCode.CorrectLevel.M
-                        });
-                        if (qrImg) qrImg.style.display = 'none';
-                    }
-                } catch(e) {
-                    console.error('QR code render error:', e);
-                }
             @endfor
         }
 
+        // Binarize logo on thermal canvas for crisp deep black print
+        function binarizeLogoForThermal() {
+            const logos = document.querySelectorAll('.receipt-logo');
+            logos.forEach(img => {
+                if (!img || img.dataset.binarized) return;
+                try {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    canvas.width = img.naturalWidth || img.width || 300;
+                    canvas.height = img.naturalHeight || img.height || 150;
+                    ctx.drawImage(img, 0, 0);
+                    const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                    const d = imgData.data;
+                    for (let i = 0; i < d.length; i += 4) {
+                        const alpha = d[i + 3];
+                        if (alpha < 40) {
+                            d[i] = 255; d[i+1] = 255; d[i+2] = 255; d[i+3] = 0;
+                        } else {
+                            const gray = 0.299 * d[i] + 0.587 * d[i+1] + 0.114 * d[i+2];
+                            const val = gray < 195 ? 0 : 255;
+                            d[i] = val; d[i+1] = val; d[i+2] = val; d[i+3] = (val === 0) ? 255 : 0;
+                        }
+                    }
+                    ctx.putImageData(imgData, 0, 0);
+                    img.src = canvas.toDataURL('image/png');
+                    img.dataset.binarized = 'true';
+                } catch(e) {}
+            });
+        }
+
         function triggerThermalPrint() {
+            binarizeLogoForThermal();
             renderReceiptCodes();
             window.focus();
             window.print();
@@ -390,6 +402,7 @@
         // Auto print trigger for iframe or popup calls
         const urlParams = new URLSearchParams(window.location.search);
         window.addEventListener('load', () => {
+            binarizeLogoForThermal();
             renderReceiptCodes();
             if (urlParams.get('print') === '1' || window.self !== window.top) {
                 setTimeout(() => {
@@ -399,7 +412,7 @@
                             setTimeout(() => window.close(), 300);
                         };
                     }
-                }, 300);
+                }, 250);
             }
         });
     </script>

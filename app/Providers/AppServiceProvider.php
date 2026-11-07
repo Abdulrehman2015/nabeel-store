@@ -51,6 +51,13 @@ class AppServiceProvider extends ServiceProvider
                     });
                 }
             }
+
+            if (\Illuminate\Support\Facades\Schema::hasTable('settings')) {
+                \Illuminate\Support\Facades\DB::table('settings')
+                    ->where('key', 'store_address')
+                    ->where('value', 'LIKE', '%Puchong%')
+                    ->update(['value' => "34, Jalan Perkasa 3, Taman Ungku Tun Aminah, 81300 Skudai, Johor Darul Ta'zim, Malaysia"]);
+            }
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::warning('Auto-migration column notice: ' . $e->getMessage());
         }
