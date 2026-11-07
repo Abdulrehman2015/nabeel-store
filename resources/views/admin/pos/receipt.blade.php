@@ -73,30 +73,36 @@
                 color: #000000 !important;
                 /* Clean, elegant professional receipt font stack (no bloat / blur) */
                 font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
-                font-size: {{ $is58mm ? '9px' : '10.5px' }} !important;
+                font-size: {{ $is58mm ? '8.5px' : '10.5px' }} !important;
                 font-weight: 500 !important;
                 line-height: 1.25 !important;
             }
             .no-print {
                 display: none !important;
             }
-            /* Exactly 44mm width centered on 58mm paper leaves identical ~7mm margin on left & right */
+            /* Narrowed to 38mm on 58mm paper with explicit right padding to prevent ANY right-edge clipping */
             .receipt-sheet {
-                width: {{ $is58mm ? '44mm' : '72mm' }} !important;
-                max-width: {{ $is58mm ? '44mm' : '72mm' }} !important;
-                margin: 0 auto !important;
-                padding: 6mm 1mm 4mm 1mm !important; /* Top empty space so cutter doesn't clip logo */
+                width: {{ $is58mm ? '38mm' : '70mm' }} !important;
+                max-width: {{ $is58mm ? '38mm' : '70mm' }} !important;
+                margin-left: 1.5mm !important;
+                margin-right: auto !important;
+                padding-top: 5mm !important;
+                padding-bottom: 2mm !important;
+                padding-left: 1mm !important;
+                padding-right: 2.5mm !important; /* Extra safety margin on right side */
                 box-shadow: none !important;
                 border: none !important;
                 page-break-after: always;
-                overflow: hidden !important;
+                overflow: visible !important;
             }
             .receipt-sheet:last-child {
                 page-break-after: avoid;
             }
             .paper-cut-feed {
-                height: 18mm !important; /* Bottom empty space so cutter leaves slip intact */
+                height: 32mm !important; /* 32mm physical paper feed margin before cutter blade triggers */
+                min-height: 32mm !important;
                 display: block !important;
+                line-height: 8mm !important;
             }
             table {
                 width: 100% !important;
@@ -115,15 +121,16 @@
                 font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             }
             .receipt-sheet {
-                width: {{ $is58mm ? '48mm' : '76mm' }};
-                max-width: {{ $is58mm ? '48mm' : '76mm' }};
+                width: {{ $is58mm ? '44mm' : '72mm' }};
+                max-width: {{ $is58mm ? '44mm' : '72mm' }};
                 margin-left: auto;
                 margin-right: auto;
                 box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
                 padding: 24px 14px 20px 14px;
             }
             .paper-cut-feed {
-                height: 18mm;
+                height: 24mm;
+                min-height: 24mm;
                 display: block;
             }
             table {
@@ -232,43 +239,43 @@
             <div class="py-1.5 text-[8.5px] sm:text-[9px] space-y-0.5 border-b border-dashed border-black">
                 <div class="flex justify-between">
                     <span class="text-black">Receipt #:</span>
-                    <span class="font-bold text-black">{{ $order->order_number }}</span>
+                    <span class="font-bold text-black pr-1">{{ $order->order_number }}</span>
                 </div>
                 <div class="flex justify-between">
                     <span class="text-black">Date/Time:</span>
-                    <span class="text-black">{{ $order->created_at ? $order->created_at->format('d/m/Y h:i A') : now()->format('d/m/Y h:i A') }}</span>
+                    <span class="text-black pr-1">{{ $order->created_at ? $order->created_at->format('d/m/Y h:i A') : now()->format('d/m/Y h:i A') }}</span>
                 </div>
                 @if($showCustomer && $order->customer_name)
                     <div class="flex justify-between">
                         <span class="text-black">Customer:</span>
-                        <span class="font-semibold text-black truncate max-w-[120px]">{{ $order->customer_name }}</span>
+                        <span class="font-semibold text-black truncate max-w-[110px] pr-1">{{ $order->customer_name }}</span>
                     </div>
                 @endif
             </div>
 
-            {{-- Itemized Products Table (Strict 44mm Column Widths, Never Cuts off Text) --}}
+            {{-- Itemized Products Table (Strict 38mm Width, Never Cuts off Text) --}}
             <div class="py-1.5 border-b border-dashed border-black">
                 <table class="w-full text-[8.5px] sm:text-[9px] leading-tight" style="table-layout: fixed; width: 100%;">
                     <thead>
                         <tr class="text-[8px] uppercase tracking-wider border-b border-black text-black">
-                            <th style="width: 42%; text-align: left;" class="pb-1 font-bold text-black">Item</th>
-                            <th style="width: 12%; text-align: center;" class="pb-1 font-bold text-black">Qty</th>
+                            <th style="width: 44%; text-align: left;" class="pb-1 font-bold text-black">Item</th>
+                            <th style="width: 10%; text-align: center;" class="pb-1 font-bold text-black">Qty</th>
                             <th style="width: 23%; text-align: right;" class="pb-1 font-bold text-black">Price</th>
-                            <th style="width: 23%; text-align: right;" class="pb-1 font-bold text-black">Total</th>
+                            <th style="width: 23%; text-align: right;" class="pb-1 font-bold text-black pr-1">Total</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-dotted divide-slate-300">
                         @foreach($order->items as $item)
                             <tr>
-                                <td style="width: 42%;" class="py-1 pr-1 font-semibold text-black align-top">
+                                <td style="width: 44%;" class="py-1 pr-1 font-semibold text-black align-top">
                                     <div class="leading-tight break-words text-black">{{ $item->product_name }}</div>
                                     @if($item->sku)
                                         <div class="text-[7.5px] font-normal text-slate-700 font-mono">#{{ $item->sku }}</div>
                                     @endif
                                 </td>
-                                <td style="width: 12%;" class="py-1 text-center font-medium text-black align-top">{{ $item->quantity }}</td>
+                                <td style="width: 10%;" class="py-1 text-center font-medium text-black align-top">{{ $item->quantity }}</td>
                                 <td style="width: 23%;" class="py-1 text-right font-medium text-black align-top whitespace-nowrap">{{ number_format($item->unit_price, 2) }}</td>
-                                <td style="width: 23%;" class="py-1 text-right font-semibold text-black align-top whitespace-nowrap">{{ number_format($item->line_total, 2) }}</td>
+                                <td style="width: 23%;" class="py-1 text-right font-semibold text-black align-top whitespace-nowrap pr-1">{{ number_format($item->line_total, 2) }}</td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -279,7 +286,7 @@
             <div class="py-1.5 text-[8.5px] sm:text-[9px] space-y-0.5 border-b border-dashed border-black">
                 <div class="flex justify-between text-black">
                     <span>Items Subtotal:</span>
-                    <span class="font-bold">RM {{ number_format($order->subtotal, 2) }}</span>
+                    <span class="font-bold pr-1">RM {{ number_format($order->subtotal, 2) }}</span>
                 </div>
 
                 @if($order->subtotal > $order->grand_total || ($order->discount_amount && $order->discount_amount > 0))
@@ -290,33 +297,33 @@
                     @endphp
                     <div class="flex justify-between text-black font-semibold">
                         <span>Discount Savings:</span>
-                        <span>-RM {{ number_format($calcDiscount, 2) }}</span>
+                        <span class="pr-1">-RM {{ number_format($calcDiscount, 2) }}</span>
                     </div>
                 @endif
 
                 {{-- Prominent Clean Total --}}
-                <div class="flex justify-between font-bold text-[11px] sm:text-[12px] pt-1 border-t border-black text-black">
+                <div class="flex justify-between font-bold text-[10.5px] sm:text-[11.5px] pt-1 border-t border-black text-black">
                     <span class="font-bold text-black">TOTAL PAID:</span>
-                    <span class="font-bold text-black">RM {{ number_format($order->grand_total, 2) }}</span>
+                    <span class="font-bold text-black pr-1">RM {{ number_format($order->grand_total, 2) }}</span>
                 </div>
 
                 {{-- Payment Method & Tender Details --}}
                 <div class="pt-1 space-y-0.5 text-[8px] text-black">
                     <div class="flex justify-between">
                         <span class="uppercase font-normal text-black">Payment Method:</span>
-                        <span class="font-semibold uppercase text-black">{{ str_replace('_', ' ', $order->payment_method ?? 'CASH') }}</span>
+                        <span class="font-semibold uppercase text-black pr-1">{{ str_replace('_', ' ', $order->payment_method ?? 'CASH') }}</span>
                     </div>
 
                     @if($order->internal_notes && str_contains($order->internal_notes, 'Tendered:'))
                         <div class="flex justify-between">
                             <span class="text-black">Cash Tendered:</span>
-                            <span class="font-bold text-black">
+                            <span class="font-bold text-black pr-1">
                                 {{ Str::between($order->internal_notes, 'Tendered: ', ', Change:') }}
                             </span>
                         </div>
                         <div class="flex justify-between font-semibold">
                             <span class="text-black">Change Returned:</span>
-                            <span class="font-bold text-black">
+                            <span class="font-bold text-black pr-1">
                                 {{ Str::after($order->internal_notes, 'Change: ') }}
                             </span>
                         </div>
@@ -330,7 +337,7 @@
                     <div class="py-0.5 flex flex-col items-center justify-center">
                         {{-- 1D Code 128 Barcode for Admin / Counter Scanner --}}
                         <div class="w-full flex justify-center py-0.5">
-                            <svg id="barcode-{{ $copyIndex }}" class="max-w-[95%] h-7"></svg>
+                            <svg id="barcode-{{ $copyIndex }}" class="max-w-[90%] h-7"></svg>
                         </div>
 
                         <div class="text-[9.5px] font-mono font-bold text-black tracking-wider leading-none mt-0.5">
@@ -339,19 +346,21 @@
                     </div>
                 @endif
 
-                {{-- Clean Single-Line Footer Message (Never Crops on 44mm / 58mm) --}}
-                <div class="pt-1.5 text-center w-full">
+                {{-- Clean Single-Line Footer Message (Never Crops on 38mm / 58mm) --}}
+                <div class="pt-1.5 text-center w-full px-0.5">
                     <div 
                         class="font-bold text-black uppercase block text-center"
-                        style="color: #000000 !important; font-weight: 700 !important; white-space: nowrap !important; font-size: 7.2px !important; letter-spacing: -0.22px; line-height: 1.2; width: 100%;"
+                        style="color: #000000 !important; font-weight: 700 !important; white-space: nowrap !important; font-size: 6.8px !important; letter-spacing: -0.22px; line-height: 1.2; width: 100%;"
                     >
                         {!! $footerMessage !!}
                     </div>
                 </div>
             </div>
 
-            {{-- Thermal Paper Auto-Cutter Margin --}}
-            <div class="paper-cut-feed"></div>
+            {{-- Thermal Paper Auto-Cutter Margin: Generous physical feed so auto-cutter never cuts footer text --}}
+            <div class="paper-cut-feed" style="height: 32mm !important; min-height: 32mm !important; line-height: 7mm !important; font-size: 6px !important; color: transparent !important; display: block !important; user-select: none;">
+                &nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;
+            </div>
 
         </div>
     @endfor
@@ -364,8 +373,8 @@
                     if (typeof JsBarcode !== 'undefined') {
                         JsBarcode("#barcode-{{ $i }}", "{{ $order->order_number }}", {
                             format: "CODE128",
-                            width: {{ $is58mm ? 1.25 : 1.65 }},
-                            height: {{ $is58mm ? 26 : 34 }},
+                            width: {{ $is58mm ? 1.05 : 1.6 }},
+                            height: {{ $is58mm ? 22 : 32 }},
                             displayValue: false,
                             margin: 0,
                             lineColor: "#000000"
