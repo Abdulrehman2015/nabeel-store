@@ -1736,10 +1736,18 @@ function posApp() {
             const code = rawCode.replace(/[\r\n\t]/g, '').trim();
             if (!code) return;
 
-            // Direct Order Barcode Scan detection (e.g. POS-2026-01012 or Order Number)
-            if (code.toUpperCase().startsWith('POS-') || code.toUpperCase().startsWith('ORD-')) {
-                window.open(`{{ url('/checkout/success') }}/${encodeURIComponent(code)}`, '_blank');
-                this.showToast(`Opening scanned Order: ${code}`, '🧾', 'success');
+            // Direct Order Barcode Scan detection (e.g. POS-2026-01014 or Order Number)
+            if (code.toUpperCase().startsWith('POS-') || code.toUpperCase().startsWith('ORD-') || code.toUpperCase().startsWith('BS-')) {
+                const targetUrl = `{{ url('/admin/orders/barcode') }}/${encodeURIComponent(code)}`;
+                const link = document.createElement('a');
+                link.href = targetUrl;
+                link.target = '_blank';
+                link.rel = 'noopener noreferrer';
+                document.body.appendChild(link);
+                link.click();
+                setTimeout(() => link.remove(), 200);
+
+                this.showToast(`Opening scanned Order in new tab: ${code}`, '🧾', 'success');
                 this.playBeep('success');
                 this.searchQuery = '';
                 this.barcodeScanBuffer = '';

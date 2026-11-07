@@ -60,6 +60,12 @@ Route::prefix('checkout')->name('checkout.')->group(function () {
 
 // Order Tracking
 Route::get('/track-order', [OrderTrackingController::class, 'index'])->name('order.track');
+Route::get('/order/scan/{orderNumber}', function ($orderNumber) {
+    if (auth()->check() && in_array(auth()->user()->role, ['admin', 'staff'])) {
+        return redirect()->route('admin.orders.barcode', $orderNumber);
+    }
+    return redirect()->route('checkout.success', $orderNumber);
+})->name('order.scan');
 
 // CMS, Legal & Policy Pages (Phase 8)
 Route::get('/about', [PageController::class, 'show'])->defaults('slug', 'about')->name('page.about');

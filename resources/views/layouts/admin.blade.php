@@ -665,6 +665,65 @@
     </div>
 
     <script>
+        // Global Hardware Barcode Scanner Listener for Orders
+        // When admin scans an order slip barcode (e.g. POS-2026-01014), immediately open it in a new tab
+        (function() {
+            let scanBuffer = '';
+            let scanLastTime = 0;
+            let scanTimeout = null;
+
+            function triggerOrderOpen(rawCode) {
+                const code = rawCode.trim();
+                if (!code) return;
+                const targetUrl = '{{ url('/admin/orders/barcode') }}/' + encodeURIComponent(code);
+
+                const link = document.createElement('a');
+                link.href = targetUrl;
+                link.target = '_blank';
+                link.rel = 'noopener noreferrer';
+                document.body.appendChild(link);
+                link.click();
+                setTimeout(() => link.remove(), 200);
+            }
+
+            window.addEventListener('keydown', function(e) {
+                if (e.ctrlKey || e.altKey || e.metaKey) return;
+
+                const now = Date.now();
+                const timeDiff = now - scanLastTime;
+                scanLastTime = now;
+
+                if (e.key === 'Enter' || e.key === 'Tab') {
+                    const code = scanBuffer.trim();
+                    if (code.length >= 6 && (code.startsWith('POS-') || code.startsWith('ORD-') || code.startsWith('BS-') || /^POS\d+/i.test(code))) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        scanBuffer = '';
+                        triggerOrderOpen(code);
+                        return;
+                    }
+                    scanBuffer = '';
+                } else if (e.key && e.key.length === 1) {
+                    if (timeDiff < 75 || scanBuffer.length === 0) {
+                        scanBuffer += e.key;
+                    } else {
+                        scanBuffer = e.key;
+                    }
+
+                    if (scanTimeout) clearTimeout(scanTimeout);
+                    scanTimeout = setTimeout(function() {
+                        const code = scanBuffer.trim();
+                        if (code.length >= 9 && (code.startsWith('POS-') || code.startsWith('ORD-') || code.startsWith('BS-'))) {
+                            scanBuffer = '';
+                            triggerOrderOpen(code);
+                        } else {
+                            scanBuffer = '';
+                        }
+                    }, 110);
+                }
+            }, true);
+        })();
+
         // Global Ctrl+K / Cmd+K shortcut to focus Quick Search
         window.addEventListener('keydown', function(e) {
             if ((e.ctrlKey || e.metaKey) && (e.key === 'k' || e.key === 'K')) {

@@ -15,14 +15,14 @@
     $storeName = request('header_name') ?: setting('site_name', 'N&J MINI MART');
     $storeTagline = request('tagline') ?: 'Retail Mart & Everyday Essentials';
 
-    // The user's new address:
+    // The user's exact address:
     $defaultAddress = "34, Jalan Perkasa 3, Taman Ungku Tun Aminah, 81300 Skudai, Johor Darul Ta'zim, Malaysia";
     $rawAddress = request('address');
     $storeAddress = ($rawAddress && !str_contains($rawAddress, 'Puchong')) ? $rawAddress : $defaultAddress;
 
     $storePhone = request('phone') ?: '+60 12-859 9900';
 
-    // Single line footer message requested by user:
+    // Clean single line footer message:
     $rawFooter = request('footer');
     if (!$rawFooter || str_contains($rawFooter, 'non-refundable') || str_contains($rawFooter, 'Exchange allowed')) {
         $footerMessage = 'Thank you for shopping at N&J Mini Mart';
@@ -44,8 +44,8 @@
             --paper-width: {{ $paperWidth }};
         }
         @page {
-            size: {{ $is58mm ? '58mm' : '80mm' }} auto;
-            margin: 0;
+            size: auto;
+            margin: 0mm !important;
         }
         @media print {
             * {
@@ -57,38 +57,37 @@
                 print-color-adjust: exact !important;
             }
             html, body {
-                width: {{ $is58mm ? '48mm' : '72mm' }} !important;
-                max-width: {{ $is58mm ? '48mm' : '72mm' }} !important;
-                margin: 0 auto !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                margin: 0 !important;
                 padding: 0 !important;
                 background: #ffffff !important;
                 color: #000000 !important;
-                /* High-legibility thick font stack for thermal printers */
+                /* Clean, elegant professional receipt font stack (no bloat / blur) */
                 font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
-                font-size: {{ $is58mm ? '10px' : '11.5px' }} !important;
-                font-weight: 700 !important;
-                line-height: 1.3 !important;
-                /* Micro-stroke to give extra boldness and deep black thermal print */
-                -webkit-text-stroke: 0.18px #000000 !important;
-                text-rendering: optimizeLegibility !important;
+                font-size: {{ $is58mm ? '9px' : '10.5px' }} !important;
+                font-weight: 500 !important;
+                line-height: 1.25 !important;
             }
             .no-print {
                 display: none !important;
             }
+            /* Exactly 44mm width centered on 58mm paper leaves identical ~7mm margin on left & right */
             .receipt-sheet {
-                width: {{ $is58mm ? '48mm' : '72mm' }} !important;
-                max-width: {{ $is58mm ? '48mm' : '72mm' }} !important;
+                width: {{ $is58mm ? '44mm' : '72mm' }} !important;
+                max-width: {{ $is58mm ? '44mm' : '72mm' }} !important;
                 margin: 0 auto !important;
-                padding: 1.5mm 0.5mm !important;
+                padding: 0 1mm !important;
                 box-shadow: none !important;
                 border: none !important;
                 page-break-after: always;
+                overflow: hidden !important;
             }
             .receipt-sheet:last-child {
                 page-break-after: avoid;
             }
             .paper-cut-feed {
-                height: 14mm !important;
+                height: 12mm !important;
                 display: block !important;
             }
             table {
@@ -108,11 +107,12 @@
                 font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             }
             .receipt-sheet {
-                width: {{ $is58mm ? '52mm' : '80mm' }};
-                max-width: {{ $is58mm ? '52mm' : '80mm' }};
+                width: {{ $is58mm ? '48mm' : '76mm' }};
+                max-width: {{ $is58mm ? '48mm' : '76mm' }};
                 margin-left: auto;
                 margin-right: auto;
                 box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+                padding: 16px 12px;
             }
             .paper-cut-feed {
                 height: 8mm;
@@ -130,7 +130,7 @@
         }
     </style>
 </head>
-<body class="min-h-screen py-4 sm:py-8 text-black font-sans text-xs antialiased font-bold">
+<body class="min-h-screen py-4 sm:py-8 text-slate-900 font-sans text-xs antialiased">
 
     {{-- Top Action Controls Toolbar (Hidden on Print) --}}
     <div class="no-print max-w-md mx-auto mb-5 px-3">
@@ -149,13 +149,13 @@
                     <div class="inline-flex p-0.5 bg-slate-100 rounded-lg text-[11px] font-sans font-bold">
                         <a 
                             href="?paper=58mm{{ request()->has('print') ? '&print=1' : '' }}" 
-                            class="px-2 py-1 rounded-md transition {{ $paperWidth === '58mm' ? 'bg-white text-slate-900 shadow-2xs font-black' : 'text-slate-500 hover:text-slate-900' }}"
+                            class="px-2 py-1 rounded-md transition {{ $paperWidth === '58mm' ? 'bg-white text-slate-900 shadow-2xs font-extrabold' : 'text-slate-500 hover:text-slate-900' }}"
                         >
                             58mm (Mini Roll)
                         </a>
                         <a 
                             href="?paper=80mm{{ request()->has('print') ? '&print=1' : '' }}" 
-                            class="px-2 py-1 rounded-md transition {{ $paperWidth === '80mm' ? 'bg-white text-slate-900 shadow-2xs font-black' : 'text-slate-500 hover:text-slate-900' }}"
+                            class="px-2 py-1 rounded-md transition {{ $paperWidth === '80mm' ? 'bg-white text-slate-900 shadow-2xs font-extrabold' : 'text-slate-500 hover:text-slate-900' }}"
                         >
                             80mm
                         </a>
@@ -164,7 +164,7 @@
                     <button 
                         type="button" 
                         onclick="triggerThermalPrint()" 
-                        class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-sans font-black text-xs rounded-xl shadow-sm flex items-center gap-1.5 transition cursor-pointer"
+                        class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-sans font-bold text-xs rounded-xl shadow-sm flex items-center gap-1.5 transition cursor-pointer"
                     >
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
                         <span>Print Slip</span>
@@ -175,7 +175,7 @@
             @if(isset($isTest) && $isTest)
                 <div class="p-2 bg-amber-50 border border-amber-200 rounded-xl text-[11px] text-amber-900 font-sans flex items-center gap-2">
                     <span class="text-base">🧪</span>
-                    <span><strong>Test Print Mode:</strong> Verifying thermal printer slip margins & layout on {{ $paperWidth }}.</span>
+                    <span><strong>Test Print Mode:</strong> Perfectly centered on {{ $paperWidth }} with equal margins.</span>
                 </div>
             @endif
         </div>
@@ -183,86 +183,84 @@
 
     {{-- Thermal Receipt Sheets (Iterates for Number of Copies) --}}
     @for($copyIndex = 1; $copyIndex <= $copies; $copyIndex++)
-        <div class="receipt-sheet bg-white p-3 sm:p-4 mb-6 text-black border border-slate-300 leading-tight">
+        <div class="receipt-sheet bg-white p-3 mb-6 text-black border border-slate-200 leading-tight">
             
             {{-- Copy Header Flag (if multiple copies) --}}
             @if($copies > 1)
-                <div class="text-center pb-1 text-[9px] font-black uppercase tracking-widest text-black">
+                <div class="text-center pb-1 text-[8.5px] font-bold uppercase tracking-widest text-slate-500">
                     {{ $copyIndex === 1 ? '*** CUSTOMER COPY ***' : '*** MERCHANT / STORE COPY ***' }}
                 </div>
             @endif
 
-            {{-- Store Branding & Header (High-contrast, Large & Deep Black) --}}
-            <div class="text-center pb-2.5 border-b-2 border-black">
+            {{-- Store Branding & Header (Website Header Logo + Clean Professional Typography) --}}
+            <div class="text-center pb-2 border-b border-dashed border-black">
                 @if($showLogo)
                     <div class="flex items-center justify-center mb-1">
                         <img 
-                            id="receipt-store-logo-{{ $copyIndex }}"
                             src="{{ asset('images/logo.png') }}" 
                             alt="{{ $storeName }}" 
-                            class="receipt-logo h-14 sm:h-16 max-w-[170px] object-contain mx-auto"
-                            style="filter: grayscale(100%) contrast(450%) brightness(0.5); -webkit-print-color-adjust: exact; print-color-adjust: exact;"
+                            class="h-8 sm:h-9 w-auto max-w-[125px] object-contain mx-auto block"
                         >
                     </div>
                 @endif
                 <h1 
-                    class="font-black tracking-wide uppercase text-black"
-                    style="font-size: {{ $is58mm ? '16px' : '19px' }} !important; font-weight: 900 !important; color: #000000 !important; line-height: 1.15; letter-spacing: 0.5px;"
+                    class="font-bold tracking-wide uppercase text-black"
+                    style="font-size: {{ $is58mm ? '13px' : '15px' }} !important; font-weight: 700 !important; color: #000000 !important; line-height: 1.2;"
                 >
                     {{ $storeName }}
                 </h1>
                 @if($storeTagline)
-                    <p class="text-[9.5px] font-extrabold text-black mt-0.5" style="color: #000000 !important; font-weight: 800 !important;">{{ $storeTagline }}</p>
+                    <p class="text-[8.5px] font-normal text-black mt-0.5" style="color: #000000 !important;">{{ $storeTagline }}</p>
                 @endif
                 @if($storeAddress)
-                    <p class="text-[9px] font-bold text-black leading-tight max-w-[95%] mx-auto mt-0.5" style="color: #000000 !important; font-weight: 700 !important;">{{ $storeAddress }}</p>
+                    <p class="text-[8px] font-normal text-black leading-tight max-w-[95%] mx-auto mt-0.5" style="color: #000000 !important;">{{ $storeAddress }}</p>
                 @endif
                 @if($storePhone)
-                    <p class="text-[9.5px] font-black text-black mt-0.5" style="color: #000000 !important; font-weight: 900 !important;">Tel: {{ $storePhone }}</p>
+                    <p class="text-[8.5px] font-semibold text-black mt-0.5" style="color: #000000 !important;">Tel: {{ $storePhone }}</p>
                 @endif
             </div>
 
-            {{-- Transaction Meta Info (Extra Bold, Pure Black) --}}
-            <div class="py-2 text-[10px] space-y-0.5 border-b-2 border-dashed border-black">
-                <div class="flex justify-between font-bold">
-                    <span class="font-bold text-black">Receipt #:</span>
-                    <span class="font-black text-black">{{ $order->order_number }}</span>
+            {{-- Transaction Meta Info (Clean Professional Font) --}}
+            <div class="py-1.5 text-[8.5px] sm:text-[9px] space-y-0.5 border-b border-dashed border-black">
+                <div class="flex justify-between">
+                    <span class="text-black">Receipt #:</span>
+                    <span class="font-bold text-black">{{ $order->order_number }}</span>
                 </div>
-                <div class="flex justify-between font-bold">
-                    <span class="font-bold text-black">Date/Time:</span>
-                    <span class="font-extrabold text-black">{{ $order->created_at ? $order->created_at->format('d/m/Y h:i A') : now()->format('d/m/Y h:i A') }}</span>
+                <div class="flex justify-between">
+                    <span class="text-black">Date/Time:</span>
+                    <span class="text-black">{{ $order->created_at ? $order->created_at->format('d/m/Y h:i A') : now()->format('d/m/Y h:i A') }}</span>
                 </div>
                 @if($showCustomer && $order->customer_name)
-                    <div class="flex justify-between font-bold">
-                        <span class="font-bold text-black">Customer:</span>
-                        <span class="font-black text-black truncate max-w-[130px]">{{ $order->customer_name }}</span>
+                    <div class="flex justify-between">
+                        <span class="text-black">Customer:</span>
+                        <span class="font-semibold text-black truncate max-w-[120px]">{{ $order->customer_name }}</span>
                     </div>
                 @endif
             </div>
 
-            {{-- Itemized Products Table (Extra Dark, Clear Columns) --}}
-            <div class="py-2 border-b-2 border-black">
-                <table class="w-full text-[9.5px] sm:text-[10px] leading-tight" style="table-layout: fixed; width: 100%;">
+            {{-- Itemized Products Table (Strict 44mm Column Widths, Never Cuts off Text) --}}
+            <div class="py-1.5 border-b border-dashed border-black">
+                <table class="w-full text-[8.5px] sm:text-[9px] leading-tight" style="table-layout: fixed; width: 100%;">
                     <thead>
-                        <tr class="text-[9px] sm:text-[9.5px] uppercase tracking-wider border-b-2 border-black text-black">
-                            <th style="width: 44%; text-align: left;" class="pb-1 font-black text-black">Item</th>
-                            <th style="width: 12%; text-align: center;" class="pb-1 font-black text-black">Qty</th>
-                            <th style="width: 22%; text-align: right;" class="pb-1 font-black text-black">Price</th>
-                            <th style="width: 22%; text-align: right;" class="pb-1 font-black text-black">Total</th>
+                        <tr class="text-[8px] uppercase tracking-wider border-b border-black text-black">
+                            <th style="width: 42%; text-align: left;" class="pb-1 font-bold text-black">Item</th>
+                            <th style="width: 12%; text-align: center;" class="pb-1 font-bold text-black">Qty</th>
+                            <th style="width: 23%; text-align: right;" class="pb-1 font-bold text-black">Price</th>
+                            <th style="width: 23%; text-align: right;" class="pb-1 font-bold text-black">Total</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-black">
+                    <tbody class="divide-y divide-dotted divide-slate-300">
                         @foreach($order->items as $item)
                             <tr>
-                                <td style="width: 44%;" class="py-1 pr-1 font-black text-black align-top">
-                                    <div class="leading-tight break-words font-black text-black">{{ $item->product_name }}</div>
+                                <td style="width: 42%;" class="py-1 pr-1 font-semibold text-black align-top">
+                                    <div class="leading-tight break-words text-black">{{ $item->product_name }}</div>
                                     @if($item->sku)
-                                        <div class="text-[8px] font-bold text-black font-mono">#{{ $item->sku }}</div>
+                                        <div class="text-[7.5px] font-normal text-slate-700 font-mono">#{{ $item->sku }}</div>
                                     @endif
                                 </td>
-                                <td style="width: 12%;" class="py-1 text-center font-black text-black align-top">{{ $item->quantity }}</td>
-                                <td style="width: 22%;" class="py-1 text-right font-black text-black align-top whitespace-nowrap">{{ number_format($item->unit_price, 2) }}</td>
-                                <td style="width: 22%;" class="py-1 text-right font-black text-black align-top whitespace-nowrap">{{ number_format($item->line_total, 2) }}</td>
+                                <td style="width: 12%;" class="py-1 text-center font-medium text-black align-top">{{ $item->quantity }}</td>
+                                <td style="width: 23%;" class="py-1 text-right font-medium text-black align-top whitespace-nowrap">{{ number_format($item->unit_price, 2) }}</td>
+                                <td style="width: 23%;" class="py-1 text-right font-semibold text-black align-top whitespace-nowrap">{{ number_format($item->line_total, 2) }}</td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -270,10 +268,10 @@
             </div>
 
             {{-- Financials & Payment Breakdown --}}
-            <div class="py-2 text-[10px] space-y-1 border-b-2 border-dashed border-black">
-                <div class="flex justify-between text-black font-bold">
+            <div class="py-1.5 text-[8.5px] sm:text-[9px] space-y-0.5 border-b border-dashed border-black">
+                <div class="flex justify-between text-black">
                     <span>Items Subtotal:</span>
-                    <span class="font-black">RM {{ number_format($order->subtotal, 2) }}</span>
+                    <span class="font-bold">RM {{ number_format($order->subtotal, 2) }}</span>
                 </div>
 
                 @if($order->subtotal > $order->grand_total || ($order->discount_amount && $order->discount_amount > 0))
@@ -282,35 +280,35 @@
                             ? $order->discount_amount 
                             : ($order->subtotal - $order->grand_total);
                     @endphp
-                    <div class="flex justify-between text-black font-black">
+                    <div class="flex justify-between text-black font-semibold">
                         <span>Discount Savings:</span>
                         <span>-RM {{ number_format($calcDiscount, 2) }}</span>
                     </div>
                 @endif
 
-                {{-- Bold High-Impact Total --}}
-                <div class="flex justify-between font-black text-[12px] sm:text-[14px] pt-1.5 border-t-2 border-black text-black">
-                    <span class="font-black text-black">TOTAL PAID:</span>
-                    <span class="font-black text-black">RM {{ number_format($order->grand_total, 2) }}</span>
+                {{-- Prominent Clean Total --}}
+                <div class="flex justify-between font-bold text-[11px] sm:text-[12px] pt-1 border-t border-black text-black">
+                    <span class="font-bold text-black">TOTAL PAID:</span>
+                    <span class="font-bold text-black">RM {{ number_format($order->grand_total, 2) }}</span>
                 </div>
 
                 {{-- Payment Method & Tender Details --}}
-                <div class="pt-1.5 space-y-0.5 text-[9px] font-bold text-black">
+                <div class="pt-1 space-y-0.5 text-[8px] text-black">
                     <div class="flex justify-between">
-                        <span class="uppercase font-bold text-black">Payment Method:</span>
-                        <span class="font-black uppercase text-black">{{ str_replace('_', ' ', $order->payment_method ?? 'CASH') }}</span>
+                        <span class="uppercase font-normal text-black">Payment Method:</span>
+                        <span class="font-semibold uppercase text-black">{{ str_replace('_', ' ', $order->payment_method ?? 'CASH') }}</span>
                     </div>
 
                     @if($order->internal_notes && str_contains($order->internal_notes, 'Tendered:'))
                         <div class="flex justify-between">
-                            <span class="font-bold text-black">Cash Tendered:</span>
-                            <span class="font-black text-black">
+                            <span class="text-black">Cash Tendered:</span>
+                            <span class="font-bold text-black">
                                 {{ Str::between($order->internal_notes, 'Tendered: ', ', Change:') }}
                             </span>
                         </div>
-                        <div class="flex justify-between font-black">
-                            <span class="font-bold text-black">Change Returned:</span>
-                            <span class="font-black text-black">
+                        <div class="flex justify-between font-semibold">
+                            <span class="text-black">Change Returned:</span>
+                            <span class="font-bold text-black">
                                 {{ Str::after($order->internal_notes, 'Change: ') }}
                             </span>
                         </div>
@@ -318,26 +316,26 @@
                 </div>
             </div>
 
-            {{-- Admin Barcode & Single-Line Footer --}}
-            <div class="pt-2.5 text-center space-y-1">
+            {{-- Admin Barcode & Clean Single-Line Footer --}}
+            <div class="pt-2 text-center space-y-0.5">
                 @if($showBarcode)
-                    <div class="py-1 flex flex-col items-center justify-center">
+                    <div class="py-0.5 flex flex-col items-center justify-center">
                         {{-- 1D Code 128 Barcode for Admin / Counter Scanner --}}
                         <div class="w-full flex justify-center py-0.5">
-                            <svg id="barcode-{{ $copyIndex }}" class="max-w-[95%] h-8"></svg>
+                            <svg id="barcode-{{ $copyIndex }}" class="max-w-[95%] h-7"></svg>
                         </div>
 
-                        <div class="text-[11px] font-mono font-black text-black tracking-wider leading-none mt-0.5">
+                        <div class="text-[9.5px] font-mono font-bold text-black tracking-wider leading-none mt-0.5">
                             {{ $order->order_number }}
                         </div>
                     </div>
                 @endif
 
-                {{-- Clean Single-Line Footer Message (Dark & Solid) --}}
+                {{-- Clean Single-Line Footer Message --}}
                 <div class="pt-1 text-center overflow-hidden">
                     <div 
-                        class="font-black text-black uppercase tracking-tight whitespace-nowrap overflow-hidden text-ellipsis"
-                        style="color: #000000 !important; font-weight: 900 !important; white-space: nowrap !important; font-size: 8.5px !important; letter-spacing: -0.2px;"
+                        class="font-semibold text-black uppercase tracking-tight whitespace-nowrap overflow-hidden text-ellipsis"
+                        style="color: #000000 !important; font-weight: 600 !important; white-space: nowrap !important; font-size: 8px !important; letter-spacing: -0.15px;"
                     >
                         {!! $footerMessage !!}
                     </div>
@@ -354,12 +352,12 @@
         function renderReceiptCodes() {
             @for($i = 1; $i <= $copies; $i++)
                 try {
-                    // Render 1D Code-128 Barcode for admin scanner
+                    // Render 1D Code-128 Barcode for admin scanner (compact width to fit 44mm perfectly)
                     if (typeof JsBarcode !== 'undefined') {
                         JsBarcode("#barcode-{{ $i }}", "{{ $order->order_number }}", {
                             format: "CODE128",
-                            width: {{ $is58mm ? 1.4 : 1.8 }},
-                            height: {{ $is58mm ? 32 : 40 }},
+                            width: {{ $is58mm ? 1.25 : 1.65 }},
+                            height: {{ $is58mm ? 26 : 34 }},
                             displayValue: false,
                             margin: 0,
                             lineColor: "#000000"
@@ -371,38 +369,7 @@
             @endfor
         }
 
-        // Binarize logo on thermal canvas for crisp deep black print
-        function binarizeLogoForThermal() {
-            const logos = document.querySelectorAll('.receipt-logo');
-            logos.forEach(img => {
-                if (!img || img.dataset.binarized) return;
-                try {
-                    const canvas = document.createElement('canvas');
-                    const ctx = canvas.getContext('2d');
-                    canvas.width = img.naturalWidth || img.width || 300;
-                    canvas.height = img.naturalHeight || img.height || 150;
-                    ctx.drawImage(img, 0, 0);
-                    const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                    const d = imgData.data;
-                    for (let i = 0; i < d.length; i += 4) {
-                        const alpha = d[i + 3];
-                        if (alpha < 40) {
-                            d[i] = 255; d[i+1] = 255; d[i+2] = 255; d[i+3] = 0;
-                        } else {
-                            const gray = 0.299 * d[i] + 0.587 * d[i+1] + 0.114 * d[i+2];
-                            const val = gray < 195 ? 0 : 255;
-                            d[i] = val; d[i+1] = val; d[i+2] = val; d[i+3] = (val === 0) ? 255 : 0;
-                        }
-                    }
-                    ctx.putImageData(imgData, 0, 0);
-                    img.src = canvas.toDataURL('image/png');
-                    img.dataset.binarized = 'true';
-                } catch(e) {}
-            });
-        }
-
         function triggerThermalPrint() {
-            binarizeLogoForThermal();
             renderReceiptCodes();
             window.focus();
             window.print();
@@ -411,7 +378,6 @@
         // Auto print trigger for iframe or popup calls
         const urlParams = new URLSearchParams(window.location.search);
         window.addEventListener('load', () => {
-            binarizeLogoForThermal();
             renderReceiptCodes();
             if (urlParams.get('print') === '1' || window.self !== window.top) {
                 setTimeout(() => {

@@ -66,6 +66,18 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::resource('products', AdminProductController::class);
 
     // Orders Management & PDF Invoices
+    Route::get('orders/barcode/{orderNumber}', function ($orderNumber) {
+        $clean = trim($orderNumber);
+        $order = \App\Models\Order::where('order_number', $clean)
+            ->orWhere('order_number', 'LIKE', "%{$clean}%")
+            ->first();
+
+        if ($order) {
+            return redirect()->route('admin.orders.show', $order);
+        }
+
+        return redirect()->route('admin.orders.index', ['search' => $clean]);
+    })->name('orders.barcode');
     Route::get('orders', [AdminOrderController::class, 'index'])->name('orders.index');
     Route::get('orders/{order}', [AdminOrderController::class, 'show'])->name('orders.show');
     Route::post('orders/{order}/verify-payment', [AdminOrderController::class, 'verifyPayment'])->name('orders.verify-payment');
