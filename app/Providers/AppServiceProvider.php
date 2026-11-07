@@ -73,5 +73,41 @@ class AppServiceProvider extends ServiceProvider
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::warning('Auto-migration column notice: ' . $e->getMessage());
         }
+
+        // One-time store data wipe on live server (removes demo products, orders, categories, brands, customers)
+        try {
+            $wipeFlag = storage_path('framework/cache/store_data_wiped_v1.flag');
+            if (!file_exists($wipeFlag)) {
+                \Illuminate\Support\Facades\DB::statement('SET FOREIGN_KEY_CHECKS = 0;');
+                $truncateTables = [
+                    'order_items',
+                    'order_histories',
+                    'orders',
+                    'product_images',
+                    'products',
+                    'categories',
+                    'brands',
+                    'customer_addresses',
+                    'otp_codes',
+                    'notification_logs',
+                    'activity_logs',
+                    'jobs',
+                    'failed_jobs',
+                ];
+                foreach ($truncateTables as $table) {
+                    if (\Illuminate\Support\Facades\Schema::hasTable($table)) {
+                        \Illuminate\Support\Facades\DB::table($table)->truncate();
+                    }
+                }
+                if (\Illuminate\Support\Facades\Schema::hasTable('users')) {
+                    \Illuminate\Support\Facades\DB::table('users')->where('role', 'customer')->delete();
+                }
+                \Illuminate\Support\Facades\DB::statement('SET FOREIGN_KEY_CHECKS = 1;');
+
+                @file_put_contents($wipeFlag, date('Y-m-d H:i:s'));
+            }
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Store wipe notice: ' . $e->getMessage());
+        }
     }
 }
