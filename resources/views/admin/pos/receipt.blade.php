@@ -51,6 +51,10 @@
             * {
                 -webkit-box-sizing: border-box !important;
                 box-sizing: border-box !important;
+                color: #000000 !important;
+                border-color: #000000 !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
             }
             html, body {
                 width: {{ $is58mm ? '48mm' : '72mm' }} !important;
@@ -59,11 +63,14 @@
                 padding: 0 !important;
                 background: #ffffff !important;
                 color: #000000 !important;
-                font-family: 'Courier New', Courier, monospace, 'Lucida Console' !important;
-                font-size: {{ $is58mm ? '9px' : '11px' }} !important;
-                line-height: 1.25 !important;
-                -webkit-print-color-adjust: exact !important;
-                print-color-adjust: exact !important;
+                /* High-legibility thick font stack for thermal printers */
+                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+                font-size: {{ $is58mm ? '10px' : '11.5px' }} !important;
+                font-weight: 700 !important;
+                line-height: 1.3 !important;
+                /* Micro-stroke to give extra boldness and deep black thermal print */
+                -webkit-text-stroke: 0.18px #000000 !important;
+                text-rendering: optimizeLegibility !important;
             }
             .no-print {
                 display: none !important;
@@ -92,11 +99,13 @@
             th, td {
                 word-break: break-word !important;
                 overflow-wrap: break-word !important;
+                color: #000000 !important;
             }
         }
         @media screen {
             body {
                 background-color: #f1f5f9;
+                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             }
             .receipt-sheet {
                 width: {{ $is58mm ? '52mm' : '80mm' }};
@@ -121,7 +130,7 @@
         }
     </style>
 </head>
-<body class="min-h-screen py-4 sm:py-8 text-slate-900 font-mono text-xs antialiased">
+<body class="min-h-screen py-4 sm:py-8 text-black font-sans text-xs antialiased font-bold">
 
     {{-- Top Action Controls Toolbar (Hidden on Print) --}}
     <div class="no-print max-w-md mx-auto mb-5 px-3">
@@ -140,13 +149,13 @@
                     <div class="inline-flex p-0.5 bg-slate-100 rounded-lg text-[11px] font-sans font-bold">
                         <a 
                             href="?paper=58mm{{ request()->has('print') ? '&print=1' : '' }}" 
-                            class="px-2 py-1 rounded-md transition {{ $paperWidth === '58mm' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-500 hover:text-slate-900' }}"
+                            class="px-2 py-1 rounded-md transition {{ $paperWidth === '58mm' ? 'bg-white text-slate-900 shadow-2xs font-black' : 'text-slate-500 hover:text-slate-900' }}"
                         >
                             58mm (Mini Roll)
                         </a>
                         <a 
                             href="?paper=80mm{{ request()->has('print') ? '&print=1' : '' }}" 
-                            class="px-2 py-1 rounded-md transition {{ $paperWidth === '80mm' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-500 hover:text-slate-900' }}"
+                            class="px-2 py-1 rounded-md transition {{ $paperWidth === '80mm' ? 'bg-white text-slate-900 shadow-2xs font-black' : 'text-slate-500 hover:text-slate-900' }}"
                         >
                             80mm
                         </a>
@@ -155,7 +164,7 @@
                     <button 
                         type="button" 
                         onclick="triggerThermalPrint()" 
-                        class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-sans font-bold text-xs rounded-xl shadow-sm flex items-center gap-1.5 transition cursor-pointer"
+                        class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-sans font-black text-xs rounded-xl shadow-sm flex items-center gap-1.5 transition cursor-pointer"
                     >
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
                         <span>Print Slip</span>
@@ -174,17 +183,17 @@
 
     {{-- Thermal Receipt Sheets (Iterates for Number of Copies) --}}
     @for($copyIndex = 1; $copyIndex <= $copies; $copyIndex++)
-        <div class="receipt-sheet bg-white p-3 sm:p-4 mb-6 text-black border border-slate-200 leading-tight">
+        <div class="receipt-sheet bg-white p-3 sm:p-4 mb-6 text-black border border-slate-300 leading-tight">
             
             {{-- Copy Header Flag (if multiple copies) --}}
             @if($copies > 1)
-                <div class="text-center pb-1 text-[8.5px] font-bold uppercase tracking-widest text-slate-500">
+                <div class="text-center pb-1 text-[9px] font-black uppercase tracking-widest text-black">
                     {{ $copyIndex === 1 ? '*** CUSTOMER COPY ***' : '*** MERCHANT / STORE COPY ***' }}
                 </div>
             @endif
 
-            {{-- Store Branding & Header (High-contrast, Large & Visible) --}}
-            <div class="text-center pb-2 border-b border-dashed border-black">
+            {{-- Store Branding & Header (High-contrast, Large & Deep Black) --}}
+            <div class="text-center pb-2.5 border-b-2 border-black">
                 @if($showLogo)
                     <div class="flex items-center justify-center mb-1">
                         <img 
@@ -192,68 +201,68 @@
                             src="{{ asset('images/logo.png') }}" 
                             alt="{{ $storeName }}" 
                             class="receipt-logo h-14 sm:h-16 max-w-[170px] object-contain mx-auto"
-                            style="filter: grayscale(100%) contrast(400%) brightness(0.55); -webkit-print-color-adjust: exact; print-color-adjust: exact;"
+                            style="filter: grayscale(100%) contrast(450%) brightness(0.5); -webkit-print-color-adjust: exact; print-color-adjust: exact;"
                         >
                     </div>
                 @endif
                 <h1 
-                    class="{{ $is58mm ? 'text-sm sm:text-base' : 'text-base sm:text-lg' }} font-black tracking-wide uppercase text-black"
-                    style="font-size: {{ $is58mm ? '15px' : '18px' }} !important; font-weight: 900 !important; color: #000000 !important; line-height: 1.2; letter-spacing: 0.5px;"
+                    class="font-black tracking-wide uppercase text-black"
+                    style="font-size: {{ $is58mm ? '16px' : '19px' }} !important; font-weight: 900 !important; color: #000000 !important; line-height: 1.15; letter-spacing: 0.5px;"
                 >
                     {{ $storeName }}
                 </h1>
                 @if($storeTagline)
-                    <p class="text-[9px] text-black font-semibold mt-0.5" style="color: #000 !important;">{{ $storeTagline }}</p>
+                    <p class="text-[9.5px] font-extrabold text-black mt-0.5" style="color: #000000 !important; font-weight: 800 !important;">{{ $storeTagline }}</p>
                 @endif
                 @if($storeAddress)
-                    <p class="text-[8.5px] text-black font-medium leading-tight max-w-[95%] mx-auto mt-0.5" style="color: #000 !important;">{{ $storeAddress }}</p>
+                    <p class="text-[9px] font-bold text-black leading-tight max-w-[95%] mx-auto mt-0.5" style="color: #000000 !important; font-weight: 700 !important;">{{ $storeAddress }}</p>
                 @endif
                 @if($storePhone)
-                    <p class="text-[8.5px] text-black font-bold mt-0.5" style="color: #000 !important;">Tel: {{ $storePhone }}</p>
+                    <p class="text-[9.5px] font-black text-black mt-0.5" style="color: #000000 !important; font-weight: 900 !important;">Tel: {{ $storePhone }}</p>
                 @endif
             </div>
 
-            {{-- Transaction Meta Info (Clean, No Cashier / Channel) --}}
-            <div class="py-1.5 text-[9px] sm:text-[9.5px] space-y-0.5 border-b border-dashed border-black">
-                <div class="flex justify-between">
-                    <span>Receipt #:</span>
-                    <span class="font-bold">{{ $order->order_number }}</span>
+            {{-- Transaction Meta Info (Extra Bold, Pure Black) --}}
+            <div class="py-2 text-[10px] space-y-0.5 border-b-2 border-dashed border-black">
+                <div class="flex justify-between font-bold">
+                    <span class="font-bold text-black">Receipt #:</span>
+                    <span class="font-black text-black">{{ $order->order_number }}</span>
                 </div>
-                <div class="flex justify-between">
-                    <span>Date/Time:</span>
-                    <span>{{ $order->created_at ? $order->created_at->format('d/m/Y h:i A') : now()->format('d/m/Y h:i A') }}</span>
+                <div class="flex justify-between font-bold">
+                    <span class="font-bold text-black">Date/Time:</span>
+                    <span class="font-extrabold text-black">{{ $order->created_at ? $order->created_at->format('d/m/Y h:i A') : now()->format('d/m/Y h:i A') }}</span>
                 </div>
                 @if($showCustomer && $order->customer_name)
-                    <div class="flex justify-between">
-                        <span>Customer:</span>
-                        <span class="font-semibold truncate max-w-[130px]">{{ $order->customer_name }}</span>
+                    <div class="flex justify-between font-bold">
+                        <span class="font-bold text-black">Customer:</span>
+                        <span class="font-black text-black truncate max-w-[130px]">{{ $order->customer_name }}</span>
                     </div>
                 @endif
             </div>
 
-            {{-- Itemized Products Table (Strict Column Widths, Never Crops on 58mm) --}}
-            <div class="py-1.5 border-b border-dashed border-black">
-                <table class="w-full text-[8.5px] sm:text-[9.5px] leading-tight" style="table-layout: fixed; width: 100%;">
+            {{-- Itemized Products Table (Extra Dark, Clear Columns) --}}
+            <div class="py-2 border-b-2 border-black">
+                <table class="w-full text-[9.5px] sm:text-[10px] leading-tight" style="table-layout: fixed; width: 100%;">
                     <thead>
-                        <tr class="text-[8px] sm:text-[8.5px] uppercase tracking-wider border-b border-black text-black">
-                            <th style="width: 44%; text-align: left;" class="pb-1 font-bold">Item</th>
-                            <th style="width: 12%; text-align: center;" class="pb-1 font-bold">Qty</th>
-                            <th style="width: 22%; text-align: right;" class="pb-1 font-bold">Price</th>
-                            <th style="width: 22%; text-align: right;" class="pb-1 font-bold">Total</th>
+                        <tr class="text-[9px] sm:text-[9.5px] uppercase tracking-wider border-b-2 border-black text-black">
+                            <th style="width: 44%; text-align: left;" class="pb-1 font-black text-black">Item</th>
+                            <th style="width: 12%; text-align: center;" class="pb-1 font-black text-black">Qty</th>
+                            <th style="width: 22%; text-align: right;" class="pb-1 font-black text-black">Price</th>
+                            <th style="width: 22%; text-align: right;" class="pb-1 font-black text-black">Total</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-dotted divide-slate-400">
+                    <tbody class="divide-y divide-black">
                         @foreach($order->items as $item)
                             <tr>
-                                <td style="width: 44%;" class="py-1 pr-1 font-bold align-top">
-                                    <div class="leading-tight break-words">{{ $item->product_name }}</div>
+                                <td style="width: 44%;" class="py-1 pr-1 font-black text-black align-top">
+                                    <div class="leading-tight break-words font-black text-black">{{ $item->product_name }}</div>
                                     @if($item->sku)
-                                        <div class="text-[7.5px] text-slate-700 font-mono">#{{ $item->sku }}</div>
+                                        <div class="text-[8px] font-bold text-black font-mono">#{{ $item->sku }}</div>
                                     @endif
                                 </td>
-                                <td style="width: 12%;" class="py-1 text-center font-bold align-top">{{ $item->quantity }}</td>
-                                <td style="width: 22%;" class="py-1 text-right align-top whitespace-nowrap">{{ number_format($item->unit_price, 2) }}</td>
-                                <td style="width: 22%;" class="py-1 text-right font-bold align-top whitespace-nowrap">{{ number_format($item->line_total, 2) }}</td>
+                                <td style="width: 12%;" class="py-1 text-center font-black text-black align-top">{{ $item->quantity }}</td>
+                                <td style="width: 22%;" class="py-1 text-right font-black text-black align-top whitespace-nowrap">{{ number_format($item->unit_price, 2) }}</td>
+                                <td style="width: 22%;" class="py-1 text-right font-black text-black align-top whitespace-nowrap">{{ number_format($item->line_total, 2) }}</td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -261,10 +270,10 @@
             </div>
 
             {{-- Financials & Payment Breakdown --}}
-            <div class="py-1.5 text-[9px] sm:text-[9.5px] space-y-0.5 border-b border-dashed border-black">
-                <div class="flex justify-between text-black">
+            <div class="py-2 text-[10px] space-y-1 border-b-2 border-dashed border-black">
+                <div class="flex justify-between text-black font-bold">
                     <span>Items Subtotal:</span>
-                    <span class="font-bold">RM {{ number_format($order->subtotal, 2) }}</span>
+                    <span class="font-black">RM {{ number_format($order->subtotal, 2) }}</span>
                 </div>
 
                 @if($order->subtotal > $order->grand_total || ($order->discount_amount && $order->discount_amount > 0))
@@ -273,35 +282,35 @@
                             ? $order->discount_amount 
                             : ($order->subtotal - $order->grand_total);
                     @endphp
-                    <div class="flex justify-between text-black font-semibold">
+                    <div class="flex justify-between text-black font-black">
                         <span>Discount Savings:</span>
                         <span>-RM {{ number_format($calcDiscount, 2) }}</span>
                     </div>
                 @endif
 
-                {{-- Bold Prominent Total --}}
-                <div class="flex justify-between font-black {{ $is58mm ? 'text-xs' : 'text-sm' }} pt-1 border-t border-black text-black">
-                    <span>TOTAL PAID:</span>
-                    <span>RM {{ number_format($order->grand_total, 2) }}</span>
+                {{-- Bold High-Impact Total --}}
+                <div class="flex justify-between font-black text-[12px] sm:text-[14px] pt-1.5 border-t-2 border-black text-black">
+                    <span class="font-black text-black">TOTAL PAID:</span>
+                    <span class="font-black text-black">RM {{ number_format($order->grand_total, 2) }}</span>
                 </div>
 
                 {{-- Payment Method & Tender Details --}}
-                <div class="pt-1 space-y-0.5 text-[8.5px] text-black">
+                <div class="pt-1.5 space-y-0.5 text-[9px] font-bold text-black">
                     <div class="flex justify-between">
-                        <span class="uppercase">Payment Method:</span>
-                        <span class="font-bold uppercase">{{ str_replace('_', ' ', $order->payment_method ?? 'CASH') }}</span>
+                        <span class="uppercase font-bold text-black">Payment Method:</span>
+                        <span class="font-black uppercase text-black">{{ str_replace('_', ' ', $order->payment_method ?? 'CASH') }}</span>
                     </div>
 
                     @if($order->internal_notes && str_contains($order->internal_notes, 'Tendered:'))
                         <div class="flex justify-between">
-                            <span>Cash Tendered:</span>
-                            <span class="font-bold">
+                            <span class="font-bold text-black">Cash Tendered:</span>
+                            <span class="font-black text-black">
                                 {{ Str::between($order->internal_notes, 'Tendered: ', ', Change:') }}
                             </span>
                         </div>
-                        <div class="flex justify-between font-bold">
-                            <span>Change Returned:</span>
-                            <span>
+                        <div class="flex justify-between font-black">
+                            <span class="font-bold text-black">Change Returned:</span>
+                            <span class="font-black text-black">
                                 {{ Str::after($order->internal_notes, 'Change: ') }}
                             </span>
                         </div>
@@ -310,7 +319,7 @@
             </div>
 
             {{-- Admin Barcode & Single-Line Footer --}}
-            <div class="pt-2 text-center space-y-1">
+            <div class="pt-2.5 text-center space-y-1">
                 @if($showBarcode)
                     <div class="py-1 flex flex-col items-center justify-center">
                         {{-- 1D Code 128 Barcode for Admin / Counter Scanner --}}
@@ -318,17 +327,17 @@
                             <svg id="barcode-{{ $copyIndex }}" class="max-w-[95%] h-8"></svg>
                         </div>
 
-                        <div class="text-[10.5px] font-mono font-black text-black tracking-wider leading-none mt-0.5">
+                        <div class="text-[11px] font-mono font-black text-black tracking-wider leading-none mt-0.5">
                             {{ $order->order_number }}
                         </div>
                     </div>
                 @endif
 
-                {{-- Clean Single-Line Footer Message --}}
+                {{-- Clean Single-Line Footer Message (Dark & Solid) --}}
                 <div class="pt-1 text-center overflow-hidden">
                     <div 
-                        class="text-[8px] sm:text-[8.5px] font-bold text-black uppercase tracking-tight whitespace-nowrap overflow-hidden text-ellipsis"
-                        style="color: #000000 !important; font-weight: 800 !important; white-space: nowrap !important; font-size: 8px !important; letter-spacing: -0.2px;"
+                        class="font-black text-black uppercase tracking-tight whitespace-nowrap overflow-hidden text-ellipsis"
+                        style="color: #000000 !important; font-weight: 900 !important; white-space: nowrap !important; font-size: 8.5px !important; letter-spacing: -0.2px;"
                     >
                         {!! $footerMessage !!}
                     </div>
@@ -349,8 +358,8 @@
                     if (typeof JsBarcode !== 'undefined') {
                         JsBarcode("#barcode-{{ $i }}", "{{ $order->order_number }}", {
                             format: "CODE128",
-                            width: {{ $is58mm ? 1.35 : 1.75 }},
-                            height: {{ $is58mm ? 30 : 38 }},
+                            width: {{ $is58mm ? 1.4 : 1.8 }},
+                            height: {{ $is58mm ? 32 : 40 }},
                             displayValue: false,
                             margin: 0,
                             lineColor: "#000000"
