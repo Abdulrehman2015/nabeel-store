@@ -1402,20 +1402,20 @@ function posApp() {
 
         // Thermal Slip Printer Configuration
         printerConfig: {
-            paperWidth: '80mm',
+            paperWidth: '58mm',
             autoPrint: false,
             printMode: 'iframe',
             copies: 1,
             showLogo: true,
             showBarcode: true,
-            showCashier: true,
+            showCashier: false,
             showCustomer: true,
             storeName: {!! json_encode(html_entity_decode(setting('site_name', 'N&J MINI MART'), ENT_QUOTES, 'UTF-8')) !!},
             storeTagline: 'Retail Mart & Everyday Essentials',
             storeAddress: 'Puchong Central Distribution Hub, Selangor',
             storePhone: '+60 12-859 9900',
-            regNo: 'SSM: 202401023456 (1549876-X)',
-            footerMessage: 'Thank you for shopping at N&J Mini Mart! Goods sold are non-refundable. Exchange allowed within 3 days with original receipt.',
+            regNo: '',
+            footerMessage: 'Thank you for Shopping at N&J Mini Mart',
         },
 
         initPos() {
@@ -1727,6 +1727,16 @@ function posApp() {
             if (!rawCode) return;
             const code = rawCode.replace(/[\r\n\t]/g, '').trim();
             if (!code) return;
+
+            // Direct Order Barcode Scan detection (e.g. POS-2026-01012 or Order Number)
+            if (code.toUpperCase().startsWith('POS-') || code.toUpperCase().startsWith('ORD-')) {
+                window.open(`{{ url('/checkout/success') }}/${encodeURIComponent(code)}`, '_blank');
+                this.showToast(`Opening scanned Order: ${code}`, '🧾', 'success');
+                this.playBeep('success');
+                this.searchQuery = '';
+                this.barcodeScanBuffer = '';
+                return;
+            }
 
             const product = this.findProductByCode(code);
 
@@ -2322,23 +2332,23 @@ function posApp() {
 
         resetPrinterConfig() {
             this.printerConfig = {
-                paperWidth: '80mm',
+                paperWidth: '58mm',
                 autoPrint: false,
                 printMode: 'iframe',
                 copies: 1,
                 showLogo: true,
                 showBarcode: true,
-                showCashier: true,
+                showCashier: false,
                 showCustomer: true,
                 storeName: {!! json_encode(html_entity_decode(setting('site_name', 'N&J MINI MART'), ENT_QUOTES, 'UTF-8')) !!},
                 storeTagline: 'Retail Mart & Everyday Essentials',
                 storeAddress: 'Puchong Central Distribution Hub, Selangor',
                 storePhone: '+60 12-859 9900',
-                regNo: 'SSM: 202401023456 (1549876-X)',
-                footerMessage: 'Thank you for shopping at N&J Mini Mart! Goods sold are non-refundable. Exchange allowed within 3 days with original receipt.',
+                regNo: '',
+                footerMessage: 'Thank you for Shopping at N&J Mini Mart',
             };
             localStorage.removeItem('pos_thermal_printer_config');
-            this.showToast('Printer settings restored to defaults', '🔄', 'info');
+            this.showToast('Printer settings restored to defaults (58mm)', '🔄', 'info');
         },
 
         // Universal Thermal Receipt Printer Dispatcher

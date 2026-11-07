@@ -263,11 +263,19 @@ class AdminPosController extends Controller
     /**
      * Display printable thermal POS receipt.
      */
-    public function receipt(Order $order): View
+    public function receipt($order): View
     {
-        $order->load(['items.product']);
+        if ($order instanceof Order) {
+            $resolvedOrder = $order;
+        } else {
+            $resolvedOrder = Order::where('id', $order)
+                ->orWhere('order_number', $order)
+                ->firstOrFail();
+        }
 
-        return view('admin.pos.receipt', compact('order'));
+        $resolvedOrder->load(['items.product']);
+
+        return view('admin.pos.receipt', ['order' => $resolvedOrder]);
     }
 
     /**
