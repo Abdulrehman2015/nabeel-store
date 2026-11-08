@@ -2224,28 +2224,38 @@ function posApp() {
             const total = this.grandTotal;
             const presets = [];
 
-            if (total <= 0) return [10, 20, 50, 100];
+            if (total <= 0) return [5, 10, 50];
 
-            // Next rounded RM 10
+            // 1. Minimum cash note in Malaysia (RM 5) when total is under RM 5
+            if (total < 5) {
+                presets.push(5);
+            }
+
+            // 2. Next rounded RM 10
             const next10 = Math.ceil(total / 10) * 10;
             if (next10 > total && !presets.includes(next10)) presets.push(next10);
 
-            // Next rounded RM 50
+            // 3. Next rounded RM 20 (useful when total between 5 and 20)
+            if (total > 5 && total < 20 && !presets.includes(20)) {
+                presets.push(20);
+            }
+
+            // 4. Next rounded RM 50
             const next50 = Math.ceil(total / 50) * 50;
             if (next50 > total && !presets.includes(next50)) presets.push(next50);
 
-            // Next rounded RM 100
+            // 5. Next rounded RM 100
             const next100 = Math.ceil(total / 100) * 100;
             if (next100 > total && !presets.includes(next100)) presets.push(next100);
 
-            // Fallbacks
-            [20, 50, 100, 200].forEach(p => {
+            // Standard banknote denominations in Malaysia
+            [5, 10, 20, 50, 100, 200].forEach(p => {
                 if (p > total && presets.length < 3 && !presets.includes(p)) {
                     presets.push(p);
                 }
             });
 
-            return presets.slice(0, 3);
+            return presets.sort((a, b) => a - b).slice(0, 3);
         },
 
         scrollCategoryCarousel(offset) {
