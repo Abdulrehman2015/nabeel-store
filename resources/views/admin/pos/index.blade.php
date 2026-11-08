@@ -147,7 +147,7 @@
                             type="text" 
                             x-ref="barcodeInput"
                             x-model="searchQuery" 
-                            @keydown.enter.prevent.stop="handleBarcodeEnter()"
+                            @keydown.enter="handleBarcodeEnter($event)"
                             placeholder="Scan barcode, SKU or search item (F2 or /)..."
                             class="w-full pl-9 pr-14 py-2 bg-slate-50/80 hover:bg-slate-50 focus:bg-white text-xs sm:text-sm font-semibold rounded-xl border border-slate-200 focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 text-slate-900 placeholder-slate-400 transition"
                             autofocus
@@ -1988,6 +1988,15 @@ function posApp() {
         },
 
         initPos() {
+            // High-priority capturing keydown listener to guarantee Ctrl+Enter always triggers discount modal
+            window.addEventListener('keydown', (e) => {
+                if ((e.ctrlKey || e.metaKey) && (e.key === 'Enter' || e.code === 'Enter' || e.code === 'NumpadEnter')) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    this.openItemDiscountModal();
+                }
+            }, true);
+
             // Update clock
             this.updateClock();
             setInterval(() => this.updateClock(), 1000);
@@ -2251,7 +2260,14 @@ function posApp() {
         },
 
         // Barcode enter event
-        handleBarcodeEnter() {
+        handleBarcodeEnter(e) {
+            if (e && e.preventDefault) e.preventDefault();
+            // If Ctrl + Enter was pressed while inside barcode input:
+            if (e && (e.ctrlKey || e.metaKey)) {
+                if (e.stopPropagation) e.stopPropagation();
+                this.openItemDiscountModal();
+                return;
+            }
             if (this.scanAutoProcessTimeout) clearTimeout(this.scanAutoProcessTimeout);
             const code = this.barcodeScanBuffer.trim() || this.searchQuery.trim();
             if (code) {
@@ -2692,12 +2708,15 @@ function posApp() {
         },
 
         openItemDiscountModal(index = null) {
-            if (this.cart.length === 0) {
+            if (!this.cart || this.cart.length === 0) {
                 this.showToast('Please add products to cart first', '🛒', 'info');
                 return;
             }
-            const targetIndex = (index !== null && index >= 0) ? index : this.getActiveCartIndex();
-            if (targetIndex < 0 || targetIndex >= this.cart.length) return;
+            let targetIndex = (index !== null && index >= 0) ? index : this.getActiveCartIndex();
+            if (targetIndex < 0 || targetIndex >= this.cart.length) {
+                targetIndex = this.cart.length - 1;
+            }
+            if (targetIndex < 0 || !this.cart[targetIndex]) return;
 
             this.selectedCartIndex = targetIndex;
             const item = this.cart[targetIndex];
@@ -3021,7 +3040,7 @@ function posApp() {
             // Ctrl/Cmd shortcuts for Item Discount and Quantity manipulation
             if (e.ctrlKey || e.metaKey) {
                 // Ctrl + Enter: Open Item Discount Modal for selected item
-                if (e.key === 'Enter') {
+                if (e.key === 'Enter' || e.code === 'Enter' || e.code === 'NumpadEnter') {
                     e.preventDefault();
                     e.stopPropagation();
                     this.openItemDiscountModal();
