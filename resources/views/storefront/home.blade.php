@@ -559,7 +559,7 @@
             <div class="text-center max-w-xl mx-auto mb-8 sm:mb-10">
                 <span class="text-xs font-bold text-sky-600 uppercase tracking-wider">The Mart Advantage</span>
                 <h2 class="text-xl sm:text-3xl font-black text-slate-900 tracking-tight mt-1">
-                    {{ $sections['benefits']->title ?? 'Why Shop at N&J Mini Mart?' }}
+                    {{ $sections['benefits']->title ?? ('Why Shop at ' . store_name() . '?') }}
                 </h2>
                 <p class="text-slate-500 text-xs sm:text-sm mt-1">
                     {{ $sections['benefits']->subtitle ?? 'Genuine products, reliable local delivery, and transparent pricing.' }}

@@ -3,8 +3,8 @@
         <x-auth-aside
             eyebrow="Customer account"
             title="Everything you need, just a sign-in away."
-            description="Sign in to browse products, track orders, and manage your N&J Mini Mart deliveries."
-            note="Secure access for N&J Mini Mart customers"
+            description="Sign in to browse products, track orders, and manage your {{ store_name() }} deliveries."
+            note="Secure access for {{ store_name() }} customers"
         />
 
         <section class="auth-panel">
@@ -81,14 +81,14 @@
                         <div class="auth-mini-note">
                             <span>Developer quick fill</span>
                             <div class="flex gap-3">
-                                <button type="button" onclick="document.getElementById('email').value='admin@99bulksales.my'; document.getElementById('password').value='Admin@123456';" class="font-bold text-[#008d76] hover:underline">Admin</button>
+                                <button type="button" onclick="document.getElementById('email').value='nabeel@store.com'; document.getElementById('password').value='Admin@123456';" class="font-bold text-[#008d76] hover:underline">Admin</button>
                                 <button type="button" onclick="document.getElementById('email').value='customer@example.com'; document.getElementById('password').value='Customer@123456';" class="font-bold text-[#008d76] hover:underline">Customer</button>
                             </div>
                         </div>
                     @endif
 
                     <div class="auth-divider"></div>
-                    <p class="text-center text-xs text-slate-500">New to N&J Mini Mart?</p>
+                    <p class="text-center text-xs text-slate-500">New to {{ store_name() }}?</p>
                     <a href="{{ route('register') }}" class="mt-2 flex items-center justify-center gap-1 text-center auth-footer-link">
                         Sign Up
                         <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M5 12h14m-6-6l6 6-6 6"/></svg>

@@ -33,7 +33,7 @@
     <table class="header-table">
         <tr>
             <td>
-                <h1 class="title">{{ setting('site_name', '99 Bulk Sales') }}</h1>
+                <h1 class="title">{{ store_name() }}</h1>
                 <div class="tagline">Groceries & Household Essentials</div>
                 <div style="font-size: 10px; color: #64748b; margin-top: 4px;">
                     {{ setting('store_address') }}<br>

@@ -6,14 +6,14 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     {{-- Dynamic SEO Metadata (Phase 5) --}}
-    <title>{{ $seo['title'] ?? (setting('site_name', 'N&J Mini Mart') . ' - Online Mart & Groceries') }}</title>
+    <title>{{ $seo['title'] ?? (store_name() . ' - Online Mart & Groceries') }}</title>
     <meta name="description" content="{{ $seo['description'] ?? setting('seo_default_description') }}">
     <meta name="keywords" content="{{ $seo['keywords'] ?? setting('seo_default_keywords') }}">
     <meta name="robots" content="{{ $seo['robots'] ?? 'index, follow' }}">
     <link rel="canonical" href="{{ $seo['canonical'] ?? url()->current() }}">
 
     {{-- Open Graph / Facebook --}}
-    <meta property="og:site_name" content="{{ setting('site_name', '99 Bulk Sales') }}">
+    <meta property="og:site_name" content="{{ store_name() }}">
     <meta property="og:type" content="website">
     <meta property="og:title" content="{{ $seo['og_title'] ?? ($seo['title'] ?? setting('site_name')) }}">
     <meta property="og:description" content="{{ $seo['og_description'] ?? ($seo['description'] ?? '') }}">
@@ -256,7 +256,7 @@
                 <div class="flex items-center">
                     <a href="{{ url('/') }}" class="flex items-center gap-3 group">
                         <div class="bg-slate-950 p-2 sm:px-3 sm:py-2 rounded-2xl shadow-md border border-slate-800 flex items-center transition-all group-hover:border-lime-500/50 group-hover:shadow-lime-500/10">
-                            <img src="{{ asset('images/logo.png') }}" alt="{{ setting('site_name', 'N&J mini mart') }}" class="h-9 sm:h-11 w-auto object-contain">
+                            <img src="{{ setting('site_logo') ? asset('storage/' . setting('site_logo')) : asset('images/logo.png') }}" alt="{{ store_name() }}" class="h-9 sm:h-11 w-auto object-contain">
                         </div>
                         <div class="hidden xl:block">
                             <span class="block text-xs font-black text-slate-900 uppercase tracking-tight">Mini Mart</span>
@@ -566,7 +566,7 @@
         <div class="fixed inset-y-0 left-0 w-72 bg-white shadow-2xl p-6 flex flex-col justify-between">
             <div>
                 <div class="flex justify-between items-center pb-4 border-b border-slate-100">
-                    <span class="text-lg font-black text-slate-900">{{ setting('site_name', '99 Bulk Sales') }}</span>
+                    <span class="text-lg font-black text-slate-900">{{ store_name() }}</span>
                     <button type="button" @click="mobileMenuOpen = false" class="text-slate-400 p-1">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                     </button>
@@ -652,7 +652,7 @@
                 <div class="lg:col-span-2 space-y-4">
                     <div class="flex items-center gap-3">
                         <div class="bg-slate-950 p-2.5 rounded-2xl border border-slate-800 shadow-md">
-                            <img src="{{ asset('images/logo.png') }}" alt="{{ setting('site_name', 'N&J mini mart') }}" class="h-10 sm:h-12 w-auto object-contain">
+                            <img src="{{ setting('site_logo') ? asset('storage/' . setting('site_logo')) : asset('images/logo.png') }}" alt="{{ store_name() }}" class="h-10 sm:h-12 w-auto object-contain">
                         </div>
                     </div>
                     <p class="text-xs text-slate-400 leading-relaxed max-w-sm">
@@ -728,7 +728,7 @@
 
             {{-- Bottom Credit & Payment Badges --}}
             <div class="mt-12 pt-8 border-t border-slate-800 flex flex-col md:flex-row items-center justify-between gap-4 text-xs">
-                <p>&copy; {{ date('Y') }} {{ setting('site_name', '99 Bulk Sales') }}. All rights reserved.</p>
+                <p>&copy; {{ date('Y') }} {{ store_name() }}. All rights reserved.</p>
                 <div class="flex items-center gap-2">
                     <span class="text-slate-500 text-[11px] uppercase tracking-wider font-semibold">Payment Methods:</span>
                     <span class="bg-slate-800 text-slate-300 px-2.5 py-1 rounded border border-slate-700 font-bold">DuitNow QR</span>

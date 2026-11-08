@@ -21,7 +21,26 @@ if (!function_exists('setting')) {
             return Setting::setMany($key);
         }
 
+        if ($key === 'site_name' || $key === 'store_name') {
+            $val = Setting::get('store_name') ?: Setting::get('site_name');
+            return $val ?: $default;
+        }
+
         return Setting::get($key, $default);
+    }
+}
+
+if (!function_exists('store_name')) {
+    /**
+     * Get the dynamic store name across the entire application.
+     *
+     * @param string|null $default
+     * @return string
+     */
+    function store_name($default = 'N&J Mini Mart')
+    {
+        $name = setting('store_name') ?: setting('site_name');
+        return $name ?: config('app.name', $default);
     }
 }
 

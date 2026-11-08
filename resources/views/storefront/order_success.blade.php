@@ -1,6 +1,6 @@
 @extends('layouts.storefront')
 
-@section('title', 'Order Received #' . $order->order_number . ' - ' . setting('site_name', 'N&J Mini Mart'))
+@section('title', 'Order Received #' . $order->order_number . ' - ' . store_name())
 
 @section('content')
 <div class="bg-slate-50/60 min-h-screen py-8 sm:py-12" x-data="orderSuccessApp()">
@@ -434,7 +434,7 @@
                             href="{{ url('/') }}" 
                             class="text-xs font-bold text-sky-600 hover:text-sky-700 hover:underline transition"
                         >
-                            &larr; Continue Shopping at N&J Mini Mart
+                            &larr; Continue Shopping at {{ store_name() }}
                         </a>
                     </div>
                 </div>

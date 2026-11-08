@@ -95,7 +95,7 @@ class NotificationService
             return false;
         }
 
-        $text = "Bulk Mart - New Order #{$order->order_number}\n"
+        $text = store_name() . " - New Order #{$order->order_number}\n"
             . "Customer: {$order->customer_name} ({$order->customer_phone})\n"
             . "Total: " . format_currency($order->grand_total) . "\n"
             . "Advance: " . format_currency($order->advance_amount) . " (Ref: {$order->payment_reference})\n"

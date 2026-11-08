@@ -64,11 +64,11 @@
                     @endif
                 </div>
 
-                {{-- N&J Authenticity Guaranteed Floating Chip --}}
+                {{-- Authenticity Guaranteed Floating Chip --}}
                 <div class="absolute top-3 right-3 sm:top-4 sm:right-4 z-10">
                     <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-900/85 backdrop-blur-md text-lime-400 border border-slate-700/80 text-[10px] font-extrabold tracking-wide shadow-xs">
                         <span class="w-1.5 h-1.5 rounded-full bg-lime-400 animate-pulse"></span>
-                        N&J Verified
+                        {{ store_name() }} Verified
                     </span>
                 </div>
 
@@ -328,7 +328,7 @@
                     @php
                         $adminPhone = setting('admin_phone', setting('store_phone', '+60128899900'));
                         $cleanPhone = preg_replace('/[^0-9]/', '', $adminPhone);
-                        $waText = urlencode("Hello N&J Mini Mart, I would like to order: " . $product->name . " (SKU: " . $product->sku . ") at " . format_currency($product->current_price));
+                        $waText = urlencode("Hello " . store_name() . ", I would like to order: " . $product->name . " (SKU: " . $product->sku . ") at " . format_currency($product->current_price));
                     @endphp
                     @if($cleanPhone)
                         <a 
@@ -454,7 +454,7 @@
                 </div>
                 <div class="p-3.5 sm:p-4 rounded-2xl bg-amber-50/70 border border-amber-200/70 space-y-1">
                     <span class="text-xl">🏆</span>
-                    <h4 class="text-xs font-bold text-slate-900">N&J Quality Check</h4>
+                    <h4 class="text-xs font-bold text-slate-900">{{ store_name() }} Quality Check</h4>
                     <p class="text-[11px] text-slate-600 leading-snug">Every item is verified for freshness, packaging integrity and shelf-life.</p>
                 </div>
             </div>

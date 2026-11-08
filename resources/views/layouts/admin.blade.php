@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>@yield('title', 'Admin Dashboard') | {{ setting('site_name', 'N&J Mini Mart') }} Admin</title>
+    <title>@yield('title', 'Admin Dashboard') | {{ store_name() }} Admin</title>
 
     {{-- Google Fonts: Plus Jakarta Sans & Inter --}}
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -47,7 +47,7 @@
             {{-- Admin Brand Header --}}
             <div class="h-16 flex items-center justify-between px-5 bg-slate-950 border-b border-slate-900 sticky top-0 z-10">
                 <a href="{{ auth()->user()->isAdmin() ? route('admin.dashboard') : route('admin.pos.index') }}" class="flex items-center gap-2.5">
-                    <img src="{{ asset('images/logo.png') }}" alt="{{ setting('site_name', 'N&J mini mart') }}" class="h-8 w-auto object-contain">
+                    <img src="{{ setting('site_logo') ? asset('storage/' . setting('site_logo')) : asset('images/logo.png') }}" alt="{{ store_name() }}" class="h-8 w-auto object-contain">
                     <span class="text-[10px] font-bold {{ auth()->user()->isAdmin() ? 'text-sky-400 bg-sky-950/70 border-sky-800/60' : 'text-emerald-400 bg-emerald-950/70 border-emerald-800/60' }} border px-1.5 py-0.5 rounded uppercase tracking-wider">
                         {{ auth()->user()->role === 'cashier' ? 'Cashier' : (auth()->user()->isAdmin() ? 'Admin' : 'Staff') }}
                     </span>
@@ -685,8 +685,8 @@
         {{-- Admin Footer (Suppressed on POS for True Viewport-Fit Register Experience) --}}
         @unless(request()->routeIs('admin.pos.*'))
             <footer class="px-6 py-3.5 bg-white border-t border-slate-200/80 text-[11px] text-slate-400 flex flex-col sm:flex-row items-center justify-between gap-2">
-                <span>{{ setting('site_name', 'N&J Mini Mart') }} &bull; Mart Operations Platform</span>
-                <span>Version 2.4 &bull; N&J Mini Mart Management</span>
+                <span>{{ store_name() }} &bull; Mart Operations Platform</span>
+                <span>Version 2.4 &bull; {{ store_name() }} Management</span>
             </footer>
         @endunless
     </div>

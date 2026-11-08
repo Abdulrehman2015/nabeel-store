@@ -239,32 +239,33 @@ class AdminSettingsController extends Controller
     public function saveAppearance(Request $request)
     {
         $validated = $request->validate([
-            'color_primary' => 'required|string|max:20',
-            'color_primary_hover' => 'required|string|max:20',
-            'color_secondary' => 'required|string|max:20',
-            'color_accent' => 'required|string|max:20',
-            'color_bg' => 'required|string|max:20',
-            'color_text' => 'required|string|max:20',
-            'color_header_bg' => 'required|string|max:20',
-            'color_footer_bg' => 'required|string|max:20',
-            'color_button_text' => 'required|string|max:20',
-            'font_family' => 'required|string|max:150',
-            'border_radius' => 'required|string|max:20',
+            'store_name' => 'required|string|max:100',
             'site_logo' => 'nullable|image|max:2048',
             'site_favicon' => 'nullable|image|max:1024',
         ]);
 
+        $storeName = trim($validated['store_name']);
+        Setting::set('store_name', $storeName, 'appearance');
+        Setting::set('site_name', $storeName, 'appearance');
+
         if ($request->hasFile('site_logo')) {
-            $validated['site_logo'] = $request->file('site_logo')->store('theme', 'public');
+            $path = $request->file('site_logo')->store('theme', 'public');
+            Setting::set('site_logo', $path, 'appearance');
         }
         if ($request->hasFile('site_favicon')) {
-            $validated['site_favicon'] = $request->file('site_favicon')->store('theme', 'public');
+            $path = $request->file('site_favicon')->store('theme', 'public');
+            Setting::set('site_favicon', $path, 'appearance');
         }
 
-        Setting::setMany($validated, 'appearance');
+        // If the main admin account currently has old store name, synchronize it as well
+        $admin = \App\Models\User::where('role', 'admin')->first();
+        if ($admin && (str_contains($admin->name, 'N&J') || str_contains($admin->name, 'N&I') || str_contains($admin->name, '99') || str_contains($admin->name, 'Store'))) {
+            $admin->update(['name' => $storeName]);
+        }
+
         ActivityLog::log('settings.appearance_updated');
 
-        return redirect()->back()->with('success', 'Theme and styling updated. Applied live across the store.');
+        return redirect()->back()->with('success', 'Store name and brand identity updated successfully! Applied live everywhere across POS, invoices, storefront, and admin.');
     }
 
     /**

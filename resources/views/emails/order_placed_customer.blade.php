@@ -23,7 +23,7 @@
 <body>
     <div class="card">
         <div class="header">
-            <h1>{{ setting('site_name', 'Bulk Mart') }}</h1>
+            <h1>{{ store_name() }}</h1>
             <p>Thank you for your bulk order!</p>
         </div>
         <div class="content">
@@ -97,7 +97,7 @@
             </div>
         </div>
         <div class="footer">
-            <p>{{ setting('site_name', 'N&J Mini Mart') }} &bull; {{ setting('store_address', 'Puchong, Selangor') }}</p>
+            <p>{{ store_name() }} &bull; {{ setting('store_address', 'Puchong, Selangor') }}</p>
             <p>Questions? Call us at {{ setting('store_phone', '+60 12-345 6789') }} or email {{ setting('store_email', 'support@bulkmart.my') }}</p>
         </div>
     </div>

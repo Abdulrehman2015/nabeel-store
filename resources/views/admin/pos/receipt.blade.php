@@ -13,7 +13,7 @@
     $showCustomer = request()->has('show_customer') ? (request('show_customer') == '1' || request('show_customer') === 'true') : true;
     $showCashier = request()->has('show_cashier') ? (request('show_cashier') == '1' || request('show_cashier') === 'true') : true;
 
-    $storeName = request('header_name') ?: setting('site_name', 'N&J MINI MART');
+    $storeName = request('header_name') ?: store_name();
     $storeTagline = request('tagline') ?: 'Retail Mart & Everyday Essentials';
 
     // The user's exact address:
@@ -33,8 +33,8 @@
 
     // Clean single line footer message:
     $rawFooter = request('footer');
-    if (!$rawFooter || str_contains($rawFooter, 'non-refundable') || str_contains($rawFooter, 'Exchange allowed')) {
-        $footerMessage = 'Thank you for shopping at N&J Mini Mart';
+    if (!$rawFooter || str_contains($rawFooter, 'non-refundable') || str_contains($rawFooter, 'Exchange allowed') || str_contains($rawFooter, 'N&J Mini Mart') || str_contains($rawFooter, '99 Bulk')) {
+        $footerMessage = 'Thank you for shopping at ' . $storeName;
     } else {
         $footerMessage = $rawFooter;
     }

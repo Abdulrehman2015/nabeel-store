@@ -3,7 +3,7 @@
         <x-auth-aside
             eyebrow="Create your account"
             title="Everything you need for a simpler shop."
-            description="Sign up to browse products, save your details, track orders, and manage N&J Mini Mart deliveries."
+            description="Sign up to browse products, save your details, track orders, and manage {{ store_name() }} deliveries."
             note="It only takes a minute to get started"
         />
 

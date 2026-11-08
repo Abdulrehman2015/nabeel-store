@@ -1,5 +1,5 @@
 @props([
-    'eyebrow' => 'N&J Mini Mart customer access',
+    'eyebrow' => store_name() . ' customer access',
     'title',
     'description',
     'note' => 'Trusted supply for growing businesses',
@@ -7,7 +7,7 @@
 
 <aside class="auth-aside">
     <a href="{{ route('home') }}" class="auth-aside-brand">
-        <img src="{{ asset('images/logo.png') }}" alt="N&J Mini Mart">
+        <img src="{{ setting('site_logo') ? asset('storage/' . setting('site_logo')) : asset('images/logo.png') }}" alt="{{ store_name() }}">
         <span>Customer portal</span>
     </a>
 

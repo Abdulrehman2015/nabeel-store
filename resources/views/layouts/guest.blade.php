@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>{{ $title ?? 'Customer Account' }} | {{ config('app.name', 'N&J Mini Mart') }}</title>
+    <title>{{ $title ?? 'Customer Account' }} | {{ store_name() }}</title>
 
     <!-- Google Fonts: Plus Jakarta Sans -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -20,9 +20,9 @@
 <body class="auth-page min-h-full antialiased flex flex-col">
     <header class="auth-header">
         <div class="auth-header-inner">
-            <a href="{{ route('home') }}" aria-label="{{ config('app.name', 'N&J Mini Mart') }} home" class="auth-header-brand">
+            <a href="{{ route('home') }}" aria-label="{{ store_name() }} home" class="auth-header-brand">
                 <span class="auth-header-mark">
-                    <img src="{{ asset('images/logo.png') }}" alt="{{ config('app.name', 'N&J Mini Mart') }}" class="auth-header-logo">
+                    <img src="{{ setting('site_logo') ? asset('storage/' . setting('site_logo')) : asset('images/logo.png') }}" alt="{{ store_name() }}" class="auth-header-logo">
                 </span>
                 <span class="auth-header-context">
                     <strong>DIRECT GROCERY</strong>
@@ -43,6 +43,6 @@
         {{ $slot }}
     </main>
 
-    <footer class="auth-footer">© {{ date('Y') }} N&J Mini Mart · Secure customer account access</footer>
+    <footer class="auth-footer">© {{ date('Y') }} {{ store_name() }} · Secure customer account access</footer>
 </body>
 </html>

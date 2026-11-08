@@ -21,7 +21,7 @@
                 🛒
             </div>
             <div class="flex items-center gap-2">
-                <span class="text-sm font-black text-slate-900 tracking-tight">N&J POS</span>
+                <span class="text-sm font-black text-slate-900 tracking-tight">{{ store_name() }} POS</span>
                 <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200/80">
                     <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                     <span>Register #1</span>
@@ -705,7 +705,7 @@
                 <div class="p-2.5 bg-slate-900 text-white rounded-xl flex items-baseline justify-between shadow-xs">
                     <div>
                         <div class="text-[9px] uppercase font-bold text-slate-400 tracking-wider">Total Payable</div>
-                        <div class="text-[9px] text-emerald-400 font-medium">N&J Cash Register</div>
+                        <div class="text-[9px] text-emerald-400 font-medium">{{ store_name() }} Cash Register</div>
                     </div>
                     <div class="text-xl font-black text-lime-400 tracking-tight">
                         RM <span x-text="grandTotal.toFixed(2)"></span>
@@ -1153,7 +1153,7 @@
             </div>
 
             <div class="text-xs text-slate-600">
-                <p class="font-bold text-slate-900">{{ setting('site_name', 'N&J Mini Mart') }}</p>
+                <p class="font-bold text-slate-900">{{ store_name() }}</p>
                 <p class="text-[11px] text-slate-500 mt-0.5">Ask customer to scan with Touch 'n Go, Maybank, or any banking app.</p>
                 <div class="text-xl font-black text-sky-700 mt-2">
                     RM <span x-text="grandTotal.toFixed(2)"></span>
@@ -1466,7 +1466,7 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                         <div>
                             <label class="block text-[10px] text-slate-500 font-semibold mb-0.5">Store / Business Name</label>
-                            <input type="text" x-model="printerConfig.storeName" placeholder="e.g. N&J MINI MART" class="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:bg-white focus:border-sky-500">
+                            <input type="text" x-model="printerConfig.storeName" placeholder="e.g. {{ store_name() }}" class="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:bg-white focus:border-sky-500">
                         </div>
                         <div>
                             <label class="block text-[10px] text-slate-500 font-semibold mb-0.5">Tagline / Subtitle</label>
@@ -1979,12 +1979,12 @@ function posApp() {
             showBarcode: true,
             showCashier: true,
             showCustomer: true,
-            storeName: {!! json_encode(html_entity_decode(setting('site_name', 'N&J MINI MART'), ENT_QUOTES, 'UTF-8')) !!},
+            storeName: {!! json_encode(html_entity_decode(store_name(), ENT_QUOTES, 'UTF-8')) !!},
             storeTagline: 'Retail Mart & Everyday Essentials',
             storeAddress: "34, Jalan Perkasa 3, Taman Ungku Tun Aminah, 81300 Skudai, Johor Darul Ta'zim, Malaysia",
             storePhone: '+60 11-6412 9173',
             regNo: '',
-            footerMessage: 'Thank you for shopping at N&J Mini Mart',
+            footerMessage: 'Thank you for shopping at ' + {!! json_encode(html_entity_decode(store_name(), ENT_QUOTES, 'UTF-8')) !!},
         },
 
         initPos() {
@@ -2007,7 +2007,7 @@ function posApp() {
                 if (saved) this.heldOrders = JSON.parse(saved);
             } catch(e) {}
 
-            // Load saved thermal printer configuration & auto-migrate stale address/footer
+            // Load saved thermal printer configuration & auto-migrate stale address/footer/storeName
             try {
                 const savedPrinter = localStorage.getItem('pos_thermal_printer_config');
                 if (savedPrinter) {
@@ -2018,8 +2018,11 @@ function posApp() {
                     if (!parsed.storePhone || parsed.storePhone.includes('859') || parsed.storePhone.includes('889')) {
                         parsed.storePhone = "+60 11-6412 9173";
                     }
-                    if (!parsed.footerMessage || parsed.footerMessage.includes('non-refundable') || parsed.footerMessage.includes('Exchange allowed')) {
-                        parsed.footerMessage = 'Thank you for shopping at N&J Mini Mart';
+                    if (!parsed.footerMessage || parsed.footerMessage.includes('non-refundable') || parsed.footerMessage.includes('Exchange allowed') || parsed.footerMessage.includes('N&J') || parsed.footerMessage.includes('99')) {
+                        parsed.footerMessage = 'Thank you for shopping at ' + {!! json_encode(html_entity_decode(store_name(), ENT_QUOTES, 'UTF-8')) !!};
+                    }
+                    if (parsed.storeName && (parsed.storeName.includes('N&J') || parsed.storeName.includes('99') || parsed.storeName.includes('N&I'))) {
+                        parsed.storeName = {!! json_encode(html_entity_decode(store_name(), ENT_QUOTES, 'UTF-8')) !!};
                     }
                     this.printerConfig = Object.assign({}, this.printerConfig, parsed);
                     if (this.printerConfig.storeName) {
@@ -3194,12 +3197,12 @@ function posApp() {
                 showBarcode: true,
                 showCashier: false,
                 showCustomer: true,
-                storeName: {!! json_encode(html_entity_decode(setting('site_name', 'N&J MINI MART'), ENT_QUOTES, 'UTF-8')) !!},
+                storeName: {!! json_encode(html_entity_decode(store_name(), ENT_QUOTES, 'UTF-8')) !!},
                 storeTagline: 'Retail Mart & Everyday Essentials',
                 storeAddress: "34, Jalan Perkasa 3, Taman Ungku Tun Aminah, 81300 Skudai, Johor Darul Ta'zim, Malaysia",
                 storePhone: '+60 11-6412 9173',
                 regNo: '',
-                footerMessage: 'Thank you for shopping at N&J Mini Mart',
+                footerMessage: 'Thank you for shopping at ' + {!! json_encode(html_entity_decode(store_name(), ENT_QUOTES, 'UTF-8')) !!},
             };
             localStorage.removeItem('pos_thermal_printer_config');
             this.showToast('Printer settings restored to defaults (58mm)', '🔄', 'info');

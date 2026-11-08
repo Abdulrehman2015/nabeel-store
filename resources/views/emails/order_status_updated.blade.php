@@ -14,7 +14,7 @@
 <body>
     <div class="card">
         <div class="header">
-            <h2>{{ setting('site_name', 'Bulk Mart') }}</h2>
+            <h2>{{ store_name() }}</h2>
             <p>Update for Order #{{ $order->order_number }}</p>
         </div>
         <p>Hello <strong>{{ $order->customer_name }}</strong>,</p>

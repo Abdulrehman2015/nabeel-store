@@ -26,7 +26,7 @@
 <body>
     <div class="card">
         <div class="header">
-            <h1>{{ setting('site_name', '99 Bulk Sales') }}</h1>
+            <h1>{{ store_name() }}</h1>
             <p>Store & Customer Care Operations</p>
         </div>
 
@@ -72,7 +72,7 @@
                 Phone: <a href="tel:{{ setting('admin_phone', setting('store_phone', '+60 12-889 9900')) }}" style="color: #0284c7; text-decoration: none;">{{ setting('admin_phone', setting('store_phone', '+60 12-889 9900')) }}</a>
             </p>
             <p style="margin: 12px 0 0 0; font-size: 11px; color: #94a3b8;">
-                &copy; {{ date('Y') }} {{ setting('site_name', '99 Bulk Sales') }}. All rights reserved.
+                &copy; {{ date('Y') }} {{ store_name() }}. All rights reserved.
             </p>
         </div>
     </div>

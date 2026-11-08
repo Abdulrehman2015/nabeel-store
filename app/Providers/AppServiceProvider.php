@@ -84,6 +84,15 @@ class AppServiceProvider extends ServiceProvider
                               ->orWhere('value', 'LIKE', '%889%');
                         })
                         ->update(['value' => '+60 11-6412 9173']);
+
+                    $existingStoreName = \Illuminate\Support\Facades\DB::table('settings')->where('key', 'store_name')->value('value');
+                    if (!$existingStoreName) {
+                        $siteName = \Illuminate\Support\Facades\DB::table('settings')->where('key', 'site_name')->value('value') ?: 'N&J Mini Mart';
+                        \Illuminate\Support\Facades\DB::table('settings')->updateOrInsert(
+                            ['key' => 'store_name'],
+                            ['value' => $siteName, 'group' => 'appearance', 'created_at' => now(), 'updated_at' => now()]
+                        );
+                    }
                 }
                 @file_put_contents($flagFile, 'synced');
             }
