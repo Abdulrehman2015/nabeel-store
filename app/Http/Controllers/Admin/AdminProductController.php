@@ -246,6 +246,10 @@ class AdminProductController extends Controller
 
     public function destroy(Product $product)
     {
+        if (!auth()->user()->isAdmin()) {
+            abort(403, 'Unauthorized action: Cashiers and staff do not have permission to delete products.');
+        }
+
         ActivityLog::log('product.deleted', $product, ['name' => $product->name, 'sku' => $product->sku]);
         $product->delete();
 
@@ -254,6 +258,10 @@ class AdminProductController extends Controller
 
     public function deleteAll(Request $request)
     {
+        if (!auth()->user()->isAdmin()) {
+            abort(403, 'Unauthorized action: Cashiers and staff do not have permission to delete products.');
+        }
+
         $count = Product::count();
 
         Product::query()->each(function ($product) {

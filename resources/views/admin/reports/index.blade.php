@@ -229,6 +229,67 @@
 
     </div>
 
+    {{-- Cashier Shift & Sales Performance Breakdown --}}
+    @if(isset($cashierPerformance) && $cashierPerformance->count() > 0)
+        <div class="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-2xs space-y-3">
+            <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center font-bold text-sm">
+                        👤
+                    </div>
+                    <div>
+                        <h2 class="text-sm font-extrabold text-slate-900">Cashier Shift &amp; Sales Performance</h2>
+                        <p class="text-[11px] text-slate-500">Sales volume and transaction count attributed to each cashier during selected period.</p>
+                    </div>
+                </div>
+                <span class="text-xs font-bold text-purple-700 bg-purple-50 px-2.5 py-1 rounded-full border border-purple-200">
+                    {{ $cashierPerformance->count() }} Active Cashiers
+                </span>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs">
+                    <thead class="bg-slate-50 text-[10px] uppercase font-bold text-slate-500 border-b border-slate-200">
+                        <tr>
+                            <th class="py-2.5 px-3">Cashier / Staff Member</th>
+                            <th class="py-2.5 px-3">Role</th>
+                            <th class="py-2.5 px-3 text-right">Transactions</th>
+                            <th class="py-2.5 px-3 text-right">Period Sales (RM)</th>
+                            <th class="py-2.5 px-3 text-right">Avg Sale Value</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 text-slate-700">
+                        @foreach($cashierPerformance as $cashier)
+                            @php
+                                $avg = $cashier->period_orders_count > 0 ? ($cashier->period_sales_sum / $cashier->period_orders_count) : 0;
+                            @endphp
+                            <tr class="hover:bg-slate-50/70 transition">
+                                <td class="py-2.5 px-3">
+                                    <div class="font-bold text-slate-900">{{ $cashier->name }}</div>
+                                    <div class="text-[10px] text-slate-400">{{ $cashier->email }}</div>
+                                </td>
+                                <td class="py-2.5 px-3">
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold {{ $cashier->isAdmin() ? 'bg-purple-100 text-purple-800' : 'bg-emerald-100 text-emerald-800' }}">
+                                        {{ ucfirst($cashier->role) }}
+                                    </span>
+                                </td>
+                                <td class="py-2.5 px-3 text-right font-bold text-slate-800">
+                                    {{ number_format($cashier->period_orders_count) }}
+                                </td>
+                                <td class="py-2.5 px-3 text-right font-black text-slate-900">
+                                    RM {{ number_format($cashier->period_sales_sum ?? 0, 2) }}
+                                </td>
+                                <td class="py-2.5 px-3 text-right text-slate-500 font-medium">
+                                    RM {{ number_format($avg, 2) }}
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    @endif
+
     {{-- Main Core Comparison: High Selling vs Least Selling Products --}}
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 

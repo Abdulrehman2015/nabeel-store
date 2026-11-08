@@ -47,9 +47,14 @@ class User extends Authenticatable
         return $this->role === 'admin';
     }
 
+    public function isCashier(): bool
+    {
+        return in_array($this->role, ['cashier', 'staff']);
+    }
+
     public function isStaff(): bool
     {
-        return in_array($this->role, ['admin', 'staff']);
+        return in_array($this->role, ['admin', 'staff', 'cashier']);
     }
 
     public function isCustomer(): bool
@@ -57,9 +62,59 @@ class User extends Authenticatable
         return $this->role === 'customer';
     }
 
+    public function canManagePos(): bool
+    {
+        return in_array($this->role, ['admin', 'staff', 'cashier']);
+    }
+
+    public function canAddProducts(): bool
+    {
+        return in_array($this->role, ['admin', 'staff', 'cashier']);
+    }
+
+    public function canEditProducts(): bool
+    {
+        return in_array($this->role, ['admin', 'staff', 'cashier']);
+    }
+
+    public function canDeleteProducts(): bool
+    {
+        return $this->isAdmin();
+    }
+
+    public function canViewReports(): bool
+    {
+        return $this->isAdmin();
+    }
+
+    public function canViewFinancials(): bool
+    {
+        return $this->isAdmin();
+    }
+
+    public function canManageSettings(): bool
+    {
+        return $this->isAdmin();
+    }
+
+    public function canManageStaff(): bool
+    {
+        return $this->isAdmin();
+    }
+
+    public function canResetData(): bool
+    {
+        return $this->isAdmin();
+    }
+
     public function orders(): HasMany
     {
         return $this->hasMany(Order::class)->latest();
+    }
+
+    public function cashierOrders(): HasMany
+    {
+        return $this->hasMany(Order::class, 'cashier_id')->latest();
     }
 
     public function addresses(): HasMany

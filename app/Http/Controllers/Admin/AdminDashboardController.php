@@ -13,6 +13,10 @@ class AdminDashboardController extends Controller
 {
     public function index()
     {
+        if (!auth()->user()->isAdmin()) {
+            return redirect()->route('admin.pos.index');
+        }
+
         $today = Carbon::today();
 
         // Key Metrics

@@ -46,9 +46,11 @@
         <div class="flex-1 overflow-y-auto no-scrollbar">
             {{-- Admin Brand Header --}}
             <div class="h-16 flex items-center justify-between px-5 bg-slate-950 border-b border-slate-900 sticky top-0 z-10">
-                <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-2.5">
+                <a href="{{ auth()->user()->isAdmin() ? route('admin.dashboard') : route('admin.pos.index') }}" class="flex items-center gap-2.5">
                     <img src="{{ asset('images/logo.png') }}" alt="{{ setting('site_name', 'N&J mini mart') }}" class="h-8 w-auto object-contain">
-                    <span class="text-[10px] font-bold text-sky-400 bg-sky-950/70 border border-sky-800/60 px-1.5 py-0.5 rounded uppercase tracking-wider">Admin</span>
+                    <span class="text-[10px] font-bold {{ auth()->user()->isAdmin() ? 'text-sky-400 bg-sky-950/70 border-sky-800/60' : 'text-emerald-400 bg-emerald-950/70 border-emerald-800/60' }} border px-1.5 py-0.5 rounded uppercase tracking-wider">
+                        {{ auth()->user()->role === 'cashier' ? 'Cashier' : (auth()->user()->isAdmin() ? 'Admin' : 'Staff') }}
+                    </span>
                 </a>
                 <button type="button" @click="sidebarOpen = false" class="lg:hidden text-slate-400 hover:text-white p-1 rounded-md hover:bg-slate-900">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -58,13 +60,7 @@
             {{-- Navigation Menu --}}
             <nav class="p-3.5 space-y-1 text-xs font-semibold">
                 
-                {{-- Dashboard --}}
-                <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-3 px-3 py-2 rounded-xl transition {{ request()->routeIs('admin.dashboard') ? 'bg-sky-600 text-white font-bold shadow-sm shadow-sky-600/30' : 'hover:bg-slate-900 text-slate-300' }}">
-                    <svg class="w-4 h-4 {{ request()->routeIs('admin.dashboard') ? 'text-white' : 'text-slate-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM14 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1v-4zM14 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z"/></svg>
-                    <span>Dashboard</span>
-                </a>
-
-                {{-- Point of Sale (POS) Counter --}}
+                {{-- Point of Sale (POS) Counter (Always top for quick counter operation) --}}
                 <a href="{{ route('admin.pos.index') }}" class="flex items-center justify-between px-3 py-2 rounded-xl transition {{ request()->routeIs('admin.pos.*') ? 'bg-sky-600 text-white font-bold shadow-sm shadow-sky-600/30' : 'hover:bg-slate-900 text-slate-300' }}">
                     <div class="flex items-center gap-3">
                         <svg class="w-4 h-4 {{ request()->routeIs('admin.pos.*') ? 'text-white' : 'text-emerald-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
@@ -74,6 +70,14 @@
                         Counter
                     </span>
                 </a>
+
+                @if(auth()->user()->isAdmin())
+                    {{-- Dashboard (Admin Only) --}}
+                    <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-3 px-3 py-2 rounded-xl transition {{ request()->routeIs('admin.dashboard') ? 'bg-sky-600 text-white font-bold shadow-sm shadow-sky-600/30' : 'hover:bg-slate-900 text-slate-300' }}">
+                        <svg class="w-4 h-4 {{ request()->routeIs('admin.dashboard') ? 'text-white' : 'text-slate-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM14 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1v-4zM14 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z"/></svg>
+                        <span>Dashboard</span>
+                    </a>
+                @endif
 
                 {{-- Orders (with pending badge) --}}
                 @php
@@ -91,16 +95,18 @@
                     @endif
                 </a>
 
-                {{-- Reports & Analytics Module --}}
-                <a href="{{ route('admin.reports.index') }}" class="flex items-center justify-between px-3 py-2 rounded-xl transition {{ request()->routeIs('admin.reports.*') ? 'bg-sky-600 text-white font-bold shadow-sm shadow-sky-600/30' : 'hover:bg-slate-900 text-slate-300' }}">
-                    <div class="flex items-center gap-3">
-                        <svg class="w-4 h-4 {{ request()->routeIs('admin.reports.*') ? 'text-white' : 'text-slate-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
-                        <span>Reports & Analytics</span>
-                    </div>
-                    <span class="text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-sky-500/20 text-sky-400 border border-sky-500/30">
-                        New
-                    </span>
-                </a>
+                @if(auth()->user()->isAdmin())
+                    {{-- Reports & Analytics Module (Admin Only) --}}
+                    <a href="{{ route('admin.reports.index') }}" class="flex items-center justify-between px-3 py-2 rounded-xl transition {{ request()->routeIs('admin.reports.*') ? 'bg-sky-600 text-white font-bold shadow-sm shadow-sky-600/30' : 'hover:bg-slate-900 text-slate-300' }}">
+                        <div class="flex items-center gap-3">
+                            <svg class="w-4 h-4 {{ request()->routeIs('admin.reports.*') ? 'text-white' : 'text-slate-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                            <span>Reports & Analytics</span>
+                        </div>
+                        <span class="text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-sky-500/20 text-sky-400 border border-sky-500/30">
+                            New
+                        </span>
+                    </a>
+                @endif
 
                 <div class="pt-3 pb-1 px-3 text-[10px] uppercase font-bold text-slate-500 tracking-wider">Catalog</div>
 
@@ -128,106 +134,121 @@
                     <span>Customers</span>
                 </a>
 
-                <div class="pt-3 pb-1 px-3 text-[10px] uppercase font-bold text-slate-500 tracking-wider">Storefront CMS</div>
+                @if(auth()->user()->isAdmin())
+                    <div class="pt-3 pb-1 px-3 text-[10px] uppercase font-bold text-slate-500 tracking-wider">Storefront CMS</div>
 
-                {{-- Homepage Settings --}}
-                <a href="{{ route('admin.settings.homepage') }}" class="flex items-center gap-3 px-3 py-2 rounded-xl transition {{ request()->routeIs('admin.settings.homepage') ? 'bg-sky-600 text-white font-bold shadow-sm shadow-sky-600/30' : 'hover:bg-slate-900 text-slate-300' }}">
-                    <svg class="w-4 h-4 {{ request()->routeIs('admin.settings.homepage') ? 'text-white' : 'text-slate-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
-                    <span>Homepage Settings</span>
-                </a>
+                    {{-- Homepage Settings --}}
+                    <a href="{{ route('admin.settings.homepage') }}" class="flex items-center gap-3 px-3 py-2 rounded-xl transition {{ request()->routeIs('admin.settings.homepage') ? 'bg-sky-600 text-white font-bold shadow-sm shadow-sky-600/30' : 'hover:bg-slate-900 text-slate-300' }}">
+                        <svg class="w-4 h-4 {{ request()->routeIs('admin.settings.homepage') ? 'text-white' : 'text-slate-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                        <span>Homepage Settings</span>
+                    </a>
 
-                {{-- Banners / Slider --}}
-                <a href="{{ route('admin.banners.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-xl transition {{ request()->routeIs('admin.banners.*') ? 'bg-sky-600 text-white font-bold shadow-sm shadow-sky-600/30' : 'hover:bg-slate-900 text-slate-300' }}">
-                    <svg class="w-4 h-4 {{ request()->routeIs('admin.banners.*') ? 'text-white' : 'text-slate-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                    <span>Hero Banners</span>
-                </a>
+                    {{-- Banners / Slider --}}
+                    <a href="{{ route('admin.banners.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-xl transition {{ request()->routeIs('admin.banners.*') ? 'bg-sky-600 text-white font-bold shadow-sm shadow-sky-600/30' : 'hover:bg-slate-900 text-slate-300' }}">
+                        <svg class="w-4 h-4 {{ request()->routeIs('admin.banners.*') ? 'text-white' : 'text-slate-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                        <span>Hero Banners</span>
+                    </a>
 
-                {{-- Home Sections Manager --}}
-                <a href="{{ route('admin.home-sections.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-xl transition {{ request()->routeIs('admin.home-sections.*') ? 'bg-sky-600 text-white font-bold shadow-sm shadow-sky-600/30' : 'hover:bg-slate-900 text-slate-300' }}">
-                    <svg class="w-4 h-4 {{ request()->routeIs('admin.home-sections.*') ? 'text-white' : 'text-slate-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
-                    <span>Homepage Sections</span>
-                </a>
+                    {{-- Home Sections Manager --}}
+                    <a href="{{ route('admin.home-sections.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-xl transition {{ request()->routeIs('admin.home-sections.*') ? 'bg-sky-600 text-white font-bold shadow-sm shadow-sky-600/30' : 'hover:bg-slate-900 text-slate-300' }}">
+                        <svg class="w-4 h-4 {{ request()->routeIs('admin.home-sections.*') ? 'text-white' : 'text-slate-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+                        <span>Homepage Sections</span>
+                    </a>
 
-                {{-- Legal & Policy Pages --}}
-                <a href="{{ route('admin.policies.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-xl transition {{ request()->routeIs('admin.policies.*') ? 'bg-sky-600 text-white font-bold shadow-sm shadow-sky-600/30' : 'hover:bg-slate-900 text-slate-300' }}">
-                    <svg class="w-4 h-4 {{ request()->routeIs('admin.policies.*') ? 'text-white' : 'text-slate-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                    <span>Legal & Policies</span>
-                </a>
+                    {{-- Legal & Policy Pages --}}
+                    <a href="{{ route('admin.policies.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-xl transition {{ request()->routeIs('admin.policies.*') ? 'bg-sky-600 text-white font-bold shadow-sm shadow-sky-600/30' : 'hover:bg-slate-900 text-slate-300' }}">
+                        <svg class="w-4 h-4 {{ request()->routeIs('admin.policies.*') ? 'text-white' : 'text-slate-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        <span>Legal & Policies</span>
+                    </a>
 
-                {{-- Contact Messages --}}
-                <a href="{{ route('admin.contact-messages.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-xl transition {{ request()->routeIs('admin.contact-messages.*') ? 'bg-sky-600 text-white font-bold shadow-sm shadow-sky-600/30' : 'hover:bg-slate-900 text-slate-300' }}">
-                    <svg class="w-4 h-4 {{ request()->routeIs('admin.contact-messages.*') ? 'text-white' : 'text-slate-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-                    <span>Inquiries</span>
-                </a>
+                    {{-- Contact Messages --}}
+                    <a href="{{ route('admin.contact-messages.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-xl transition {{ request()->routeIs('admin.contact-messages.*') ? 'bg-sky-600 text-white font-bold shadow-sm shadow-sky-600/30' : 'hover:bg-slate-900 text-slate-300' }}">
+                        <svg class="w-4 h-4 {{ request()->routeIs('admin.contact-messages.*') ? 'text-white' : 'text-slate-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                        <span>Inquiries</span>
+                    </a>
 
-                {{-- Data Requests (GDPR / PDPA) --}}
-                <a href="{{ route('admin.data-requests.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-xl transition {{ request()->routeIs('admin.data-requests.*') ? 'bg-sky-600 text-white font-bold shadow-sm shadow-sky-600/30' : 'hover:bg-slate-900 text-slate-300' }}">
-                    <svg class="w-4 h-4 {{ request()->routeIs('admin.data-requests.*') ? 'text-white' : 'text-slate-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
-                    <span>Data Privacy</span>
-                </a>
+                    {{-- Data Requests (GDPR / PDPA) --}}
+                    <a href="{{ route('admin.data-requests.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-xl transition {{ request()->routeIs('admin.data-requests.*') ? 'bg-sky-600 text-white font-bold shadow-sm shadow-sky-600/30' : 'hover:bg-slate-900 text-slate-300' }}">
+                        <svg class="w-4 h-4 {{ request()->routeIs('admin.data-requests.*') ? 'text-white' : 'text-slate-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                        <span>Data Privacy</span>
+                    </a>
 
-                <div class="pt-3 pb-1 px-3 text-[10px] uppercase font-bold text-slate-500 tracking-wider">Settings & Engines</div>
+                    <div class="pt-3 pb-1 px-3 text-[10px] uppercase font-bold text-slate-500 tracking-wider">Settings & Administration</div>
 
-                {{-- Delivery Settings --}}
-                <a href="{{ route('admin.settings.delivery') }}" class="flex items-center gap-3 px-3 py-2 rounded-xl transition {{ request()->routeIs('admin.settings.delivery') ? 'bg-sky-600 text-white font-bold shadow-sm shadow-sky-600/30' : 'hover:bg-slate-900 text-slate-300' }}">
-                    <svg class="w-4 h-4 {{ request()->routeIs('admin.settings.delivery') ? 'text-white' : 'text-slate-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0"/></svg>
-                    <span>Delivery & Zones</span>
-                </a>
+                    {{-- Staff & Cashiers Management (NEW) --}}
+                    <a href="{{ route('admin.staff.index') }}" class="flex items-center justify-between px-3 py-2 rounded-xl transition {{ request()->routeIs('admin.staff.*') ? 'bg-sky-600 text-white font-bold shadow-sm shadow-sky-600/30' : 'hover:bg-slate-900 text-slate-300' }}">
+                        <div class="flex items-center gap-3">
+                            <svg class="w-4 h-4 {{ request()->routeIs('admin.staff.*') ? 'text-white' : 'text-emerald-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                            <span>Staff & Cashiers</span>
+                        </div>
+                        <span class="text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                            Roles
+                        </span>
+                    </a>
 
-                {{-- Payment Settings --}}
-                <a href="{{ route('admin.settings.payment') }}" class="flex items-center gap-3 px-3 py-2 rounded-xl transition {{ request()->routeIs('admin.settings.payment') ? 'bg-sky-600 text-white font-bold shadow-sm shadow-sky-600/30' : 'hover:bg-slate-900 text-slate-300' }}">
-                    <svg class="w-4 h-4 {{ request()->routeIs('admin.settings.payment') ? 'text-white' : 'text-slate-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
-                    <span>Payment & QR</span>
-                </a>
+                    {{-- Delivery Settings --}}
+                    <a href="{{ route('admin.settings.delivery') }}" class="flex items-center gap-3 px-3 py-2 rounded-xl transition {{ request()->routeIs('admin.settings.delivery') ? 'bg-sky-600 text-white font-bold shadow-sm shadow-sky-600/30' : 'hover:bg-slate-900 text-slate-300' }}">
+                        <svg class="w-4 h-4 {{ request()->routeIs('admin.settings.delivery') ? 'text-white' : 'text-slate-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0"/></svg>
+                        <span>Delivery & Zones</span>
+                    </a>
 
-                {{-- Notification Settings --}}
-                <a href="{{ route('admin.settings.notifications') }}" class="flex items-center gap-3 px-3 py-2 rounded-xl transition {{ request()->routeIs('admin.settings.notifications') ? 'bg-sky-600 text-white font-bold shadow-sm shadow-sky-600/30' : 'hover:bg-slate-900 text-slate-300' }}">
-                    <svg class="w-4 h-4 {{ request()->routeIs('admin.settings.notifications') ? 'text-white' : 'text-slate-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
-                    <span>Notifications</span>
-                </a>
+                    {{-- Payment Settings --}}
+                    <a href="{{ route('admin.settings.payment') }}" class="flex items-center gap-3 px-3 py-2 rounded-xl transition {{ request()->routeIs('admin.settings.payment') ? 'bg-sky-600 text-white font-bold shadow-sm shadow-sky-600/30' : 'hover:bg-slate-900 text-slate-300' }}">
+                        <svg class="w-4 h-4 {{ request()->routeIs('admin.settings.payment') ? 'text-white' : 'text-slate-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+                        <span>Payment & QR</span>
+                    </a>
 
-                {{-- Appearance & Theme --}}
-                <a href="{{ route('admin.settings.appearance') }}" class="flex items-center gap-3 px-3 py-2 rounded-xl transition {{ request()->routeIs('admin.settings.appearance') ? 'bg-sky-600 text-white font-bold shadow-sm shadow-sky-600/30' : 'hover:bg-slate-900 text-slate-300' }}">
-                    <svg class="w-4 h-4 {{ request()->routeIs('admin.settings.appearance') ? 'text-white' : 'text-slate-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4 4 4 0 014-4c.48 0 .937.085 1.36.241M15.5 8.5l3.5-3.5a2.121 2.121 0 013 3L18.5 11.5M10.5 13.5l7-7"/></svg>
-                    <span>Theme / Appearance</span>
-                </a>
+                    {{-- Notification Settings --}}
+                    <a href="{{ route('admin.settings.notifications') }}" class="flex items-center gap-3 px-3 py-2 rounded-xl transition {{ request()->routeIs('admin.settings.notifications') ? 'bg-sky-600 text-white font-bold shadow-sm shadow-sky-600/30' : 'hover:bg-slate-900 text-slate-300' }}">
+                        <svg class="w-4 h-4 {{ request()->routeIs('admin.settings.notifications') ? 'text-white' : 'text-slate-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                        <span>Notifications</span>
+                    </a>
 
-                {{-- Master SEO --}}
-                <a href="{{ route('admin.settings.master-seo') }}" class="flex items-center gap-3 px-3 py-2 rounded-xl transition {{ request()->routeIs('admin.settings.master-seo') ? 'bg-sky-600 text-white font-bold shadow-sm shadow-sky-600/30' : 'hover:bg-slate-900 text-slate-300' }}">
-                    <svg class="w-4 h-4 {{ request()->routeIs('admin.settings.master-seo') ? 'text-white' : 'text-slate-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/></svg>
-                    <span>Master SEO</span>
-                </a>
+                    {{-- Appearance & Theme --}}
+                    <a href="{{ route('admin.settings.appearance') }}" class="flex items-center gap-3 px-3 py-2 rounded-xl transition {{ request()->routeIs('admin.settings.appearance') ? 'bg-sky-600 text-white font-bold shadow-sm shadow-sky-600/30' : 'hover:bg-slate-900 text-slate-300' }}">
+                        <svg class="w-4 h-4 {{ request()->routeIs('admin.settings.appearance') ? 'text-white' : 'text-slate-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4 4 4 0 014-4c.48 0 .937.085 1.36.241M15.5 8.5l3.5-3.5a2.121 2.121 0 013 3L18.5 11.5M10.5 13.5l7-7"/></svg>
+                        <span>Theme / Appearance</span>
+                    </a>
 
-                {{-- Page SEO --}}
-                <a href="{{ route('admin.settings.page-seo') }}" class="flex items-center gap-3 px-3 py-2 rounded-xl transition {{ request()->routeIs('admin.settings.page-seo') ? 'bg-sky-600 text-white font-bold shadow-sm shadow-sky-600/30' : 'hover:bg-slate-900 text-slate-300' }}">
-                    <svg class="w-4 h-4 {{ request()->routeIs('admin.settings.page-seo') ? 'text-white' : 'text-slate-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                    <span>Page SEO</span>
-                </a>
+                    {{-- Master SEO --}}
+                    <a href="{{ route('admin.settings.master-seo') }}" class="flex items-center gap-3 px-3 py-2 rounded-xl transition {{ request()->routeIs('admin.settings.master-seo') ? 'bg-sky-600 text-white font-bold shadow-sm shadow-sky-600/30' : 'hover:bg-slate-900 text-slate-300' }}">
+                        <svg class="w-4 h-4 {{ request()->routeIs('admin.settings.master-seo') ? 'text-white' : 'text-slate-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/></svg>
+                        <span>Master SEO</span>
+                    </a>
 
-                {{-- Audit Logs --}}
-                <a href="{{ route('admin.activity-logs.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-xl transition {{ request()->routeIs('admin.activity-logs.*') ? 'bg-sky-600 text-white font-bold shadow-sm shadow-sky-600/30' : 'hover:bg-slate-900 text-slate-300' }}">
-                    <svg class="w-4 h-4 {{ request()->routeIs('admin.activity-logs.*') ? 'text-white' : 'text-slate-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    <span>Audit Trail Log</span>
-                </a>
+                    {{-- Page SEO --}}
+                    <a href="{{ route('admin.settings.page-seo') }}" class="flex items-center gap-3 px-3 py-2 rounded-xl transition {{ request()->routeIs('admin.settings.page-seo') ? 'bg-sky-600 text-white font-bold shadow-sm shadow-sky-600/30' : 'hover:bg-slate-900 text-slate-300' }}">
+                        <svg class="w-4 h-4 {{ request()->routeIs('admin.settings.page-seo') ? 'text-white' : 'text-slate-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                        <span>Page SEO</span>
+                    </a>
 
-                {{-- Store Data Reset --}}
-                <a href="{{ route('admin.data-reset') }}" class="flex items-center gap-3 px-3 py-2 rounded-xl transition {{ request()->routeIs('admin.data-reset*') ? 'bg-rose-600 text-white font-bold shadow-sm shadow-rose-600/30' : 'hover:bg-slate-900 text-rose-300/80 hover:text-rose-300' }}">
-                    <svg class="w-4 h-4 {{ request()->routeIs('admin.data-reset*') ? 'text-white' : 'text-rose-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                    <span>Store Data Reset</span>
-                </a>
+                    {{-- Audit Logs --}}
+                    <a href="{{ route('admin.activity-logs.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-xl transition {{ request()->routeIs('admin.activity-logs.*') ? 'bg-sky-600 text-white font-bold shadow-sm shadow-sky-600/30' : 'hover:bg-slate-900 text-slate-300' }}">
+                        <svg class="w-4 h-4 {{ request()->routeIs('admin.activity-logs.*') ? 'text-white' : 'text-slate-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <span>Audit Trail Log</span>
+                    </a>
+
+                    {{-- Store Data Reset --}}
+                    <a href="{{ route('admin.data-reset') }}" class="flex items-center gap-3 px-3 py-2 rounded-xl transition {{ request()->routeIs('admin.data-reset*') ? 'bg-rose-600 text-white font-bold shadow-sm shadow-rose-600/30' : 'hover:bg-slate-900 text-rose-300/80 hover:text-rose-300' }}">
+                        <svg class="w-4 h-4 {{ request()->routeIs('admin.data-reset*') ? 'text-white' : 'text-rose-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                        <span>Store Data Reset</span>
+                    </a>
+                @endif
 
             </nav>
         </div>
 
         {{-- Sidebar Footer --}}
         <div class="p-3 bg-slate-950/80 border-t border-slate-900 flex items-center justify-between text-xs">
-            <a href="{{ route('admin.profile.edit') }}" class="flex items-center gap-2.5 truncate group hover:opacity-90 transition" title="Manage Admin Profile & Password">
+            <a href="{{ route('admin.profile.edit') }}" class="flex items-center gap-2.5 truncate group hover:opacity-90 transition" title="Manage Profile & Password">
                 <div class="w-8 h-8 rounded-lg bg-sky-600/20 text-sky-400 group-hover:bg-sky-600 group-hover:text-white border border-sky-500/30 font-bold flex items-center justify-center text-xs shrink-0 transition">
                     {{ strtoupper(substr(auth()->user()->name ?? 'A', 0, 1)) }}
                 </div>
                 <div class="truncate">
                     <span class="block font-bold text-white group-hover:text-sky-400 transition truncate text-[11px] leading-tight">{{ auth()->user()->name }}</span>
-                    <span class="text-[10px] text-slate-400 capitalize block leading-tight">{{ auth()->user()->role ?? 'Admin' }}</span>
+                    <span class="text-[10px] text-slate-400 capitalize block leading-tight">
+                        {{ auth()->user()->role === 'cashier' ? 'Cashier (Counter)' : (auth()->user()->isAdmin() ? 'Administrator' : ucfirst(auth()->user()->role ?? 'Staff')) }}
+                    </span>
                 </div>
             </a>
             <form method="POST" action="{{ route('logout') }}">

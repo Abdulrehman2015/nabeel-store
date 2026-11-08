@@ -17,7 +17,7 @@ class AdminMiddleware
             return redirect()->route('login')->with('error', 'Please log in with your administrative credentials.');
         }
 
-        if (!in_array(auth()->user()->role, ['admin', 'staff'])) {
+        if (!auth()->user()->isStaff()) {
             abort(403, 'Unauthorized. Access is restricted to store administrators and staff.');
         }
 

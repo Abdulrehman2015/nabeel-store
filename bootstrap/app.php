@@ -17,6 +17,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'admin' => AdminMiddleware::class,
+            'admin.only' => \App\Http\Middleware\AdminOnlyMiddleware::class,
             'customer.verified' => EnsureCustomerEmailIsVerified::class,
         ]);
 

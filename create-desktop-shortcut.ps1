@@ -32,3 +32,4 @@ foreach ($dir in $desktopPaths) {
         Write-Output "Created Live Server Shortcut: $liveFile"
     }
 }
+

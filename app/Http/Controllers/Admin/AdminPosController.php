@@ -72,21 +72,56 @@ class AdminPosController extends Controller
             ->orderBy('name')
             ->get();
 
-        // Today's POS statistics
-        $todayPosOrders = Order::whereDate('created_at', today())
+        $currentUser = auth()->user();
+        $isCashier = !$currentUser->isAdmin();
+
+        // Today's POS statistics query
+        $todayPosQuery = Order::whereDate('created_at', today())
             ->where('delivery_zone', 'pos_counter')
-            ->where('order_status', 'delivered')
-            ->get();
+            ->where('order_status', 'delivered');
+
+        // Professional Cashier Isolation:
+        // If a cashier / non-admin is logged in, strictly count ONLY their own sales
+        if ($isCashier) {
+            $todayPosQuery->where(function ($q) use ($currentUser) {
+                $q->where('cashier_id', $currentUser->id)
+                  ->orWhere('payment_verified_by', $currentUser->id);
+            });
+        } elseif (request()->filled('cashier_id')) {
+            // Admin can view specific cashier or all
+            $todayPosQuery->where('cashier_id', request()->query('cashier_id'));
+        }
+
+        $todayPosOrders = $todayPosQuery->get();
 
         $todaySales = $todayPosOrders->sum('grand_total');
         $todayTransactions = $todayPosOrders->count();
 
+        // Payment method breakdown for shift balancing
+        $cashSales = (clone $todayPosOrders)->where('payment_method', 'cash')->sum('grand_total');
+        $qrSales = (clone $todayPosOrders)->where('payment_method', 'duitnow_qr')->sum('grand_total');
+        $cardSales = (clone $todayPosOrders)->where('payment_method', 'card')->sum('grand_total');
+
+        // Cashiers list for Admin view switch
+        $allCashiers = $currentUser->isAdmin()
+            ? User::whereIn('role', ['admin', 'staff', 'cashier'])->select('id', 'name', 'role')->orderBy('name')->get()
+            : collect();
+
+        // Active brands for quick product creation
+        $brands = \App\Models\Brand::where('is_active', true)->select('id', 'name')->orderBy('name')->get();
+
         return view('admin.pos.index', compact(
             'products',
             'categories',
+            'brands',
             'customers',
             'todaySales',
-            'todayTransactions'
+            'todayTransactions',
+            'cashSales',
+            'qrSales',
+            'cardSales',
+            'allCashiers',
+            'isCashier'
         ));
     }
 
@@ -191,6 +226,7 @@ class AdminPosController extends Controller
             $order = Order::create([
                 'order_number' => $orderNumber,
                 'user_id' => $validated['user_id'] ?? null,
+                'cashier_id' => auth()->id(),
                 'customer_name' => $customerName,
                 'customer_phone' => $customerPhone,
                 'customer_email' => $customerEmail,
@@ -357,6 +393,126 @@ class AdminPosController extends Controller
                 'phone' => $customer->phone,
                 'email' => $customer->email,
             ],
+        ]);
+    }
+
+    /**
+     * Quick add new product directly from POS terminal.
+     */
+    public function quickProduct(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'category_id' => 'required|integer|exists:categories,id',
+            'brand_id' => 'nullable|integer|exists:brands,id',
+            'price' => 'required|numeric|min:0.01',
+            'sale_price' => 'nullable|numeric|lt:price',
+            'stock_quantity' => 'required|integer|min:0',
+            'pack_size' => 'nullable|string|max:100',
+            'sku' => 'nullable|string|max:100|unique:products,sku',
+        ]);
+
+        $sku = !empty($validated['sku']) ? trim($validated['sku']) : 'POS-' . strtoupper(Str::random(6));
+
+        $productData = [
+            'name' => trim($validated['name']),
+            'slug' => Str::slug($validated['name']) . '-' . Str::lower(Str::random(5)),
+            'category_id' => (int) $validated['category_id'],
+            'brand_id' => !empty($validated['brand_id']) ? (int) $validated['brand_id'] : null,
+            'price' => (float) $validated['price'],
+            'sale_price' => !empty($validated['sale_price']) ? (float) $validated['sale_price'] : null,
+            'stock_quantity' => (int) $validated['stock_quantity'],
+            'pack_size' => $validated['pack_size'] ?? null,
+            'sku' => $sku,
+            'is_active' => true,
+        ];
+
+        if (\Illuminate\Support\Facades\Schema::hasColumn('products', 'purchase_price')) {
+            $productData['purchase_price'] = round($productData['price'] * 0.70, 2);
+        }
+
+        if (\Illuminate\Support\Facades\Schema::hasColumn('products', 'low_stock_threshold')) {
+            $productData['low_stock_threshold'] = 10;
+        }
+
+        $product = Product::create($productData);
+        $product->load(['category', 'brand']);
+
+        ActivityLog::log('pos.product_quick_added', $product, [
+            'name' => $product->name,
+            'sku' => $product->sku,
+            'price' => $product->price,
+            'stock' => $product->stock_quantity,
+            'added_by' => auth()->user()->name,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => "Product '{$product->name}' added successfully!",
+            'product' => [
+                'id' => $product->id,
+                'name' => $product->name,
+                'sku' => $product->sku ?? '',
+                'category_id' => $product->category_id,
+                'category_name' => $product->category?->name ?? 'Uncategorized',
+                'brand_name' => $product->brand?->name ?? '',
+                'pack_size' => $product->pack_size ?? '',
+                'unit_description' => '',
+                'price' => (float) $product->price,
+                'sale_price' => $product->sale_price ? (float) $product->sale_price : null,
+                'effective_price' => (float) ($product->sale_price ?? $product->price),
+                'stock_quantity' => (int) $product->stock_quantity,
+                'image_url' => asset('images/logo.png'),
+            ],
+        ]);
+    }
+
+    /**
+     * Cashier shift summary data & drawer balancing.
+     */
+    public function shiftSummary(): JsonResponse
+    {
+        $user = auth()->user();
+        $today = today();
+
+        $query = Order::whereDate('created_at', $today)
+            ->where('delivery_zone', 'pos_counter')
+            ->where('order_status', 'delivered');
+
+        if (!$user->isAdmin()) {
+            $query->where(function ($q) use ($user) {
+                $q->where('cashier_id', $user->id)
+                  ->orWhere('payment_verified_by', $user->id);
+            });
+        }
+
+        $orders = $query->with('items')->latest()->get();
+
+        $cash = (clone $orders)->where('payment_method', 'cash')->sum('grand_total');
+        $qr = (clone $orders)->where('payment_method', 'duitnow_qr')->sum('grand_total');
+        $card = (clone $orders)->where('payment_method', 'card')->sum('grand_total');
+        $total = $orders->sum('grand_total');
+
+        return response()->json([
+            'cashier_name' => $user->name,
+            'shift_date' => now()->format('d M Y'),
+            'total_transactions' => $orders->count(),
+            'total_sales' => $total,
+            'cash_sales' => $cash,
+            'qr_sales' => $qr,
+            'card_sales' => $card,
+            'orders' => $orders->map(function ($o) {
+                return [
+                    'id' => $o->id,
+                    'order_number' => $o->order_number,
+                    'customer' => $o->customer_name,
+                    'time' => $o->created_at->format('h:i A'),
+                    'method' => strtoupper($o->payment_method),
+                    'total' => (float) $o->grand_total,
+                    'items_count' => $o->items->sum('quantity'),
+                    'receipt_url' => route('admin.pos.receipt', $o->id),
+                ];
+            }),
         ]);
     }
 }

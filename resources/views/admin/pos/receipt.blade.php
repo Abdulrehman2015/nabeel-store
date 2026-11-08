@@ -11,6 +11,7 @@
     $showLogo = request()->has('show_logo') ? (request('show_logo') == '1' || request('show_logo') === 'true') : true;
     $showBarcode = request()->has('show_barcode') ? (request('show_barcode') == '1' || request('show_barcode') === 'true') : true;
     $showCustomer = request()->has('show_customer') ? (request('show_customer') == '1' || request('show_customer') === 'true') : true;
+    $showCashier = request()->has('show_cashier') ? (request('show_cashier') == '1' || request('show_cashier') === 'true') : true;
 
     $storeName = request('header_name') ?: setting('site_name', 'N&J MINI MART');
     $storeTagline = request('tagline') ?: 'Retail Mart & Everyday Essentials';
@@ -249,6 +250,15 @@
                     <span class="text-black">Date/Time:</span>
                     <span class="text-black">{{ $order->created_at ? $order->created_at->format('d/m/Y h:i A') : now()->format('d/m/Y h:i A') }}</span>
                 </div>
+                @php
+                    $cashierName = $order->cashier?->name ?? ($order->verifiedBy?->name ?? null);
+                @endphp
+                @if($showCashier && $cashierName)
+                    <div class="flex justify-between">
+                        <span class="text-black">Cashier:</span>
+                        <span class="font-bold text-black truncate max-w-[120px]">{{ $cashierName }}</span>
+                    </div>
+                @endif
                 @if($showCustomer && $order->customer_name)
                     <div class="flex justify-between">
                         <span class="text-black">Customer:</span>

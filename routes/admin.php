@@ -15,6 +15,7 @@ use App\Http\Controllers\Admin\AdminProductImportExportController;
 use App\Http\Controllers\Admin\AdminProfileController;
 use App\Http\Controllers\Admin\AdminReportController;
 use App\Http\Controllers\Admin\AdminSettingsController;
+use App\Http\Controllers\Admin\AdminStaffController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -53,19 +54,21 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('pos/receipt-test', [AdminPosController::class, 'testReceipt'])->name('pos.receipt.test');
     Route::get('pos/receipt/{order}', [AdminPosController::class, 'receipt'])->name('pos.receipt');
     Route::post('pos/customer', [AdminPosController::class, 'quickCustomer'])->name('pos.customer');
+    Route::post('pos/quick-product', [AdminPosController::class, 'quickProduct'])->name('pos.quick-product');
+    Route::get('pos/shift-summary', [AdminPosController::class, 'shiftSummary'])->name('pos.shift-summary');
 
-    // Categories
-    Route::delete('categories/delete-all', [AdminCategoryController::class, 'deleteAll'])->name('categories.delete-all');
+    // Categories (Cashier can view/create, but cannot bulk delete)
+    Route::delete('categories/delete-all', [AdminCategoryController::class, 'deleteAll'])->name('categories.delete-all')->middleware('admin.only');
     Route::resource('categories', AdminCategoryController::class);
 
-    // Brands
-    Route::delete('brands/delete-all', [AdminBrandController::class, 'deleteAll'])->name('brands.delete-all');
+    // Brands (Cashier can view/create, but cannot bulk delete)
+    Route::delete('brands/delete-all', [AdminBrandController::class, 'deleteAll'])->name('brands.delete-all')->middleware('admin.only');
     Route::resource('brands', AdminBrandController::class);
 
-    // Products & Bulk Import/Export
-    Route::delete('products/delete-all', [AdminProductController::class, 'deleteAll'])->name('products.delete-all');
+    // Products & Bulk Import/Export (Cashier can view and add, but cannot delete)
+    Route::delete('products/delete-all', [AdminProductController::class, 'deleteAll'])->name('products.delete-all')->middleware('admin.only');
     Route::get('products/export', [AdminProductImportExportController::class, 'export'])->name('products.export');
-    Route::post('products/import', [AdminProductImportExportController::class, 'import'])->name('products.import');
+    Route::post('products/import', [AdminProductImportExportController::class, 'import'])->name('products.import')->middleware('admin.only');
     Route::resource('products', AdminProductController::class);
 
     // Orders Management & PDF Invoices
@@ -90,71 +93,81 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('orders/{order}/invoice', [AdminOrderController::class, 'printInvoice'])->name('orders.invoice');
     Route::get('orders/{order}/payment-proof', [AdminOrderController::class, 'viewPaymentProof'])->name('orders.payment-proof');
 
-    // Sales & Product Performance Reports Module
-    Route::get('reports', [AdminReportController::class, 'index'])->name('reports.index');
-    Route::get('reports/export', [AdminReportController::class, 'export'])->name('reports.export');
-
-    // Customers
-    Route::delete('customers/delete-all', [AdminCustomerController::class, 'deleteAll'])->name('customers.delete-all');
+    // Customers (Cashiers can view list & customer details, but cannot delete)
+    Route::delete('customers/delete-all', [AdminCustomerController::class, 'deleteAll'])->name('customers.delete-all')->middleware('admin.only');
     Route::get('customers', [AdminCustomerController::class, 'index'])->name('customers.index');
     Route::get('customers/{user}', [AdminCustomerController::class, 'show'])->name('customers.show');
     Route::post('customers/{user}/toggle-status', [AdminCustomerController::class, 'toggleStatus'])->name('customers.toggle-status');
-    Route::delete('customers/{user}', [AdminCustomerController::class, 'destroy'])->name('customers.destroy');
+    Route::delete('customers/{user}', [AdminCustomerController::class, 'destroy'])->name('customers.destroy')->middleware('admin.only');
 
-    // System Data Cleanup / Store Reset Tool
-    Route::get('data-reset', [AdminSettingsController::class, 'dataReset'])->name('data-reset');
-    Route::post('data-reset', [AdminSettingsController::class, 'processDataReset'])->name('data-reset.process');
+    // --------------------------------------------------------------------------
+    // Administrative Operations Strictly Restricted to Admins (Hidden from Cashiers)
+    // --------------------------------------------------------------------------
+    Route::middleware('admin.only')->group(function () {
+        // Staff & Cashier User Management
+        Route::post('staff/{staff}/toggle-status', [AdminStaffController::class, 'toggleStatus'])->name('staff.toggle-status');
+        Route::resource('staff', AdminStaffController::class);
 
-    // Banners / Slider
-    Route::resource('banners', AdminBannerController::class);
+        // Sales & Product Performance Reports Module
+        Route::get('reports', [AdminReportController::class, 'index'])->name('reports.index');
+        Route::get('reports/export', [AdminReportController::class, 'export'])->name('reports.export');
 
-    // Dynamic CMS Modules
-    Route::get('home-sections', [AdminCmsController::class, 'homeSections'])->name('home-sections.index');
-    Route::post('home-sections/reorder', [AdminCmsController::class, 'reorderHomeSections'])->name('home-sections.reorder');
-    Route::resource('how-it-works', AdminCmsController::class)->names('how-it-works');
-    Route::resource('benefits', AdminCmsController::class)->names('benefits');
-    Route::resource('faqs', AdminCmsController::class)->names('faqs');
-    Route::get('contact-messages', [AdminCmsController::class, 'contactMessages'])->name('contact-messages.index');
-    Route::post('contact-messages/{message}/mark-read', [AdminCmsController::class, 'markMessageRead'])->name('contact-messages.mark-read');
-    Route::get('data-requests', [AdminCmsController::class, 'dataRequests'])->name('data-requests.index');
-    Route::post('data-requests/{request}/process', [AdminCmsController::class, 'processDataRequest'])->name('data-requests.process');
+        // System Data Cleanup / Store Reset Tool
+        Route::get('data-reset', [AdminSettingsController::class, 'dataReset'])->name('data-reset');
+        Route::post('data-reset', [AdminSettingsController::class, 'processDataReset'])->name('data-reset.process');
+        Route::post('data-reset/clean-slate', [AdminSettingsController::class, 'cleanSlate'])->name('data-reset.clean-slate');
 
-    // Legal & Policy Pages (Phase 8 with Version History)
-    Route::resource('policies', AdminPolicyController::class);
-    Route::post('policies/{policy}/restore/{version}', [AdminPolicyController::class, 'restoreVersion'])->name('policies.restore');
+        // Banners / Slider
+        Route::resource('banners', AdminBannerController::class);
 
-    // Settings (Delivery, Payment, Notification, Appearance, Master SEO, Page SEO)
-    Route::prefix('settings')->name('settings.')->group(function () {
-        Route::get('/delivery', [AdminSettingsController::class, 'delivery'])->name('delivery');
-        Route::post('/delivery', [AdminSettingsController::class, 'saveDelivery'])->name('delivery.save');
-        Route::post('/delivery/resolve-link', [AdminSettingsController::class, 'resolveMapLink'])->name('delivery.resolve-link');
+        // Dynamic CMS Modules
+        Route::get('home-sections', [AdminCmsController::class, 'homeSections'])->name('home-sections.index');
+        Route::post('home-sections/reorder', [AdminCmsController::class, 'reorderHomeSections'])->name('home-sections.reorder');
+        Route::resource('how-it-works', AdminCmsController::class)->names('how-it-works');
+        Route::resource('benefits', AdminCmsController::class)->names('benefits');
+        Route::resource('faqs', AdminCmsController::class)->names('faqs');
+        Route::get('contact-messages', [AdminCmsController::class, 'contactMessages'])->name('contact-messages.index');
+        Route::post('contact-messages/{message}/mark-read', [AdminCmsController::class, 'markMessageRead'])->name('contact-messages.mark-read');
+        Route::get('data-requests', [AdminCmsController::class, 'dataRequests'])->name('data-requests.index');
+        Route::post('data-requests/{request}/process', [AdminCmsController::class, 'processDataRequest'])->name('data-requests.process');
 
-        Route::get('/payment', [AdminSettingsController::class, 'payment'])->name('payment');
-        Route::post('/payment', [AdminSettingsController::class, 'savePayment'])->name('payment.save');
+        // Legal & Policy Pages (Phase 8 with Version History)
+        Route::resource('policies', AdminPolicyController::class);
+        Route::post('policies/{policy}/restore/{version}', [AdminPolicyController::class, 'restoreVersion'])->name('policies.restore');
 
-        Route::get('/notifications', [AdminSettingsController::class, 'notifications'])->name('notifications');
-        Route::post('/notifications', [AdminSettingsController::class, 'saveNotifications'])->name('notifications.save');
+        // Settings (Delivery, Payment, Notification, Appearance, Master SEO, Page SEO)
+        Route::prefix('settings')->name('settings.')->group(function () {
+            Route::get('/delivery', [AdminSettingsController::class, 'delivery'])->name('delivery');
+            Route::post('/delivery', [AdminSettingsController::class, 'saveDelivery'])->name('delivery.save');
+            Route::post('/delivery/resolve-link', [AdminSettingsController::class, 'resolveMapLink'])->name('delivery.resolve-link');
 
-        Route::get('/appearance', [AdminSettingsController::class, 'appearance'])->name('appearance');
-        Route::post('/appearance', [AdminSettingsController::class, 'saveAppearance'])->name('appearance.save');
+            Route::get('/payment', [AdminSettingsController::class, 'payment'])->name('payment');
+            Route::post('/payment', [AdminSettingsController::class, 'savePayment'])->name('payment.save');
 
-        Route::get('/homepage', [AdminSettingsController::class, 'homepage'])->name('homepage');
-        Route::post('/homepage', [AdminSettingsController::class, 'saveHomepage'])->name('homepage.save');
-        Route::delete('/homepage/banner/{banner}', [AdminSettingsController::class, 'deleteBanner'])->name('homepage.banner.delete');
+            Route::get('/notifications', [AdminSettingsController::class, 'notifications'])->name('notifications');
+            Route::post('/notifications', [AdminSettingsController::class, 'saveNotifications'])->name('notifications.save');
 
-        Route::get('/master-seo', [AdminSettingsController::class, 'masterSeo'])->name('master-seo');
-        Route::post('/master-seo', [AdminSettingsController::class, 'saveMasterSeo'])->name('master-seo.save');
+            Route::get('/appearance', [AdminSettingsController::class, 'appearance'])->name('appearance');
+            Route::post('/appearance', [AdminSettingsController::class, 'saveAppearance'])->name('appearance.save');
 
-        Route::get('/page-seo', [AdminSettingsController::class, 'pageSeo'])->name('page-seo');
-        Route::post('/page-seo', [AdminSettingsController::class, 'savePageSeo'])->name('page-seo.save');
+            Route::get('/homepage', [AdminSettingsController::class, 'homepage'])->name('homepage');
+            Route::post('/homepage', [AdminSettingsController::class, 'saveHomepage'])->name('homepage.save');
+            Route::delete('/homepage/banner/{banner}', [AdminSettingsController::class, 'deleteBanner'])->name('homepage.banner.delete');
+
+            Route::get('/master-seo', [AdminSettingsController::class, 'masterSeo'])->name('master-seo');
+            Route::post('/master-seo', [AdminSettingsController::class, 'saveMasterSeo'])->name('master-seo.save');
+
+            Route::get('/page-seo', [AdminSettingsController::class, 'pageSeo'])->name('page-seo');
+            Route::post('/page-seo', [AdminSettingsController::class, 'savePageSeo'])->name('page-seo.save');
+        });
+
+        // Activity & Audit Log (Phase 7.1)
+        Route::get('activity-logs', [AdminActivityLogController::class, 'index'])->name('activity-logs.index');
     });
 
-    // Admin Profile & Security Settings
+    // Profile & Password Settings (Accessible to both Admin & Staff/Cashier)
     Route::get('profile', [AdminProfileController::class, 'edit'])->name('profile.edit');
     Route::put('profile', [AdminProfileController::class, 'update'])->name('profile.update');
     Route::put('profile/password', [AdminProfileController::class, 'updatePassword'])->name('profile.password.update');
-
-    // Activity & Audit Log (Phase 7.1)
-    Route::get('activity-logs', [AdminActivityLogController::class, 'index'])->name('activity-logs.index');
 });
 

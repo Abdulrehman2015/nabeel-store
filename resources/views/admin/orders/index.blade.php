@@ -193,6 +193,15 @@
                                 <span class="text-[10px] text-slate-400 mt-0.5 block">
                                     {{ $order->created_at->format('M d, Y • h:i A') }}
                                 </span>
+                                @if($order->cashier)
+                                    <span class="inline-flex items-center gap-1 mt-1 px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200/80 text-[9px] font-bold">
+                                        Cashier: {{ $order->cashier->name }}
+                                    </span>
+                                @elseif(str_starts_with($order->order_number, 'POS-'))
+                                    <span class="inline-flex items-center gap-1 mt-1 px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200/80 text-[9px] font-bold">
+                                        POS Counter
+                                    </span>
+                                @endif
                             </td>
 
                             {{-- Customer Profile --}}

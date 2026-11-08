@@ -20,6 +20,7 @@
                 <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
                 <span>Storefront View</span>
             </a>
+            @if(auth()->user()->isAdmin())
             <button 
                 type="button" 
                 @click="deleteAllModal = true; confirmInput = ''" 
@@ -29,6 +30,7 @@
                 <svg class="w-4 h-4 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                 <span>Delete All</span>
             </button>
+            @endif
             <a href="{{ route('admin.categories.create') }}" class="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-bold shadow-md shadow-sky-600/25 hover:shadow-sky-600/40 flex items-center gap-2 transition cursor-pointer">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                 <span>Add Category</span>
@@ -120,6 +122,7 @@
                                     <a href="{{ route('admin.categories.edit', $category) }}" class="px-3 py-1 bg-white hover:bg-slate-50 border border-slate-300 rounded-lg text-xs font-bold text-slate-700 hover:text-sky-600 hover:border-sky-300 transition shadow-2xs">
                                         Edit
                                     </a>
+                                    @if(auth()->user()->isAdmin())
                                     <form action="{{ route('admin.categories.destroy', $category) }}" method="POST" class="inline-block" onsubmit="return confirm('Are you sure you want to delete category \'{{ $category->name }}\'?');">
                                         @csrf
                                         @method('DELETE')
@@ -127,6 +130,7 @@
                                             Delete
                                         </button>
                                     </form>
+                                    @endif
                                 </div>
                             </td>
                         </tr>

@@ -34,12 +34,38 @@
 
         {{-- Right: Today's Shift Stats & Control Buttons --}}
         <div class="flex items-center gap-2">
-            {{-- Today's Sales Metric --}}
-            <div class="px-2.5 py-1 bg-slate-50 border border-slate-200/80 rounded-xl text-left hidden sm:flex items-center gap-1.5">
-                <span class="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider">Today:</span>
-                <span class="text-xs font-black text-slate-900">RM {{ number_format($todaySales, 2) }}</span>
-                <span class="text-[10px] text-slate-400">({{ $todayTransactions }})</span>
-            </div>
+            @if(!$isCashier && $allCashiers->count() > 1)
+                {{-- Admin Cashier Switcher Filter --}}
+                <div class="hidden lg:flex items-center gap-1.5 bg-slate-50 border border-slate-200/80 rounded-xl px-2 py-0.5">
+                    <span class="text-[9px] font-extrabold text-slate-400 uppercase">Cashier:</span>
+                    <select 
+                        onchange="location.href = '{{ route('admin.pos.index') }}' + (this.value ? '?cashier_id=' + this.value : '')" 
+                        class="bg-transparent border-0 text-xs font-bold text-slate-800 py-1 pr-6 focus:ring-0 cursor-pointer"
+                    >
+                        <option value="">All Cashiers (Total RM {{ number_format($todaySales, 2) }})</option>
+                        @foreach($allCashiers as $c)
+                            <option value="{{ $c->id }}" {{ request('cashier_id') == $c->id ? 'selected' : '' }}>
+                                {{ $c->name }} ({{ ucfirst($c->role) }})
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+            @endif
+
+            {{-- Today's / Shift Sales Metric & Drawer Summary Trigger --}}
+            <button 
+                type="button" 
+                @click="openShiftSummaryModal()"
+                class="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200/80 rounded-xl text-left hidden sm:flex items-center gap-1.5 cursor-pointer transition shadow-2xs group"
+                title="Click to view Cashier Shift Drawer & Payment Breakdown"
+            >
+                <span class="text-[9px] font-extrabold text-emerald-700 uppercase tracking-wider">
+                    {{ $isCashier ? 'My Shift:' : (request('cashier_id') ? 'Cashier Shift:' : 'Today POS:') }}
+                </span>
+                <span class="text-xs font-black text-emerald-950 group-hover:underline">RM {{ number_format($todaySales, 2) }}</span>
+                <span class="text-[10px] text-emerald-700 font-bold">({{ $todayTransactions }})</span>
+                <span class="text-[10px] text-emerald-600 bg-emerald-100/80 px-1 py-0.2 rounded font-bold">Drawer</span>
+            </button>
 
             {{-- Sound Beep Toggle --}}
             <button 
@@ -291,6 +317,17 @@
                     >
                         <span class="w-2 h-2 rounded-full" :class="inStockOnly ? 'bg-emerald-500' : 'bg-slate-400'"></span>
                         <span class="whitespace-nowrap text-[11px]">In Stock</span>
+                    </button>
+
+                    {{-- Quick Add Product Button (Available for Cashier and Admin) --}}
+                    <button 
+                        type="button" 
+                        @click="showQuickProductModal = true" 
+                        class="px-3 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 shrink-0 cursor-pointer shadow-md shadow-emerald-600/25"
+                        title="Quick Add New Product to Store Catalog"
+                    >
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                        <span class="whitespace-nowrap text-[11px] hidden sm:inline">Add Product</span>
                     </button>
                 </div>
 
@@ -1341,6 +1378,329 @@
         </div>
     </div>
 
+    {{-- ======================================================== --}}
+    {{-- QUICK ADD PRODUCT MODAL FOR CASHIERS & ADMINS            --}}
+    {{-- ======================================================== --}}
+    <div 
+        x-show="showQuickProductModal" 
+        x-cloak 
+        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs"
+    >
+        <div 
+            @click.outside="showQuickProductModal = false"
+            class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-slate-100 space-y-4 max-h-[90vh] overflow-y-auto"
+        >
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold">
+                        ➕
+                    </div>
+                    <div>
+                        <h3 class="text-base font-extrabold text-slate-900">Quick Add Product to POS</h3>
+                        <p class="text-[11px] text-slate-400">Instantly create and add item directly into cart</p>
+                    </div>
+                </div>
+                <button type="button" @click="showQuickProductModal = false" class="text-slate-400 hover:text-slate-600 text-lg">✕</button>
+            </div>
+
+            <form @submit.prevent="submitQuickProduct()" class="space-y-4 text-xs">
+                {{-- Product Name --}}
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                        Product Name <span class="text-rose-500">*</span>
+                    </label>
+                    <input 
+                        type="text" 
+                        x-model="newProduct.name" 
+                        required 
+                        placeholder="e.g. Milo Activ-Go 1kg Softpack" 
+                        class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:bg-white focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
+                    >
+                </div>
+
+                {{-- Category & Brand --}}
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                            Category <span class="text-rose-500">*</span>
+                        </label>
+                        <select 
+                            x-model="newProduct.category_id" 
+                            required 
+                            class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:bg-white focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
+                        >
+                            <option value="">Select Category</option>
+                            <template x-for="cat in categories" :key="cat.id">
+                                <option :value="cat.id" x-text="cat.name"></option>
+                            </template>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                            Brand (Optional)
+                        </label>
+                        <select 
+                            x-model="newProduct.brand_id" 
+                            class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:bg-white focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
+                        >
+                            <option value="">No Specific Brand</option>
+                            <template x-for="b in brands" :key="b.id">
+                                <option :value="b.id" x-text="b.name"></option>
+                            </template>
+                        </select>
+                    </div>
+                </div>
+
+                {{-- Price & Sale Price --}}
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                            Selling Price (RM) <span class="text-rose-500">*</span>
+                        </label>
+                        <div class="relative">
+                            <span class="absolute left-3 top-2 font-bold text-slate-400">RM</span>
+                            <input 
+                                type="number" 
+                                step="0.01" 
+                                min="0.01" 
+                                x-model="newProduct.price" 
+                                required 
+                                placeholder="0.00" 
+                                class="w-full pl-10 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:bg-white focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
+                            >
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                            Promo / Discount Price (Optional)
+                        </label>
+                        <div class="relative">
+                            <span class="absolute left-3 top-2 font-bold text-slate-400">RM</span>
+                            <input 
+                                type="number" 
+                                step="0.01" 
+                                min="0" 
+                                x-model="newProduct.sale_price" 
+                                placeholder="Leave blank if normal" 
+                                class="w-full pl-10 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:bg-white focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
+                            >
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Stock & Pack Size --}}
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                            Initial Stock <span class="text-rose-500">*</span>
+                        </label>
+                        <input 
+                            type="number" 
+                            min="0" 
+                            x-model="newProduct.stock_quantity" 
+                            required 
+                            class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:bg-white focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
+                        >
+                    </div>
+
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                            Pack / Unit Size (Optional)
+                        </label>
+                        <input 
+                            type="text" 
+                            x-model="newProduct.pack_size" 
+                            placeholder="e.g. 500g, 1 Carton, 1kg" 
+                            class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:bg-white focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
+                        >
+                    </div>
+                </div>
+
+                {{-- Barcode / SKU --}}
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                        Barcode / SKU (Optional)
+                    </label>
+                    <div class="flex items-center gap-2">
+                        <input 
+                            type="text" 
+                            x-model="newProduct.sku" 
+                            placeholder="Scan barcode or auto-generate" 
+                            class="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-900 focus:bg-white focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
+                        >
+                        <button 
+                            type="button" 
+                            @click="generateRandomSku()" 
+                            class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition whitespace-nowrap"
+                        >
+                            Auto-Gen
+                        </button>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
+                    <button 
+                        type="button" 
+                        @click="showQuickProductModal = false" 
+                        class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition"
+                    >
+                        Cancel
+                    </button>
+                    <button 
+                        type="submit" 
+                        :disabled="isAddingProduct"
+                        class="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white rounded-xl text-xs font-bold transition shadow-md shadow-emerald-600/25 flex items-center gap-1.5 cursor-pointer"
+                    >
+                        <span x-show="!isAddingProduct">Save &amp; Add to Cart</span>
+                        <span x-show="isAddingProduct">Saving...</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {{-- ======================================================== --}}
+    {{-- CASHIER SHIFT SUMMARY & DRAWER BALANCE MODAL             --}}
+    {{-- ======================================================== --}}
+    <div 
+        x-show="showShiftModal" 
+        x-cloak 
+        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs"
+    >
+        <div 
+            @click.outside="showShiftModal = false"
+            class="bg-white rounded-3xl max-w-2xl w-full p-6 shadow-2xl border border-slate-100 space-y-4 max-h-[90vh] flex flex-col overflow-hidden"
+        >
+            {{-- Header --}}
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100 shrink-0">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-200/80 flex items-center justify-center font-bold text-lg">
+                        🧾
+                    </div>
+                    <div>
+                        <h3 class="text-base font-extrabold text-slate-900">Cashier Shift Drawer &amp; Balance</h3>
+                        <p class="text-xs text-slate-500">
+                            Cashier: <strong class="text-slate-800" x-text="shiftSummaryData.cashier_name || '{{ auth()->user()->name }}'"></strong> 
+                            &bull; <span x-text="shiftSummaryData.shift_date || '{{ now()->format('d M Y') }}'"></span>
+                        </p>
+                    </div>
+                </div>
+                <button type="button" @click="showShiftModal = false" class="text-slate-400 hover:text-slate-600 text-lg">✕</button>
+            </div>
+
+            <div class="flex-1 overflow-y-auto space-y-4 pr-1">
+                {{-- Metric Cards Grid --}}
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                    <div class="p-3 bg-emerald-50/70 border border-emerald-200/60 rounded-2xl text-left">
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-700 block">Total Shift Sales</span>
+                        <div class="text-base sm:text-lg font-black text-emerald-950 mt-0.5">
+                            RM <span x-text="(shiftSummaryData.total_sales || 0).toFixed(2)"></span>
+                        </div>
+                    </div>
+
+                    <div class="p-3 bg-sky-50/70 border border-sky-200/60 rounded-2xl text-left">
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-sky-700 block">Cash Tendered</span>
+                        <div class="text-base sm:text-lg font-black text-sky-950 mt-0.5">
+                            RM <span x-text="(shiftSummaryData.cash_sales || 0).toFixed(2)"></span>
+                        </div>
+                    </div>
+
+                    <div class="p-3 bg-purple-50/70 border border-purple-200/60 rounded-2xl text-left">
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-purple-700 block">DuitNow QR</span>
+                        <div class="text-base sm:text-lg font-black text-purple-950 mt-0.5">
+                            RM <span x-text="(shiftSummaryData.qr_sales || 0).toFixed(2)"></span>
+                        </div>
+                    </div>
+
+                    <div class="p-3 bg-slate-100 border border-slate-200/80 rounded-2xl text-left">
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-slate-600 block">Transactions</span>
+                        <div class="text-base sm:text-lg font-black text-slate-900 mt-0.5" x-text="shiftSummaryData.total_transactions || 0">
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Shift Sales History Table --}}
+                <div>
+                    <div class="flex items-center justify-between mb-2">
+                        <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider">Shift Receipts Today</h4>
+                        <span class="text-[11px] text-slate-400" x-text="(shiftSummaryData.orders ? shiftSummaryData.orders.length : 0) + ' Sales recorded'"></span>
+                    </div>
+
+                    <div class="border border-slate-200 rounded-2xl overflow-hidden">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-slate-50 text-[10px] uppercase font-bold text-slate-500 border-b border-slate-200">
+                                <tr>
+                                    <th class="py-2.5 px-3">Receipt #</th>
+                                    <th class="py-2.5 px-3">Customer</th>
+                                    <th class="py-2.5 px-3">Time</th>
+                                    <th class="py-2.5 px-3">Method</th>
+                                    <th class="py-2.5 px-3 text-right">Total</th>
+                                    <th class="py-2.5 px-3 text-right">Receipt</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100 text-slate-700">
+                                <template x-for="ord in (shiftSummaryData.orders || [])" :key="ord.id">
+                                    <tr class="hover:bg-slate-50/60 transition">
+                                        <td class="py-2 px-3 font-mono font-bold text-slate-900" x-text="ord.order_number"></td>
+                                        <td class="py-2 px-3" x-text="ord.customer"></td>
+                                        <td class="py-2 px-3 text-slate-400 font-mono text-[11px]" x-text="ord.time"></td>
+                                        <td class="py-2 px-3">
+                                            <span 
+                                                class="px-2 py-0.5 rounded-md text-[10px] font-bold"
+                                                :class="{
+                                                    'bg-emerald-100 text-emerald-800': ord.method === 'CASH',
+                                                    'bg-purple-100 text-purple-800': ord.method === 'DUITNOW_QR',
+                                                    'bg-sky-100 text-sky-800': ord.method === 'CARD'
+                                                }"
+                                                x-text="ord.method"
+                                            ></span>
+                                        </td>
+                                        <td class="py-2 px-3 text-right font-extrabold text-slate-900">
+                                            RM <span x-text="ord.total.toFixed(2)"></span>
+                                        </td>
+                                        <td class="py-2 px-3 text-right">
+                                            <a :href="ord.receipt_url" target="_blank" class="text-sky-600 hover:text-sky-700 font-bold text-[11px] underline">
+                                                Slip
+                                            </a>
+                                        </td>
+                                    </tr>
+                                </template>
+
+                                <tr x-show="!shiftSummaryData.orders || shiftSummaryData.orders.length === 0">
+                                    <td colspan="6" class="py-6 text-center text-slate-400 text-xs">
+                                        No sales completed in this shift yet.
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Footer Controls --}}
+            <div class="flex items-center justify-between pt-3 border-t border-slate-100 shrink-0">
+                <button 
+                    type="button" 
+                    onclick="window.print()" 
+                    class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition flex items-center gap-1.5"
+                >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                    <span>Print Shift Summary</span>
+                </button>
+
+                <button 
+                    type="button" 
+                    @click="showShiftModal = false" 
+                    class="px-5 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition"
+                >
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
 </div>
 
 {{-- Reactive Alpine.js Application Engine for POS --}}
@@ -1350,7 +1710,36 @@ function posApp() {
         // Data sets passed from Controller
         products: @json($products),
         categories: @json($categories),
+        brands: @json($brands ?? []),
         customers: @json($customers),
+
+        // Quick Add Product State
+        showQuickProductModal: false,
+        newProduct: {
+            name: '',
+            category_id: '',
+            brand_id: '',
+            price: '',
+            sale_price: '',
+            stock_quantity: 10,
+            pack_size: '',
+            sku: ''
+        },
+        isAddingProduct: false,
+
+        // Cashier Shift & Drawer State
+        showShiftModal: false,
+        shiftSummaryData: {
+            cashier_name: '',
+            shift_date: '',
+            total_transactions: 0,
+            total_sales: 0,
+            cash_sales: 0,
+            qr_sales: 0,
+            card_sales: 0,
+            orders: []
+        },
+        isLoadingShift: false,
 
         // Search & Filter
         searchQuery: '',
@@ -1408,7 +1797,7 @@ function posApp() {
             copies: 1,
             showLogo: true,
             showBarcode: true,
-            showCashier: false,
+            showCashier: true,
             showCustomer: true,
             storeName: {!! json_encode(html_entity_decode(setting('site_name', 'N&J MINI MART'), ENT_QUOTES, 'UTF-8')) !!},
             storeTagline: 'Retail Mart & Everyday Essentials',
@@ -2057,7 +2446,75 @@ function posApp() {
                    this.showQrModal || 
                    this.showHeldOrdersModal || 
                    this.showShortcutsModal ||
+                   this.showQuickProductModal ||
+                   this.showShiftModal ||
                    this.showPrinterConfigModal;
+        },
+
+        openShiftSummaryModal() {
+            this.showShiftModal = true;
+            this.isLoadingShift = true;
+            fetch('{{ route('admin.pos.shift-summary') }}')
+                .then(res => res.json())
+                .then(data => {
+                    this.shiftSummaryData = data;
+                })
+                .catch(err => {
+                    console.error('Failed to load shift summary:', err);
+                })
+                .finally(() => {
+                    this.isLoadingShift = false;
+                });
+        },
+
+        generateRandomSku() {
+            this.newProduct.sku = 'POS' + Math.floor(100000 + Math.random() * 900000);
+        },
+
+        submitQuickProduct() {
+            if (!this.newProduct.name || !this.newProduct.category_id || !this.newProduct.price) {
+                alert('Please provide Product Name, Category, and Selling Price.');
+                return;
+            }
+
+            this.isAddingProduct = true;
+            fetch('{{ route('admin.pos.quick-product') }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify(this.newProduct)
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success && data.product) {
+                    this.products.unshift(data.product);
+                    this.showQuickProductModal = false;
+                    this.newProduct = {
+                        name: '',
+                        category_id: '',
+                        brand_id: '',
+                        price: '',
+                        sale_price: '',
+                        stock_quantity: 10,
+                        pack_size: '',
+                        sku: ''
+                    };
+                    this.showToast('Product created & added to cart!', '📦', 'success');
+                    this.addToCart(data.product);
+                } else {
+                    alert(data.message || 'Could not save product.');
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert('An error occurred while creating product.');
+            })
+            .finally(() => {
+                this.isAddingProduct = false;
+            });
         },
 
         extractDigit(e) {
@@ -2194,6 +2651,8 @@ function posApp() {
                     this.showQrModal = false;
                     this.showHeldOrdersModal = false;
                     this.showShortcutsModal = false;
+                    this.showQuickProductModal = false;
+                    this.showShiftModal = false;
                     this.showPrinterConfigModal = false;
                     this.$nextTick(() => this.focusBarcodeInput());
                 }

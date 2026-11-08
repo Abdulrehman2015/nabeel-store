@@ -126,6 +126,10 @@ class AdminCategoryController extends Controller
 
     public function destroy(Category $category)
     {
+        if (!auth()->user()->isAdmin()) {
+            abort(403, 'Unauthorized action: Cashiers and staff cannot delete categories.');
+        }
+
         ActivityLog::log('category.deleted', $category, ['name' => $category->name]);
         $category->delete();
 
@@ -134,6 +138,10 @@ class AdminCategoryController extends Controller
 
     public function deleteAll(Request $request)
     {
+        if (!auth()->user()->isAdmin()) {
+            abort(403, 'Unauthorized action: Cashiers and staff cannot delete categories.');
+        }
+
         $count = Category::count();
 
         Category::query()->each(function ($cat) {

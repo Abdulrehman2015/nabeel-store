@@ -64,6 +64,9 @@ class AuthenticatedSessionController extends Controller
         }
 
         if ($user->isAdmin() || $user->isStaff()) {
+            if ($user->isCashier()) {
+                return redirect()->intended(route('admin.pos.index'));
+            }
             return redirect()->intended(route('admin.dashboard'));
         }
 

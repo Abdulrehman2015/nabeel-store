@@ -463,7 +463,9 @@ class AdminSettingsController extends Controller
             'products' => \App\Models\Product::count(),
             'categories' => \App\Models\Category::count(),
             'brands' => \App\Models\Brand::count(),
+            'orders' => \App\Models\Order::count(),
             'customers' => \App\Models\User::where('role', 'customer')->count(),
+            'staff' => \App\Models\User::whereIn('role', ['admin', 'staff', 'cashier'])->count(),
         ];
 
         return view('admin.settings.data_reset', compact('counts'));
@@ -478,6 +480,16 @@ class AdminSettingsController extends Controller
         ]);
 
         $deleted = [];
+
+        if ($request->boolean('wipe_orders')) {
+            $count = \App\Models\Order::count();
+            \Illuminate\Support\Facades\DB::statement('SET FOREIGN_KEY_CHECKS = 0;');
+            \Illuminate\Support\Facades\DB::table('order_items')->truncate();
+            \Illuminate\Support\Facades\DB::table('order_histories')->truncate();
+            \Illuminate\Support\Facades\DB::table('orders')->truncate();
+            \Illuminate\Support\Facades\DB::statement('SET FOREIGN_KEY_CHECKS = 1;');
+            $deleted[] = "{$count} Orders & POS Sales";
+        }
 
         if ($request->boolean('wipe_products')) {
             $count = \App\Models\Product::count();
@@ -531,6 +543,62 @@ class AdminSettingsController extends Controller
         ActivityLog::log('store.data_reset', null, ['summary' => $summary]);
 
         return redirect()->route('admin.data-reset')->with('success', "Store reset completed: {$summary}");
+    }
+
+    /**
+     * One-Click Clean Slate: Complete Store Wipe (Keeps Admin & Staff Logins Intact)
+     */
+    public function cleanSlate(Request $request)
+    {
+        $request->validate([
+            'confirm_wipe' => 'required|in:CLEAN,clean,DELETE,delete,RESET,reset',
+        ], [
+            'confirm_wipe.in' => 'Please type CLEAN or RESET to confirm the complete data wipe.',
+        ]);
+
+        \Illuminate\Support\Facades\DB::statement('SET FOREIGN_KEY_CHECKS = 0;');
+
+        $tablesToClean = [
+            'order_items',
+            'order_histories',
+            'orders',
+            'product_images',
+            'products',
+            'categories',
+            'brands',
+            'customer_addresses',
+            'otp_codes',
+            'activity_logs',
+        ];
+
+        foreach ($tablesToClean as $table) {
+            if (\Illuminate\Support\Facades\Schema::hasTable($table)) {
+                \Illuminate\Support\Facades\DB::table($table)->truncate();
+            }
+        }
+
+        // Delete all customer accounts (all admin, staff, and cashier logins are 100% kept)
+        if (\Illuminate\Support\Facades\Schema::hasTable('users')) {
+            \Illuminate\Support\Facades\DB::table('users')->where('role', 'customer')->delete();
+        }
+
+        \Illuminate\Support\Facades\DB::statement('SET FOREIGN_KEY_CHECKS = 1;');
+
+        try {
+            \Illuminate\Support\Facades\Storage::disk('public')->deleteDirectory('products');
+            \Illuminate\Support\Facades\Storage::disk('public')->deleteDirectory('categories');
+            \Illuminate\Support\Facades\Storage::disk('public')->deleteDirectory('brands');
+        } catch (\Throwable $e) {}
+
+        $staffCount = \App\Models\User::whereIn('role', ['admin', 'staff', 'cashier'])->count();
+
+        ActivityLog::log('store.clean_slate', null, [
+            'executed_by' => auth()->user()->name,
+            'preserved_staff_logins' => $staffCount,
+        ]);
+
+        return redirect()->route('admin.data-reset')
+            ->with('success', "Complete Store Clean Slate Successful! All products, orders, categories, brands, and customer data wiped. All {$staffCount} Admin & Staff logins are intact.");
     }
 }
 

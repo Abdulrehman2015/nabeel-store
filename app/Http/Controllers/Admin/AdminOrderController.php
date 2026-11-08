@@ -20,7 +20,20 @@ class AdminOrderController extends Controller
 
     public function index(Request $request)
     {
-        $query = Order::with('items')->latest();
+        $user = auth()->user();
+        $isCashier = !$user->isAdmin();
+
+        $query = Order::with(['items', 'cashier'])->latest();
+
+        if ($isCashier) {
+            // Cashier sees only their own assigned sales
+            $query->where(function ($q) use ($user) {
+                $q->where('cashier_id', $user->id)
+                  ->orWhere('payment_verified_by', $user->id);
+            });
+        } elseif ($request->filled('cashier_id')) {
+            $query->where('cashier_id', $request->query('cashier_id'));
+        }
 
         if ($request->filled('status')) {
             $query->where('order_status', $request->query('status'));
@@ -42,24 +55,33 @@ class AdminOrderController extends Controller
 
         $orders = $query->paginate(15)->withQueryString();
 
+        $countsBaseQuery = $isCashier
+            ? Order::where(function ($q) use ($user) {
+                $q->where('cashier_id', $user->id)
+                  ->orWhere('payment_verified_by', $user->id);
+            })
+            : Order::query();
+
         $counts = [
-            'pending_payment_verification' => Order::where('order_status', 'pending_payment_verification')->count(),
-            'confirmed' => Order::where('order_status', 'confirmed')->count(),
-            'processing' => Order::where('order_status', 'processing')->count(),
-            'out_for_delivery' => Order::where('order_status', 'out_for_delivery')->count(),
-            'delivered' => Order::where('order_status', 'delivered')->count(),
+            'pending_payment_verification' => (clone $countsBaseQuery)->where('order_status', 'pending_payment_verification')->count(),
+            'confirmed' => (clone $countsBaseQuery)->where('order_status', 'confirmed')->count(),
+            'processing' => (clone $countsBaseQuery)->where('order_status', 'processing')->count(),
+            'out_for_delivery' => (clone $countsBaseQuery)->where('order_status', 'out_for_delivery')->count(),
+            'delivered' => (clone $countsBaseQuery)->where('order_status', 'delivered')->count(),
         ];
 
         $stats = [
-            'total_orders' => Order::count(),
+            'total_orders' => (clone $countsBaseQuery)->count(),
             'pending_count' => $counts['pending_payment_verification'],
-            'pending_amount' => Order::where('order_status', 'pending_payment_verification')->sum('advance_amount'),
-            'ready_for_dispatch' => Order::whereIn('order_status', ['confirmed', 'processing'])->count(),
+            'pending_amount' => (clone $countsBaseQuery)->where('order_status', 'pending_payment_verification')->sum('advance_amount'),
+            'ready_for_dispatch' => (clone $countsBaseQuery)->whereIn('order_status', ['confirmed', 'processing'])->count(),
             'out_for_delivery' => $counts['out_for_delivery'],
-            'total_revenue' => Order::whereIn('order_status', ['confirmed', 'processing', 'out_for_delivery', 'delivered'])->sum('grand_total'),
+            'total_revenue' => (clone $countsBaseQuery)->whereIn('order_status', ['confirmed', 'processing', 'out_for_delivery', 'delivered'])->sum('grand_total'),
         ];
 
-        return view('admin.orders.index', compact('orders', 'counts', 'stats'));
+        $cashiers = !$isCashier ? \App\Models\User::whereIn('role', ['admin', 'staff', 'cashier'])->select('id', 'name', 'role')->orderBy('name')->get() : collect();
+
+        return view('admin.orders.index', compact('orders', 'counts', 'stats', 'cashiers', 'isCashier'));
     }
 
     public function show(Order $order)

@@ -7,6 +7,7 @@ use App\Models\Category;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -51,6 +52,9 @@ class AdminReportController extends Controller
         // Channel Breakdown (POS Counter vs Online Web Storefront)
         $channelStats = $this->getChannelStats($startDate, $endDate);
 
+        // Cashier Shift & Sales Performance Breakdown
+        $cashierPerformance = $this->getCashierPerformance($startDate, $endDate);
+
         // Available Categories for filtering table
         $categories = Category::orderBy('name')->get();
 
@@ -65,6 +69,7 @@ class AdminReportController extends Controller
             'categoryBreakdown',
             'dailyTrend',
             'channelStats',
+            'cashierPerformance',
             'categories'
         ));
     }
@@ -448,6 +453,32 @@ class AdminReportController extends Controller
             'online_orders' => $onlineOrders->count(),
             'online_percentage' => $total > 0 ? round(($onlineRevenue / $total) * 100, 1) : 0,
         ];
+    }
+
+    /**
+     * Cashier Shift & Sales Performance Breakdown.
+     */
+    protected function getCashierPerformance(Carbon $startDate, Carbon $endDate)
+    {
+        return User::whereIn('role', ['admin', 'staff', 'cashier'])
+            ->withCount([
+                'cashierOrders as period_orders_count' => function ($q) use ($startDate, $endDate) {
+                    $q->whereBetween('created_at', [$startDate, $endDate])
+                      ->where('order_status', 'delivered');
+                },
+            ])
+            ->withSum([
+                'cashierOrders as period_sales_sum' => function ($q) use ($startDate, $endDate) {
+                    $q->whereBetween('created_at', [$startDate, $endDate])
+                      ->where('order_status', 'delivered');
+                },
+            ], 'grand_total')
+            ->get()
+            ->filter(function ($u) {
+                return $u->period_orders_count > 0 || $u->period_sales_sum > 0;
+            })
+            ->sortByDesc('period_sales_sum')
+            ->values();
     }
 }
 

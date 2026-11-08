@@ -74,6 +74,10 @@ class AdminBrandController extends Controller
 
     public function destroy(Brand $brand)
     {
+        if (!auth()->user()->isAdmin()) {
+            abort(403, 'Unauthorized action: Cashiers and staff cannot delete brands.');
+        }
+
         ActivityLog::log('brand.deleted', $brand, ['name' => $brand->name]);
         $brand->delete();
 
@@ -82,6 +86,10 @@ class AdminBrandController extends Controller
 
     public function deleteAll(Request $request)
     {
+        if (!auth()->user()->isAdmin()) {
+            abort(403, 'Unauthorized action: Cashiers and staff cannot delete brands.');
+        }
+
         $count = Brand::count();
 
         Brand::query()->each(function ($brand) {

@@ -43,3 +43,4 @@ if (Test-Path $chrome64) {
 } else {
     Start-Process $url
 }
+
