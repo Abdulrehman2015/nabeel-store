@@ -236,7 +236,7 @@
                             <td class="px-5 py-3.5">
                                 <div class="flex items-center gap-3.5 min-w-[260px] max-w-sm">
                                     <div class="w-12 h-12 rounded-xl border border-slate-200 bg-white p-1 shrink-0 overflow-hidden shadow-2xs group-hover:border-sky-300 transition flex items-center justify-center">
-                                        <img src="{{ $product->image_url }}" alt="{{ $product->name }}" class="max-h-full max-w-full object-contain">
+                                        <img src="{{ $product->image_url }}" alt="{{ $product->name }}" class="max-h-full max-w-full object-contain" onerror="this.onerror=null; this.src='{{ asset('images/default-product.png') }}';">
                                     </div>
                                     <div class="min-w-0">
                                         <a href="{{ route('admin.products.edit', $product->id) }}" class="font-extrabold text-slate-900 group-hover:text-sky-600 transition block truncate text-xs sm:text-sm" title="{{ $product->name }}">
