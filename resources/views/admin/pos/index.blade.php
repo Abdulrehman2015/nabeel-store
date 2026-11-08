@@ -319,6 +319,18 @@
                         <span class="whitespace-nowrap text-[11px]">In Stock</span>
                     </button>
 
+                    {{-- Sync / Refresh Products Button --}}
+                    <button 
+                        type="button" 
+                        @click="syncProductsFromServer()" 
+                        :disabled="isSyncingProducts"
+                        class="p-2 bg-slate-100 hover:bg-sky-50 text-slate-600 hover:text-sky-700 border border-slate-200 rounded-xl text-xs font-bold transition flex items-center justify-center shrink-0 cursor-pointer shadow-2xs"
+                        :class="isSyncingProducts ? 'animate-spin text-sky-600' : ''"
+                        title="Sync latest products from database (No page refresh needed)"
+                    >
+                        <svg class="w-4 h-4" :class="isSyncingProducts ? 'animate-spin' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                    </button>
+
                     {{-- Quick Add Product Button (Available for Cashier and Admin) --}}
                     <button 
                         type="button" 
@@ -497,13 +509,34 @@
                     <p class="text-[11px] text-slate-500 mt-1 max-w-xs mx-auto">
                         No active items match "<span class="font-bold text-slate-700" x-text="searchQuery"></span>". Try another barcode or keyword.
                     </p>
-                    <button 
-                        type="button" 
-                        @click="searchQuery = ''; selectedCategory = 'all'" 
-                        class="mt-2.5 px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition cursor-pointer"
-                    >
-                        Reset Search Filters
-                    </button>
+                    <div class="mt-3.5 flex flex-wrap items-center justify-center gap-2">
+                        <button 
+                            type="button" 
+                            @click="searchQuery = ''; selectedCategory = 'all'" 
+                            class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition cursor-pointer"
+                        >
+                            Reset Search Filters
+                        </button>
+                        <button 
+                            type="button" 
+                            @click="syncProductsFromServer()" 
+                            :disabled="isSyncingProducts"
+                            class="px-3 py-1.5 bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 text-xs font-bold rounded-xl transition cursor-pointer flex items-center gap-1.5 shadow-2xs"
+                        >
+                            <svg class="w-3.5 h-3.5" :class="isSyncingProducts ? 'animate-spin' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                            <span x-text="isSyncingProducts ? 'Syncing...' : 'Sync Products from DB'"></span>
+                        </button>
+                        <template x-if="searchQuery && searchQuery.trim().length >= 3">
+                            <button 
+                                type="button" 
+                                @click="openQuickProductModalWithBarcode(searchQuery)" 
+                                class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl transition cursor-pointer flex items-center gap-1.5 shadow-xs"
+                            >
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                                <span>+ Add Product with Barcode</span>
+                            </button>
+                        </template>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1903,6 +1936,7 @@ function posApp() {
 
         // Quick Add Product State
         showQuickProductModal: false,
+        isSyncingProducts: false,
         newProduct: {
             name: '',
             category_id: '',
@@ -2187,19 +2221,27 @@ function posApp() {
         // Computed filtered products list
         get filteredProducts() {
             return this.products.filter(p => {
-                // Category match (robust string comparison so number vs string never fails)
+                const q = this.searchQuery.trim().toLowerCase();
+                const cleanQ = q.replace(/[^a-z0-9]/g, '');
+                const cleanSku = (p.sku || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+
+                // Category match:
+                // If user has a category filter active, but specifically scanned or typed a barcode/SKU,
+                // allow SKU match across categories so the product is not hidden!
                 if (this.selectedCategory !== 'all' && String(p.category_id) !== String(this.selectedCategory)) {
-                    return false;
+                    const isSkuSearch = cleanQ.length >= 3 && cleanSku.includes(cleanQ);
+                    if (!isSkuSearch) {
+                        return false;
+                    }
                 }
                 // Stock filter
                 if (this.inStockOnly && p.stock_quantity <= 0) {
                     return false;
                 }
                 // Text search match
-                if (this.searchQuery.trim() !== '') {
-                    const q = this.searchQuery.toLowerCase().trim();
+                if (q !== '') {
                     const nameMatch = p.name && p.name.toLowerCase().includes(q);
-                    const skuMatch = p.sku && p.sku.toLowerCase().includes(q);
+                    const skuMatch = p.sku && (p.sku.toLowerCase().includes(q) || (cleanQ.length >= 3 && cleanSku.includes(cleanQ)));
                     const brandMatch = p.brand_name && p.brand_name.toLowerCase().includes(q);
                     return nameMatch || skuMatch || brandMatch;
                 }
@@ -2304,8 +2346,11 @@ function posApp() {
         // Robust Product Resolver by Code, SKU, ID, or Clean Alphanumeric String
         findProductByCode(rawCode) {
             if (!rawCode) return null;
-            const code = rawCode.replace(/[\r\n\t]/g, '').trim();
+            let code = String(rawCode).replace(/[\r\n\t]/g, '').trim();
             if (!code) return null;
+
+            // Strip symbology AIM identifiers if scanner sent them (e.g. ]C1, ]e0, etc.)
+            code = code.replace(/^\][a-zA-Z0-9]{2}/, '');
             const q = code.toLowerCase();
 
             // 1. Exact SKU match
@@ -2330,7 +2375,18 @@ function posApp() {
                 if (p) return p;
             }
 
-            // 5. Fallback: single partial match on SKU or Name
+            // 5. Leading zero normalization (e.g. UPC-A 12-digit vs EAN-13 13-digit with leading 0)
+            const unpaddedQ = cleanQ.replace(/^0+/, '');
+            if (unpaddedQ.length >= 3) {
+                p = this.products.find(item => {
+                    const cleanSku = (item.sku || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+                    const unpaddedSku = cleanSku.replace(/^0+/, '');
+                    return unpaddedSku === unpaddedQ;
+                });
+                if (p) return p;
+            }
+
+            // 6. Fallback: single partial match on SKU or Name
             const partial = this.products.filter(item => 
                 (item.sku && item.sku.toLowerCase().includes(q)) ||
                 (item.name && item.name.toLowerCase().includes(q))
@@ -2342,12 +2398,13 @@ function posApp() {
             return null;
         },
 
-        // Universal Barcode Processor (searches across all products, adds to cart, provides audio/visual feedback)
-        processBarcodeScan(rawCode) {
+        // Universal Barcode Processor (searches memory, queries server if newly added, adds to cart, audio/visual feedback)
+        async processBarcodeScan(rawCode) {
             if (this.scanAutoProcessTimeout) clearTimeout(this.scanAutoProcessTimeout);
             if (!rawCode) return;
-            const code = rawCode.replace(/[\r\n\t]/g, '').trim();
+            let code = String(rawCode).replace(/[\r\n\t]/g, '').trim();
             if (!code) return;
+            code = code.replace(/^\][a-zA-Z0-9]{2}/, '');
 
             // Direct Order Barcode Scan detection (e.g. POS-2026-01014 or Order Number)
             if (code.toUpperCase().startsWith('POS-') || code.toUpperCase().startsWith('ORD-') || code.toUpperCase().startsWith('BS-')) {
@@ -2367,19 +2424,58 @@ function posApp() {
                 return;
             }
 
-            const product = this.findProductByCode(code);
+            // 1. Search in-memory products first
+            let product = this.findProductByCode(code);
+
+            // 2. Real-Time Server Fallback:
+            // If not found in browser memory (e.g. product was recently added in admin or page not refreshed):
+            if (!product) {
+                try {
+                    const res = await fetch(`{{ route('admin.pos.find-barcode') }}?code=${encodeURIComponent(code)}`);
+                    const data = await res.json();
+                    if (data.success && data.product) {
+                        const serverProd = data.product;
+
+                        // Check if marked inactive
+                        if (serverProd.is_active === false) {
+                            this.showToast(`Product "${serverProd.name}" is marked INACTIVE in admin. Set status to Active to sell in POS.`, '⚠️', 'warning');
+                            this.playBeep('warning');
+                            this.searchQuery = code;
+                            return;
+                        }
+
+                        // Add or update to local products array
+                        const localIdx = this.products.findIndex(p => String(p.id) === String(serverProd.id));
+                        if (localIdx > -1) {
+                            this.products[localIdx] = serverProd;
+                        } else {
+                            this.products.unshift(serverProd);
+                        }
+
+                        // Reset category filter if it was hidden under another category tab
+                        if (this.selectedCategory !== 'all' && String(serverProd.category_id) !== String(this.selectedCategory)) {
+                            this.selectedCategory = 'all';
+                        }
+
+                        product = serverProd;
+                    }
+                } catch (err) {
+                    console.error('Server barcode lookup error:', err);
+                }
+            }
 
             if (product) {
                 if (product.stock_quantity <= 0) {
-                    this.showToast(`Out of stock: ${product.name}`, '⚠️', 'warning');
+                    this.showToast(`Out of stock: ${product.name} (Stock: 0)`, '⚠️', 'warning');
                     this.playBeep('warning');
+                    this.searchQuery = code;
                 } else {
                     this.addToCart(product);
+                    this.searchQuery = '';
+                    this.barcodeScanBuffer = '';
                 }
-                this.searchQuery = '';
-                this.barcodeScanBuffer = '';
             } else {
-                this.showToast(`Barcode not found: "${code}"`, '❌', 'warning');
+                this.showToast(`Barcode not found in catalog: "${code}"`, '❌', 'warning');
                 this.playBeep('warning');
                 this.searchQuery = code;
             }
@@ -2387,6 +2483,36 @@ function posApp() {
             this.$nextTick(() => {
                 this.focusBarcodeInput();
             });
+        },
+
+        // Live Sync all active products from backend without full page reload
+        async syncProductsFromServer() {
+            if (this.isSyncingProducts) return;
+            this.isSyncingProducts = true;
+            try {
+                const res = await fetch(`{{ route('admin.pos.sync-products') }}`);
+                const data = await res.json();
+                if (data.success && Array.isArray(data.products)) {
+                    this.products = data.products;
+                    this.showToast(`Synced ${data.total} products from database!`, '🔄', 'success');
+                    this.playBeep('success');
+                } else {
+                    this.showToast('Could not load products from server.', '⚠️', 'warning');
+                }
+            } catch (err) {
+                this.showToast('Network error while syncing products.', '⚠️', 'warning');
+            } finally {
+                this.isSyncingProducts = false;
+            }
+        },
+
+        // Open quick product modal with pre-filled barcode
+        openQuickProductModalWithBarcode(barcode) {
+            this.newProduct.sku = barcode ? String(barcode).trim() : '';
+            this.newProduct.name = '';
+            this.newProduct.price = '';
+            this.newProduct.stock_quantity = 10;
+            this.showQuickProductModal = true;
         },
 
         // Cart Actions (Updates existing entry quantity if scanned again; otherwise appends new item)
@@ -3143,16 +3269,16 @@ function posApp() {
                     }
 
                     // Automatic scanner timeout fallback:
-                    // If a rapid burst of characters (>= 3 chars, < 60ms apart) finishes and no Enter comes within 85ms:
+                    // If a rapid burst of characters (>= 6 chars, scanner speed) finishes and scanner didn't send Enter:
                     if (this.scanAutoProcessTimeout) clearTimeout(this.scanAutoProcessTimeout);
-                    if (this.barcodeScanBuffer.length >= 3 && timeDiff < 60) {
+                    if (this.barcodeScanBuffer.length >= 6 && timeDiff < 75) {
                         this.scanAutoProcessTimeout = setTimeout(() => {
-                            if (this.barcodeScanBuffer.length >= 3) {
+                            if (this.barcodeScanBuffer.length >= 6) {
                                 const autoCode = this.barcodeScanBuffer.trim();
                                 this.barcodeScanBuffer = '';
                                 this.processBarcodeScan(autoCode);
                             }
-                        }, 85);
+                        }, 260);
                     }
 
                     if (this.scanBufferTimeout) clearTimeout(this.scanBufferTimeout);

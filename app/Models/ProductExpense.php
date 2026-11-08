@@ -136,3 +136,4 @@ class ProductExpense extends Model
         return $expense;
     }
 }
+

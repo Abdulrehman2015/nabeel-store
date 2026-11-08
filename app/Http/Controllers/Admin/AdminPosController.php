@@ -528,6 +528,121 @@ class AdminPosController extends Controller
     }
 
     /**
+     * Real-time Barcode / SKU resolver endpoint.
+     * Called automatically by POS if a scanned barcode or SKU is not found in client-side memory.
+     */
+    public function findBarcode(Request $request): JsonResponse
+    {
+        $code = trim($request->query('code', ''));
+        if ($code === '') {
+            return response()->json(['success' => false, 'message' => 'No barcode provided'], 400);
+        }
+
+        // Clean barcode: strip AIM symbology prefixes (e.g. ]C1, ]e0, etc.)
+        $cleanCode = preg_replace('/^\][a-zA-Z0-9]{2}/', '', $code);
+        $cleanCode = trim(preg_replace('/[\r\n\t]/', '', $cleanCode));
+        $alphanumeric = preg_replace('/[^a-zA-Z0-9]/', '', $cleanCode);
+        $unpadded = ltrim($alphanumeric, '0');
+
+        // Look up product in database by SKU (exact, alphanumeric, leading zero stripped, or ID)
+        $product = Product::with(['category:id,name,slug', 'brand:id,name'])
+            ->where(function ($q) use ($cleanCode, $alphanumeric, $unpadded) {
+                $q->where('sku', $cleanCode)
+                  ->orWhere('sku', $alphanumeric)
+                  ->orWhereRaw("TRIM(sku) = ?", [$cleanCode])
+                  ->orWhereRaw("LOWER(TRIM(sku)) = ?", [strtolower($cleanCode)]);
+                
+                if (!empty($unpadded)) {
+                    $q->orWhereRaw("LTRIM(TRIM(sku), '0') = ?", [$unpadded]);
+                }
+                if (is_numeric($cleanCode)) {
+                    $q->orWhere('id', (int) $cleanCode);
+                }
+            })
+            ->first();
+
+        // Secondary fallback: search with wildcards on SKU or exact name
+        if (!$product) {
+            $product = Product::with(['category:id,name,slug', 'brand:id,name'])
+                ->where('sku', 'LIKE', "%{$cleanCode}%")
+                ->orWhere('name', $cleanCode)
+                ->first();
+        }
+
+        if (!$product) {
+            return response()->json([
+                'success' => false,
+                'message' => "No product found in database with barcode/SKU: {$cleanCode}",
+                'code' => $cleanCode,
+            ], 404);
+        }
+
+        $productData = [
+            'id' => $product->id,
+            'name' => $product->name,
+            'sku' => $product->sku ?? '',
+            'category_id' => $product->category_id,
+            'category_name' => $product->category?->name ?? 'Uncategorized',
+            'brand_name' => $product->brand?->name ?? '',
+            'pack_size' => $product->pack_size ?? '',
+            'unit_description' => $product->unit_description ?? '',
+            'price' => (float) $product->price,
+            'sale_price' => $product->sale_price ? (float) $product->sale_price : null,
+            'effective_price' => (float) ($product->sale_price ?? $product->price),
+            'stock_quantity' => (int) $product->stock_quantity,
+            'is_active' => (bool) $product->is_active,
+            'has_custom_image' => !empty($product->featured_image),
+            'image_url' => $product->featured_image
+                ? (str_starts_with($product->featured_image, 'http') ? $product->featured_image : asset('storage/' . $product->featured_image))
+                : asset('images/default-product.png'),
+        ];
+
+        return response()->json([
+            'success' => true,
+            'product' => $productData,
+            'is_active' => (bool) $product->is_active,
+            'stock_quantity' => (int) $product->stock_quantity,
+        ]);
+    }
+
+    /**
+     * Live sync of all active products to update client-side POS state without page refresh.
+     */
+    public function syncProducts(): JsonResponse
+    {
+        $products = Product::where('is_active', true)
+            ->with(['category:id,name,slug', 'brand:id,name'])
+            ->orderBy('name')
+            ->get()
+            ->map(function ($product) {
+                return [
+                    'id' => $product->id,
+                    'name' => $product->name,
+                    'sku' => $product->sku ?? '',
+                    'category_id' => $product->category_id,
+                    'category_name' => $product->category?->name ?? 'Uncategorized',
+                    'brand_name' => $product->brand?->name ?? '',
+                    'pack_size' => $product->pack_size ?? '',
+                    'unit_description' => $product->unit_description ?? '',
+                    'price' => (float) $product->price,
+                    'sale_price' => $product->sale_price ? (float) $product->sale_price : null,
+                    'effective_price' => (float) ($product->sale_price ?? $product->price),
+                    'stock_quantity' => (int) $product->stock_quantity,
+                    'has_custom_image' => !empty($product->featured_image),
+                    'image_url' => $product->featured_image
+                        ? (str_starts_with($product->featured_image, 'http') ? $product->featured_image : asset('storage/' . $product->featured_image))
+                        : asset('images/default-product.png'),
+                ];
+            });
+
+        return response()->json([
+            'success' => true,
+            'total' => $products->count(),
+            'products' => $products,
+        ]);
+    }
+
+    /**
      * Cashier shift summary data & drawer balancing.
      */
     public function shiftSummary(): JsonResponse

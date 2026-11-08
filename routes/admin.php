@@ -70,6 +70,8 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 
     // Point of Sale (POS) Cashier Register
     Route::get('pos', [AdminPosController::class, 'index'])->name('pos.index');
+    Route::get('pos/find-barcode', [AdminPosController::class, 'findBarcode'])->name('pos.find-barcode');
+    Route::get('pos/sync-products', [AdminPosController::class, 'syncProducts'])->name('pos.sync-products');
     Route::post('pos/checkout', [AdminPosController::class, 'checkout'])->name('pos.checkout');
     Route::post('pos/void-order', [AdminPosController::class, 'voidOrder'])->name('pos.void-order');
     Route::get('pos/receipt-test', [AdminPosController::class, 'testReceipt'])->name('pos.receipt.test');
