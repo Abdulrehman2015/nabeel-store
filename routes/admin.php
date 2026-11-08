@@ -12,6 +12,7 @@ use App\Http\Controllers\Admin\AdminOrderController;
 use App\Http\Controllers\Admin\AdminPolicyController;
 use App\Http\Controllers\Admin\AdminPosController;
 use App\Http\Controllers\Admin\AdminProductController;
+use App\Http\Controllers\Admin\AdminProductExpenseController;
 use App\Http\Controllers\Admin\AdminProductImportExportController;
 use App\Http\Controllers\Admin\AdminProfileController;
 use App\Http\Controllers\Admin\AdminReportController;
@@ -39,6 +40,14 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
         Route::delete('/{notification}', [AdminNotificationController::class, 'destroy'])->name('destroy');
         Route::post('/purge-old', [AdminNotificationController::class, 'purgeOld'])->name('purge-old');
         Route::post('/clear-all', [AdminNotificationController::class, 'clearAll'])->name('clear-all');
+    });
+
+    // Internal Product Consumption & Staff Expense Module
+    Route::prefix('expenses')->name('expenses.')->group(function () {
+        Route::get('/', [AdminProductExpenseController::class, 'index'])->name('index');
+        Route::post('/', [AdminProductExpenseController::class, 'store'])->name('store');
+        Route::delete('/{expense}', [AdminProductExpenseController::class, 'destroy'])->name('destroy');
+        Route::get('/export', [AdminProductExpenseController::class, 'export'])->name('export');
     });
 
     // One-click Database Migration Runner for Shared Hosting

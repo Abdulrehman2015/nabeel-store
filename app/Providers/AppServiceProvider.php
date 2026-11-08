@@ -132,9 +132,10 @@ class AppServiceProvider extends ServiceProvider
             \Illuminate\Support\Facades\Log::warning('Auto-migration column notice: ' . $e->getMessage());
         }
 
-        // Automatic table ensure and 30-day retention cleanup for notifications
+        // Automatic table ensure and 30-day retention cleanup for notifications & expenses
         try {
             \App\Models\AdminNotification::ensureTableExists();
+            \App\Models\ProductExpense::ensureTableExists();
             if (\Illuminate\Support\Facades\Schema::hasTable('admin_notifications')) {
                 \App\Models\AdminNotification::purgeExpired(30);
             }

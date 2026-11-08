@@ -329,6 +329,17 @@
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                         <span class="whitespace-nowrap text-[11px] hidden sm:inline">Add Product</span>
                     </button>
+
+                    {{-- Staff Consumption / Store Expense Shortcut --}}
+                    <a 
+                        href="{{ route('admin.expenses.index') }}" 
+                        target="_blank"
+                        class="px-2.5 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 shrink-0 cursor-pointer shadow-md shadow-amber-600/25"
+                        title="Record Staff Consumption (Food/Drinks) or Store Expense"
+                    >
+                        <span>🥪</span>
+                        <span class="whitespace-nowrap text-[11px] hidden sm:inline">Staff Use</span>
+                    </a>
                 </div>
 
                 {{-- Smooth Category Carousel Bar with Left & Right Arrows --}}
