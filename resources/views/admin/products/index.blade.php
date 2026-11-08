@@ -45,6 +45,19 @@
                 <span>Export CSV</span>
             </a>
 
+            <form action="{{ route('admin.products.seed-dummy') }}" method="POST" class="inline">
+                @csrf
+                <button 
+                    type="submit" 
+                    onclick="return confirm('Add 5 realistic test products (Beverages, Groceries, Snacks) to the store catalog?')"
+                    class="px-3.5 py-2 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-xl text-xs font-bold text-emerald-700 shadow-2xs hover:border-emerald-400 transition flex items-center gap-1.5 cursor-pointer"
+                    title="Seed 5 realistic dummy products into catalog"
+                >
+                    <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
+                    <span>Seed 5 Products</span>
+                </button>
+            </form>
+
             @if(auth()->user()->isAdmin())
             <button 
                 type="button" 

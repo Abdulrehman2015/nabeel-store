@@ -81,5 +81,23 @@ class AppServiceProvider extends ServiceProvider
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::warning('Auto-migration column notice: ' . $e->getMessage());
         }
+
+        // Auto-seed initial 5 dummy products if the store catalog on live server is empty
+        try {
+            $dummyFlag = storage_path('framework/cache/dummy_products_seeded_v1.flag');
+            if (!file_exists($dummyFlag)) {
+                if (\Illuminate\Support\Facades\Schema::hasTable('products') && \App\Models\Product::count() === 0) {
+                    if (!class_exists(\Database\Seeders\DummyProductSeeder::class) && file_exists(database_path('seeders/DummyProductSeeder.php'))) {
+                        require_once database_path('seeders/DummyProductSeeder.php');
+                    }
+                    if (class_exists(\Database\Seeders\DummyProductSeeder::class)) {
+                        (new \Database\Seeders\DummyProductSeeder())->run();
+                    }
+                }
+                @file_put_contents($dummyFlag, date('Y-m-d H:i:s'));
+            }
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Dummy products auto-seed notice: ' . $e->getMessage());
+        }
     }
 }

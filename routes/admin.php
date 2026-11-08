@@ -66,6 +66,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::resource('brands', AdminBrandController::class);
 
     // Products & Bulk Import/Export (Cashier can view and add, but cannot delete)
+    Route::post('products/seed-dummy', [AdminProductController::class, 'seedDummy'])->name('products.seed-dummy');
     Route::delete('products/delete-all', [AdminProductController::class, 'deleteAll'])->name('products.delete-all')->middleware('admin.only');
     Route::get('products/export', [AdminProductImportExportController::class, 'export'])->name('products.export');
     Route::post('products/import', [AdminProductImportExportController::class, 'import'])->name('products.import')->middleware('admin.only');

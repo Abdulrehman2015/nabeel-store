@@ -278,5 +278,23 @@ class AdminProductController extends Controller
         return redirect()->route('admin.products.index')
             ->with('success', "All {$count} products have been permanently deleted.");
     }
+
+    public function seedDummy(Request $request)
+    {
+        try {
+            if (!class_exists(\Database\Seeders\DummyProductSeeder::class) && file_exists(database_path('seeders/DummyProductSeeder.php'))) {
+                require_once database_path('seeders/DummyProductSeeder.php');
+            }
+            (new \Database\Seeders\DummyProductSeeder())->run();
+
+            ActivityLog::log('products.seeded_dummy', null, ['count' => 5]);
+
+            return redirect()->route('admin.products.index')
+                ->with('success', '5 Realistic test products (Beverages, Groceries, Snacks) have been added to the catalog!');
+        } catch (\Throwable $e) {
+            return redirect()->route('admin.products.index')
+                ->with('error', 'Failed to seed test products: ' . $e->getMessage());
+        }
+    }
 }
 
