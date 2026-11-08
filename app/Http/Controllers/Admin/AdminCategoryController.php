@@ -58,11 +58,23 @@ class AdminCategoryController extends Controller
         $validated['sort_order'] = $validated['sort_order'] ?? 0;
 
         if ($request->hasFile('image')) {
-            $validated['image'] = $request->file('image')->store('categories', 'public');
+            $path = $request->file('image')->store('categories', 'public');
+            $validated['image'] = $path;
+            try {
+                $target = public_path('storage/' . $path);
+                @mkdir(dirname($target), 0755, true);
+                @copy(storage_path('app/public/' . $path), $target);
+            } catch (\Throwable $e) {}
         }
 
         if ($request->hasFile('icon_file')) {
-            $validated['icon'] = $request->file('icon_file')->store('categories/icons', 'public');
+            $path = $request->file('icon_file')->store('categories/icons', 'public');
+            $validated['icon'] = $path;
+            try {
+                $target = public_path('storage/' . $path);
+                @mkdir(dirname($target), 0755, true);
+                @copy(storage_path('app/public/' . $path), $target);
+            } catch (\Throwable $e) {}
         }
 
         $category = Category::create($validated);
@@ -111,11 +123,23 @@ class AdminCategoryController extends Controller
         $validated['sort_order'] = $validated['sort_order'] ?? 0;
 
         if ($request->hasFile('image')) {
-            $validated['image'] = $request->file('image')->store('categories', 'public');
+            $path = $request->file('image')->store('categories', 'public');
+            $validated['image'] = $path;
+            try {
+                $target = public_path('storage/' . $path);
+                @mkdir(dirname($target), 0755, true);
+                @copy(storage_path('app/public/' . $path), $target);
+            } catch (\Throwable $e) {}
         }
 
         if ($request->hasFile('icon_file')) {
-            $validated['icon'] = $request->file('icon_file')->store('categories/icons', 'public');
+            $path = $request->file('icon_file')->store('categories/icons', 'public');
+            $validated['icon'] = $path;
+            try {
+                $target = public_path('storage/' . $path);
+                @mkdir(dirname($target), 0755, true);
+                @copy(storage_path('app/public/' . $path), $target);
+            } catch (\Throwable $e) {}
         }
 
         $category->update($validated);
