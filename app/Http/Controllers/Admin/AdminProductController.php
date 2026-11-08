@@ -155,13 +155,7 @@ class AdminProductController extends Controller
         $validated['is_promo'] = $request->boolean('is_promo');
 
         if ($request->hasFile('featured_image')) {
-            $path = $request->file('featured_image')->store('products', 'public');
-            $validated['featured_image'] = $path;
-            try {
-                $target = public_path('storage/' . $path);
-                @mkdir(dirname($target), 0755, true);
-                @copy(storage_path('app/public/' . $path), $target);
-            } catch (\Throwable $e) {}
+            $validated['featured_image'] = $request->file('featured_image')->store('products', 'public');
         }
 
         $product = Product::create($validated);
@@ -253,13 +247,7 @@ class AdminProductController extends Controller
         $validated['is_promo'] = $request->boolean('is_promo');
 
         if ($request->hasFile('featured_image')) {
-            $path = $request->file('featured_image')->store('products', 'public');
-            $validated['featured_image'] = $path;
-            try {
-                $target = public_path('storage/' . $path);
-                @mkdir(dirname($target), 0755, true);
-                @copy(storage_path('app/public/' . $path), $target);
-            } catch (\Throwable $e) {}
+            $validated['featured_image'] = $request->file('featured_image')->store('products', 'public');
         }
 
         $product->update($validated);

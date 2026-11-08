@@ -78,7 +78,6 @@
                     alt="{{ $product->name }}"
                     class="max-h-[300px] sm:max-h-[380px] lg:max-h-[420px] max-w-full object-contain transition-transform duration-500 group-hover:scale-106 drop-shadow-md select-none"
                     loading="eager"
-                    onerror="this.onerror=null; this.src='{{ asset('images/default-product.png') }}';"
                 >
 
                 {{-- Sold Out Overlay --}}

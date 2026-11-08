@@ -11,7 +11,6 @@
                     alt="{{ $product->name }}" 
                     class="max-h-full max-w-full object-contain group-hover:scale-108 transition-transform duration-500 ease-out drop-shadow-2xs"
                     loading="lazy"
-                    onerror="this.onerror=null; this.src='{{ asset('images/default-product.png') }}';"
                 >
             </a>
 

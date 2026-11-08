@@ -435,9 +435,8 @@
                                     <img 
                                         :src="product.image_url" 
                                         :alt="product.name" 
-                                        class="w-full h-full object-contain rounded-lg"
+                                        class="w-full h-full object-contain"
                                         loading="lazy"
-                                        onerror="this.onerror=null; this.src='{{ asset('images/default-product.png') }}';"
                                     >
                                 </div>
                                 <h3 
@@ -582,7 +581,7 @@
                         
                         {{-- Small Item Thumbnail --}}
                         <div class="w-8 h-8 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-center p-0.5 shrink-0 overflow-hidden">
-                            <img :src="item.image_url" :alt="item.name" class="w-full h-full object-contain" onerror="this.onerror=null; this.src='{{ asset('images/default-product.png') }}';">
+                            <img :src="item.image_url" :alt="item.name" class="w-full h-full object-contain">
                         </div>
 
                         {{-- Item Name & Price --}}
