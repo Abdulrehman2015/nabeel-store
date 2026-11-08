@@ -36,7 +36,7 @@ class AppServiceProvider extends ServiceProvider
 
         // Auto-migrate missing columns for shared hosting environments (InfinityFree) where CLI migrate cannot run
         try {
-            $flagFile = storage_path('framework/cache/schema_synced_v6.flag');
+            $flagFile = storage_path('framework/cache/schema_synced_v7.flag');
             if (!file_exists($flagFile)) {
                 if (\Illuminate\Support\Facades\Schema::hasTable('products')) {
                     try {
@@ -132,8 +132,9 @@ class AppServiceProvider extends ServiceProvider
             \Illuminate\Support\Facades\Log::warning('Auto-migration column notice: ' . $e->getMessage());
         }
 
-        // Automatic 30-day retention cleanup for notifications
+        // Automatic table ensure and 30-day retention cleanup for notifications
         try {
+            \App\Models\AdminNotification::ensureTableExists();
             if (\Illuminate\Support\Facades\Schema::hasTable('admin_notifications')) {
                 \App\Models\AdminNotification::purgeExpired(30);
             }

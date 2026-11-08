@@ -344,3 +344,4 @@ function notificationsPage() {
 }
 </script>
 @endsection
+

@@ -57,10 +57,41 @@ class AdminNotification extends Model
     }
 
     /**
+     * Ensure the admin_notifications table exists in the database.
+     */
+    public static function ensureTableExists(): void
+    {
+        try {
+            if (!\Illuminate\Support\Facades\Schema::hasTable('admin_notifications')) {
+                \Illuminate\Support\Facades\Schema::create('admin_notifications', function (\Illuminate\Database\Schema\Blueprint $table) {
+                    $table->id();
+                    $table->string('type', 40)->default('system');
+                    $table->string('level', 20)->default('info');
+                    $table->string('title');
+                    $table->text('message');
+                    $table->string('url')->nullable();
+                    $table->string('action_text', 50)->nullable();
+                    $table->json('data')->nullable();
+                    $table->boolean('is_read')->default(false);
+                    $table->timestamp('read_at')->nullable();
+                    $table->timestamps();
+
+                    $table->index('type');
+                    $table->index('is_read');
+                    $table->index('created_at');
+                });
+            }
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Ensure admin_notifications table notice: ' . $e->getMessage());
+        }
+    }
+
+    /**
      * Auto-purge all notifications older than $days (default: 30 days).
      */
     public static function purgeExpired(int $days = 30): int
     {
+        self::ensureTableExists();
         return (int) self::where('created_at', '<', now()->subDays($days))->delete();
     }
 
@@ -215,3 +246,4 @@ class AdminNotification extends Model
         }
     }
 }
+

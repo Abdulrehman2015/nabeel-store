@@ -17,10 +17,13 @@ class AdminNotificationController extends Controller
      */
     public function index(Request $request): View
     {
-        // 1. Automatically sync today's events and enforce 30-day retention purge
+        // 1. Ensure table exists in database
+        AdminNotification::ensureTableExists();
+
+        // 2. Automatically sync today's events and enforce 30-day retention purge
         AdminNotification::syncDailyAlerts();
 
-        // 2. Base Query
+        // 3. Base Query
         $query = AdminNotification::query()->latest('created_at');
 
         // 3. Date Filters (Daily-focused)
@@ -175,3 +178,4 @@ class AdminNotificationController extends Controller
         return redirect()->back()->with('success', 'All notifications cleared.');
     }
 }
+
