@@ -93,16 +93,37 @@
         </thead>
         <tbody>
             @foreach($order->items as $idx => $item)
+                @php
+                    $origPrice = !empty($item->original_price) ? (float) $item->original_price : (float) $item->unit_price;
+                    $hasItemDiscount = $origPrice > (float) $item->unit_price;
+                @endphp
                 <tr>
                     <td>{{ $idx + 1 }}</td>
                     <td>
                         <strong>{{ $item->product_name }}</strong><br>
                         <small style="color: #64748b;">{{ $item->pack_size }}</small>
+                        @if($hasItemDiscount)
+                            <br><span style="font-size: 9px; color: #dc2626; font-weight: bold;">[Item Discount Applied]</span>
+                        @endif
                     </td>
                     <td>{{ $item->sku }}</td>
-                    <td style="text-align: right;">{{ format_currency($item->unit_price) }}</td>
+                    <td style="text-align: right;">
+                        @if($hasItemDiscount)
+                            <span style="text-decoration: line-through; color: #94a3b8; font-size: 10px; display: block;">{{ format_currency($origPrice) }}</span>
+                            <span style="font-weight: bold; color: #0f172a;">{{ format_currency($item->unit_price) }}</span>
+                        @else
+                            {{ format_currency($item->unit_price) }}
+                        @endif
+                    </td>
                     <td style="text-align: center; font-weight: bold;">{{ $item->quantity }}</td>
-                    <td style="text-align: right; font-weight: bold;">{{ format_currency($item->line_total) }}</td>
+                    <td style="text-align: right; font-weight: bold;">
+                        @if($hasItemDiscount)
+                            <span style="text-decoration: line-through; color: #94a3b8; font-size: 10px; display: block; font-weight: normal;">{{ format_currency($origPrice * $item->quantity) }}</span>
+                            <span style="color: #0f172a;">{{ format_currency($item->line_total) }}</span>
+                        @else
+                            {{ format_currency($item->line_total) }}
+                        @endif
+                    </td>
                 </tr>
             @endforeach
         </tbody>

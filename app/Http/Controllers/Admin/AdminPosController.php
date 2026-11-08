@@ -134,6 +134,9 @@ class AdminPosController extends Controller
             'items' => 'required|array|min:1',
             'items.*.id' => 'required|integer|exists:products,id',
             'items.*.quantity' => 'required|integer|min:1',
+            'items.*.unit_price' => 'nullable|numeric|min:0',
+            'items.*.original_price' => 'nullable|numeric|min:0',
+            'items.*.discount_price' => 'nullable|numeric|min:0',
             'payment_method' => 'required|string|in:cash,duitnow_qr,card',
             'amount_tendered' => 'nullable|numeric|min:0',
             'discount_amount' => 'nullable|numeric|min:0',
@@ -167,7 +170,17 @@ class AdminPosController extends Controller
                     ], 422);
                 }
 
-                $unitPrice = (float) ($product->sale_price ?? $product->price);
+                $catalogPrice = (float) ($product->sale_price ?? $product->price);
+                $originalPrice = isset($item['original_price']) && is_numeric($item['original_price'])
+                    ? round((float) $item['original_price'], 2)
+                    : $catalogPrice;
+
+                if (isset($item['unit_price']) && is_numeric($item['unit_price']) && (float) $item['unit_price'] >= 0) {
+                    $unitPrice = round((float) $item['unit_price'], 2);
+                } else {
+                    $unitPrice = $catalogPrice;
+                }
+
                 $qty = (int) $item['quantity'];
                 $lineTotal = round($unitPrice * $qty, 2);
                 $calculatedSubtotal += $lineTotal;
@@ -181,6 +194,7 @@ class AdminPosController extends Controller
                     'sku' => $product->sku ?? null,
                     'pack_size' => $product->pack_size ?? null,
                     'unit_price' => $unitPrice,
+                    'original_price' => $originalPrice,
                     'quantity' => $qty,
                     'line_total' => $lineTotal,
                     'image' => $product->featured_image,

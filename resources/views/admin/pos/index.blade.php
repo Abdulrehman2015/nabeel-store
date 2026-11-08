@@ -570,11 +570,13 @@
                 <template x-for="(item, index) in cart" :key="item.id">
                     <div 
                         :data-cart-item="index"
-                        @click="selectedCartIndex = index"
+                        @click="if (selectedCartIndex === index) { openItemDiscountModal(index); } else { selectedCartIndex = index; }"
+                        @dblclick="openItemDiscountModal(index)"
                         :class="getActiveCartIndex() === index 
                             ? 'bg-sky-50/90 ring-2 ring-sky-500/60 border-sky-300 shadow-xs' 
                             : 'hover:bg-slate-50/80 border-slate-100/80'"
                         class="p-1.5 rounded-xl border transition-all flex items-center justify-between gap-2 cursor-pointer relative"
+                        title="Click to select or edit discount (Ctrl+Enter)"
                     >
                         
                         {{-- Small Item Thumbnail --}}
@@ -584,14 +586,32 @@
 
                         {{-- Item Name & Price --}}
                         <div class="flex-1 min-w-0">
-                            <div class="flex items-center gap-1.5">
+                            <div class="flex items-center gap-1.5 flex-wrap">
                                 <span class="font-bold text-slate-900 truncate text-[11px]" x-text="item.name"></span>
                                 <span x-show="getActiveCartIndex() === index" class="text-[8px] font-black uppercase tracking-wider text-sky-700 bg-sky-200/90 px-1 py-0.2 rounded shrink-0">Selected</span>
+                                <button 
+                                    type="button" 
+                                    @click.stop="openItemDiscountModal(index)" 
+                                    class="px-1.5 py-0.2 rounded text-[8px] font-bold border transition flex items-center gap-0.5 cursor-pointer shrink-0"
+                                    :class="item.discount_price !== null ? 'bg-rose-100 text-rose-800 border-rose-300' : 'bg-slate-100 hover:bg-sky-100 text-slate-600 border-slate-200'"
+                                    title="Set discount for this product (Ctrl+Enter)"
+                                >
+                                    <span>🏷️</span>
+                                    <span x-text="item.discount_price !== null ? 'RM ' + Number(item.discount_price).toFixed(2) : 'Discount'"></span>
+                                </button>
                             </div>
-                            <div class="text-[9px] text-slate-400 font-mono flex items-center gap-1 mt-0.5">
-                                <span>RM <span x-text="item.price.toFixed(2)"></span></span>
+                            <div class="text-[9px] font-mono flex items-center gap-1.5 mt-0.5">
+                                <template x-if="item.discount_price !== null && Number(item.discount_price) < Number(item.original_price || item.price)">
+                                    <span class="flex items-center gap-1">
+                                        <span class="line-through text-slate-400">RM <span x-text="Number(item.original_price).toFixed(2)"></span></span>
+                                        <span class="text-rose-600 font-bold">RM <span x-text="Number(item.discount_price).toFixed(2)"></span></span>
+                                    </span>
+                                </template>
+                                <template x-if="item.discount_price === null || Number(item.discount_price) >= Number(item.original_price || item.price)">
+                                    <span class="text-slate-500">RM <span x-text="Number(item.price).toFixed(2)"></span></span>
+                                </template>
                                 <span x-show="item.sku" class="text-slate-300">&bull;</span>
-                                <span x-show="item.sku" class="truncate max-w-[70px]" x-text="item.sku"></span>
+                                <span x-show="item.sku" class="truncate max-w-[70px] text-slate-400" x-text="item.sku"></span>
                             </div>
                         </div>
 
@@ -624,7 +644,10 @@
 
                         {{-- Line Total & Trash Action --}}
                         <div class="text-right shrink-0 min-w-[60px]">
-                            <div class="font-black text-slate-900 text-[11px]">
+                            <template x-if="item.discount_price !== null && Number(item.discount_price) < Number(item.original_price || item.price)">
+                                <span class="line-through text-slate-400 text-[9px] block">RM <span x-text="(Number(item.original_price) * item.quantity).toFixed(2)"></span></span>
+                            </template>
+                            <div class="font-black text-[11px]" :class="item.discount_price !== null ? 'text-rose-600' : 'text-slate-900'">
                                 RM <span x-text="(item.price * item.quantity).toFixed(2)"></span>
                             </div>
                             <button 
@@ -925,6 +948,124 @@
     </div>
 
     {{-- ======================================================== --}}
+    {{-- SINGLE ITEM DISCOUNT MODAL (Ctrl + Enter / Item Click)   --}}
+    {{-- ======================================================== --}}
+    <div 
+        x-show="showItemDiscountModal" 
+        x-cloak 
+        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs"
+        @keydown.escape.window="showItemDiscountModal = false; $nextTick(() => focusBarcodeInput())"
+    >
+        <div 
+            @click.outside="showItemDiscountModal = false; $nextTick(() => focusBarcodeInput())"
+            class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-slate-100 space-y-4 animate-in fade-in zoom-in-95 duration-150 relative"
+        >
+            {{-- Modal Header --}}
+            <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center text-sm font-black shrink-0">
+                        🏷️
+                    </div>
+                    <div class="text-left">
+                        <h3 class="text-sm font-black text-slate-900">Item Discount</h3>
+                        <p class="text-[10px] text-slate-400">Set custom / promo price for this product</p>
+                    </div>
+                </div>
+                <button type="button" @click="showItemDiscountModal = false; $nextTick(() => focusBarcodeInput())" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg cursor-pointer">✕</button>
+            </div>
+
+            {{-- Selected Product Snapshot Card --}}
+            <template x-if="discountModalItem">
+                <div class="p-3 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-2 text-left">
+                    <div class="flex items-start justify-between gap-2">
+                        <div class="min-w-0">
+                            <h4 class="font-bold text-slate-900 text-xs truncate" x-text="discountModalItem.name"></h4>
+                            <p class="text-[10px] text-slate-500 font-mono" x-text="(discountModalItem.sku ? discountModalItem.sku + ' • ' : '') + (discountModalItem.pack_size || '')"></p>
+                        </div>
+                        <span class="px-2 py-0.5 bg-sky-100 text-sky-800 rounded-md font-mono font-bold text-[10px] shrink-0">
+                            Qty: <span x-text="discountModalItem.quantity"></span>
+                        </span>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-200/70 text-xs">
+                        <div>
+                            <span class="text-[10px] text-slate-500 block">Original Unit Price:</span>
+                            <span class="font-bold text-slate-800">RM <span x-text="Number(discountModalItem.original_price || discountModalItem.price).toFixed(2)"></span></span>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-[10px] text-slate-500 block">Original Total Price:</span>
+                            <span class="font-bold text-slate-800">RM <span x-text="((discountModalItem.original_price || discountModalItem.price) * discountModalItem.quantity).toFixed(2)"></span></span>
+                        </div>
+                    </div>
+                </div>
+            </template>
+
+            {{-- Discount Input Field --}}
+            <div class="space-y-1.5 text-left">
+                <label class="block text-xs font-bold text-slate-800">
+                    Discount Price (Per Item / Unit):
+                </label>
+                <div class="relative">
+                    <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-xs font-black text-slate-400">RM</span>
+                    <input 
+                        type="number" 
+                        step="0.01" 
+                        min="0"
+                        x-ref="discountPriceInput"
+                        x-model="discountModalInput" 
+                        @keydown.enter.prevent="applyItemDiscount()"
+                        placeholder="e.g. 5.00" 
+                        class="w-full pl-11 pr-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-bold text-slate-900 focus:bg-white focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20"
+                    >
+                </div>
+            </div>
+
+            {{-- Live Calculation Preview Box --}}
+            <template x-if="discountModalItem && discountModalInput !== '' && !isNaN(parseFloat(discountModalInput))">
+                <div class="p-2.5 bg-emerald-50/70 border border-emerald-200 rounded-xl space-y-1 text-xs text-left">
+                    <div class="flex justify-between text-emerald-900">
+                        <span>New Line Total:</span>
+                        <span class="font-black">RM <span x-text="(parseFloat(discountModalInput) * discountModalItem.quantity).toFixed(2)"></span></span>
+                    </div>
+                    <div class="flex justify-between text-emerald-700 text-[11px]">
+                        <span>Customer Savings:</span>
+                        <span class="font-bold">-RM <span x-text="Math.max(0, ((discountModalItem.original_price || discountModalItem.price) - parseFloat(discountModalInput)) * discountModalItem.quantity).toFixed(2)"></span></span>
+                    </div>
+                </div>
+            </template>
+
+            {{-- Action Buttons --}}
+            <div class="space-y-2 pt-1">
+                <button 
+                    type="button" 
+                    @click="applyItemDiscount()"
+                    class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-black shadow-md shadow-emerald-600/20 transition flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                    <span>Apply Discount</span>
+                    <span class="text-[10px] text-emerald-200 font-mono font-bold">(Enter)</span>
+                </button>
+
+                <div class="grid grid-cols-2 gap-2">
+                    <button 
+                        type="button" 
+                        @click="resetItemDiscount()"
+                        class="py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition cursor-pointer"
+                    >
+                        Reset to Original
+                    </button>
+                    <button 
+                        type="button" 
+                        @click="showItemDiscountModal = false; $nextTick(() => focusBarcodeInput())"
+                        class="py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition cursor-pointer"
+                    >
+                        Cancel (Esc)
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- ======================================================== --}}
     {{-- CUSTOMER SELECTION / QUICK ADD MODAL                     --}}
     {{-- ======================================================== --}}
     <div 
@@ -1121,6 +1262,13 @@
                 <div class="flex justify-between items-center py-1 border-b border-slate-100">
                     <span class="text-slate-600">Select Previous / Next Item</span>
                     <kbd class="px-2 py-0.5 bg-slate-100 border border-slate-200 rounded text-slate-700 font-mono font-bold">Alt + &uarr; / &darr;</kbd>
+                </div>
+                <div class="flex justify-between items-center py-1 border-b border-slate-100">
+                    <div>
+                        <span class="text-slate-800 font-semibold block">Discount on Selected Item</span>
+                        <span class="text-[10px] text-slate-400">Set custom promo price</span>
+                    </div>
+                    <kbd class="px-2 py-0.5 bg-rose-50 border border-rose-200 text-rose-800 rounded font-mono font-bold text-[11px]">Ctrl + Enter</kbd>
                 </div>
                 <div class="flex justify-between items-center py-1 border-b border-slate-100">
                     <span class="text-slate-600">Complete Sale / Checkout</span>
@@ -1814,6 +1962,9 @@ function posApp() {
         showHeldOrdersModal: false,
         showShortcutsModal: false,
         showPrinterConfigModal: false,
+        showItemDiscountModal: false,
+        discountModalItem: null,
+        discountModalInput: '',
         completedOrder: {},
         lastCompletedBasket: [],
         currentTime: '',
@@ -2220,11 +2371,14 @@ function posApp() {
                 }
             } else {
                 // New product scanned -> Add new row with Qty 1
+                const basePrice = Number(product.effective_price || product.price);
                 this.cart.push({
                     id: product.id,
                     name: product.name,
                     sku: product.sku,
-                    price: Number(product.effective_price || product.price),
+                    original_price: basePrice,
+                    price: basePrice,
+                    discount_price: null,
                     quantity: 1,
                     max_stock: Number(product.stock_quantity || 9999),
                     image_url: product.image_url,
@@ -2384,7 +2538,13 @@ function posApp() {
 
             try {
                 const payload = {
-                    items: this.cart.map(i => ({ id: i.id, quantity: i.quantity })),
+                    items: this.cart.map(i => ({ 
+                        id: i.id, 
+                        quantity: i.quantity,
+                        unit_price: Number(i.price),
+                        original_price: Number(i.original_price || i.price),
+                        discount_price: i.discount_price !== null ? Number(i.discount_price) : null,
+                    })),
                     payment_method: this.paymentMethod,
                     amount_tendered: Number(this.amountTendered) || this.grandTotal,
                     discount_amount: Number(this.discountAmount) || 0,
@@ -2527,7 +2687,77 @@ function posApp() {
                    this.showShortcutsModal ||
                    this.showQuickProductModal ||
                    this.showShiftModal ||
+                   this.showItemDiscountModal ||
                    this.showPrinterConfigModal;
+        },
+
+        openItemDiscountModal(index = null) {
+            if (this.cart.length === 0) {
+                this.showToast('Please add products to cart first', '🛒', 'info');
+                return;
+            }
+            const targetIndex = (index !== null && index >= 0) ? index : this.getActiveCartIndex();
+            if (targetIndex < 0 || targetIndex >= this.cart.length) return;
+
+            this.selectedCartIndex = targetIndex;
+            const item = this.cart[targetIndex];
+            if (!item.original_price) {
+                item.original_price = Number(item.price);
+            }
+            this.discountModalItem = item;
+            this.discountModalInput = (item.discount_price !== null && item.discount_price !== undefined) 
+                ? Number(item.discount_price).toFixed(2) 
+                : '';
+            this.showItemDiscountModal = true;
+            this.$nextTick(() => {
+                if (this.$refs.discountPriceInput) {
+                    this.$refs.discountPriceInput.focus();
+                    this.$refs.discountPriceInput.select();
+                }
+            });
+        },
+
+        applyItemDiscount() {
+            if (this.selectedCartIndex < 0 || this.selectedCartIndex >= this.cart.length) {
+                this.showItemDiscountModal = false;
+                return;
+            }
+            const item = this.cart[this.selectedCartIndex];
+            const val = parseFloat(this.discountModalInput);
+
+            if (!isNaN(val) && val >= 0) {
+                item.discount_price = Math.round(val * 100) / 100;
+                item.price = item.discount_price;
+                this.playBeep('success');
+                this.showToast(`Discount set on ${item.name}: RM ${item.price.toFixed(2)}`, '🏷️', 'success');
+            } else {
+                item.discount_price = null;
+                item.price = item.original_price;
+            }
+
+            if (this.paymentMethod === 'cash') {
+                this.amountTendered = this.grandTotal;
+            }
+            this.showItemDiscountModal = false;
+            this.$nextTick(() => {
+                this.focusBarcodeInput();
+            });
+        },
+
+        resetItemDiscount() {
+            if (this.selectedCartIndex >= 0 && this.selectedCartIndex < this.cart.length) {
+                const item = this.cart[this.selectedCartIndex];
+                item.discount_price = null;
+                item.price = item.original_price;
+                if (this.paymentMethod === 'cash') {
+                    this.amountTendered = this.grandTotal;
+                }
+                this.showToast(`Discount removed for ${item.name}`, '🔄', 'info');
+            }
+            this.showItemDiscountModal = false;
+            this.$nextTick(() => {
+                this.focusBarcodeInput();
+            });
         },
 
         openShiftSummaryModal() {
@@ -2742,6 +2972,22 @@ function posApp() {
                     return;
                 }
 
+                // Item Discount Modal specific hotkeys
+                if (this.showItemDiscountModal) {
+                    if (e.key === 'Escape') {
+                        e.preventDefault();
+                        this.showItemDiscountModal = false;
+                        this.$nextTick(() => this.focusBarcodeInput());
+                        return;
+                    }
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        this.applyItemDiscount();
+                        return;
+                    }
+                    return;
+                }
+
                 // Esc to close other modals
                 if (e.key === 'Escape') {
                     this.categoryDropdownOpen = false;
@@ -2751,6 +2997,7 @@ function posApp() {
                     this.showShortcutsModal = false;
                     this.showQuickProductModal = false;
                     this.showShiftModal = false;
+                    this.showItemDiscountModal = false;
                     this.showPrinterConfigModal = false;
                     this.$nextTick(() => this.focusBarcodeInput());
                 }
@@ -2771,8 +3018,15 @@ function posApp() {
                 }
             }
 
-            // Ctrl/Cmd shortcuts for Quantity manipulation
+            // Ctrl/Cmd shortcuts for Item Discount and Quantity manipulation
             if (e.ctrlKey || e.metaKey) {
+                // Ctrl + Enter: Open Item Discount Modal for selected item
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    this.openItemDiscountModal();
+                    return;
+                }
                 // Ctrl + ArrowUp: increase quantity
                 if (e.key === 'ArrowUp') {
                     e.preventDefault();

@@ -280,13 +280,38 @@
                     </thead>
                     <tbody class="divide-y divide-dotted divide-slate-300">
                         @foreach($order->items as $item)
+                            @php
+                                $origPrice = !empty($item->original_price) 
+                                    ? (float) $item->original_price 
+                                    : (float) ($item->product->sale_price ?? ($item->product->price ?? $item->unit_price));
+                                $hasItemDiscount = $origPrice > (float) $item->unit_price;
+                            @endphp
                             <tr>
                                 <td style="width: 44%;" class="py-1 pr-1 font-semibold text-black align-top">
                                     <div class="leading-tight break-words text-black">{{ $item->product_name }}</div>
+                                    @if($hasItemDiscount)
+                                        <div class="text-[7.5px] font-bold text-black uppercase tracking-tight mt-0.5" style="font-size: 7.5px !important;">
+                                            * Item Discount Applied
+                                        </div>
+                                    @endif
                                 </td>
                                 <td style="width: 10%;" class="py-1 text-center font-medium text-black align-top">{{ $item->quantity }}</td>
-                                <td style="width: 23%;" class="py-1 text-right font-medium text-black align-top whitespace-nowrap">{{ number_format($item->unit_price, 2) }}</td>
-                                <td style="width: 23%;" class="py-1 text-right font-semibold text-black align-top whitespace-nowrap">{{ number_format($item->line_total, 2) }}</td>
+                                <td style="width: 23%;" class="py-1 text-right font-medium text-black align-top whitespace-nowrap">
+                                    @if($hasItemDiscount)
+                                        <span style="text-decoration: line-through; opacity: 0.6; font-size: 7.5px; display: block;">{{ number_format($origPrice, 2) }}</span>
+                                        <span class="font-bold text-black">{{ number_format($item->unit_price, 2) }}</span>
+                                    @else
+                                        {{ number_format($item->unit_price, 2) }}
+                                    @endif
+                                </td>
+                                <td style="width: 23%;" class="py-1 text-right font-semibold text-black align-top whitespace-nowrap">
+                                    @if($hasItemDiscount)
+                                        <span style="text-decoration: line-through; opacity: 0.6; font-size: 7.5px; display: block;">{{ number_format($origPrice * $item->quantity, 2) }}</span>
+                                        <span class="font-bold text-black">{{ number_format($item->line_total, 2) }}</span>
+                                    @else
+                                        {{ number_format($item->line_total, 2) }}
+                                    @endif
+                                </td>
                             </tr>
                         @endforeach
                     </tbody>

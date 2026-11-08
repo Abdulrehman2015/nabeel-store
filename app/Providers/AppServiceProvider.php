@@ -62,6 +62,14 @@ class AppServiceProvider extends ServiceProvider
                     }
                 }
 
+                if (\Illuminate\Support\Facades\Schema::hasTable('order_items')) {
+                    if (!\Illuminate\Support\Facades\Schema::hasColumn('order_items', 'original_price')) {
+                        \Illuminate\Support\Facades\Schema::table('order_items', function (\Illuminate\Database\Schema\Blueprint $table) {
+                            $table->decimal('original_price', 10, 2)->nullable()->after('unit_price');
+                        });
+                    }
+                }
+
                 if (\Illuminate\Support\Facades\Schema::hasTable('settings')) {
                     \Illuminate\Support\Facades\DB::table('settings')
                         ->where('key', 'store_address')

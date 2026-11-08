@@ -17,6 +17,7 @@ class OrderItem extends Model
         'sku',
         'pack_size',
         'unit_price',
+        'original_price',
         'quantity',
         'line_total',
         'image',
@@ -24,6 +25,7 @@ class OrderItem extends Model
 
     protected $casts = [
         'unit_price' => 'decimal:2',
+        'original_price' => 'decimal:2',
         'quantity' => 'integer',
         'line_total' => 'decimal:2',
     ];
