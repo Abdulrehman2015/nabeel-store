@@ -114,41 +114,42 @@
     {{-- Interactive Filter & Search Bar --}}
     <div class="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-2xs space-y-3">
         <form method="GET" action="{{ route('admin.notifications.index') }}" id="filterForm">
-            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
-                {{-- Date Pills --}}
+            {{-- Row 1: Period Tabs & Custom Date Picker --}}
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
                 <div class="flex flex-wrap items-center gap-1.5">
                     <span class="text-xs font-bold text-slate-400 uppercase tracking-wider mr-1">Period:</span>
                     
                     <a href="{{ route('admin.notifications.index', array_merge(request()->except(['date', 'custom_date', 'page']), ['date' => 'today'])) }}" 
-                       class="px-3 py-1.5 rounded-xl text-xs font-bold transition {{ $dateFilter === 'today' ? 'bg-sky-600 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200' }}">
+                       class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition {{ $dateFilter === 'today' ? 'bg-sky-600 text-white shadow-2xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200' }}">
                         Today
                     </a>
 
                     <a href="{{ route('admin.notifications.index', array_merge(request()->except(['date', 'custom_date', 'page']), ['date' => 'yesterday'])) }}" 
-                       class="px-3 py-1.5 rounded-xl text-xs font-bold transition {{ $dateFilter === 'yesterday' ? 'bg-sky-600 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200' }}">
+                       class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition {{ $dateFilter === 'yesterday' ? 'bg-sky-600 text-white shadow-2xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200' }}">
                         Yesterday
                     </a>
 
                     <a href="{{ route('admin.notifications.index', array_merge(request()->except(['date', 'custom_date', 'page']), ['date' => 'last_7_days'])) }}" 
-                       class="px-3 py-1.5 rounded-xl text-xs font-bold transition {{ $dateFilter === 'last_7_days' ? 'bg-sky-600 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200' }}">
+                       class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition {{ $dateFilter === 'last_7_days' ? 'bg-sky-600 text-white shadow-2xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200' }}">
                         Last 7 Days
                     </a>
 
                     <a href="{{ route('admin.notifications.index', array_merge(request()->except(['date', 'custom_date', 'page']), ['date' => 'all'])) }}" 
-                       class="px-3 py-1.5 rounded-xl text-xs font-bold transition {{ $dateFilter === 'all' ? 'bg-sky-600 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200' }}">
+                       class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition {{ $dateFilter === 'all' ? 'bg-sky-600 text-white shadow-2xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200' }}">
                         All (Up to 30 Days)
                     </a>
                 </div>
 
-                {{-- Custom Date Picker & Quick Actions --}}
-                <div class="flex items-center gap-2">
+                {{-- Custom Date Picker --}}
+                <div class="flex items-center gap-2 shrink-0">
+                    <span class="text-xs font-semibold text-slate-400">Custom Date:</span>
                     <div class="relative">
                         <input 
                             type="date" 
                             name="custom_date" 
                             value="{{ $customDate }}" 
                             onchange="document.getElementById('dateInputHidden').value='custom'; document.getElementById('filterForm').submit();"
-                            class="text-xs font-semibold py-1.5 px-3 border border-slate-300 rounded-xl bg-slate-50 text-slate-700 focus:bg-white focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20"
+                            class="text-xs font-bold py-1.5 px-3 border border-slate-300 rounded-xl bg-slate-50/70 text-slate-700 hover:bg-white focus:bg-white focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 transition cursor-pointer"
                             title="Pick a specific date to inspect"
                         >
                     </div>
@@ -156,44 +157,54 @@
                 </div>
             </div>
 
-            {{-- Secondary Filters: Type, Status & Search Bar --}}
-            <div class="pt-3 border-t border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-3">
-                <div class="flex flex-wrap items-center gap-2">
-                    {{-- Type Filter --}}
-                    <select name="type" onchange="this.form.submit()" class="text-xs font-bold py-1.5 px-3 border border-slate-300 rounded-xl bg-slate-50 text-slate-700 focus:bg-white focus:border-sky-500">
-                        <option value="all" {{ request('type') == 'all' || !request('type') ? 'selected' : '' }}>All Alert Types</option>
-                        <option value="order" {{ request('type') == 'order' ? 'selected' : '' }}>🛒 Orders</option>
-                        <option value="payment" {{ request('type') == 'payment' ? 'selected' : '' }}>💳 Payment Verifications</option>
-                        <option value="inventory" {{ request('type') == 'inventory' ? 'selected' : '' }}>⚠️ Low Stock Warnings</option>
-                        <option value="cashier" {{ request('type') == 'cashier' ? 'selected' : '' }}>🏪 Cashier & Shifts</option>
-                        <option value="system" {{ request('type') == 'system' ? 'selected' : '' }}>⚙️ System Alerts</option>
-                    </select>
-
-                    {{-- Status Filter --}}
-                    <select name="status" onchange="this.form.submit()" class="text-xs font-bold py-1.5 px-3 border border-slate-300 rounded-xl bg-slate-50 text-slate-700 focus:bg-white focus:border-sky-500">
-                        <option value="all" {{ !request('status') || request('status') == 'all' ? 'selected' : '' }}>All Statuses</option>
-                        <option value="unread" {{ request('status') == 'unread' ? 'selected' : '' }}>Unread Only</option>
-                        <option value="read" {{ request('status') == 'read' ? 'selected' : '' }}>Read Only</option>
-                    </select>
-
-                    @if(request()->hasAny(['type', 'status', 'search', 'custom_date']) || $dateFilter !== 'today')
-                        <a href="{{ route('admin.notifications.index') }}" class="text-xs font-bold text-rose-600 hover:text-rose-800 flex items-center gap-1">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                            <span>Reset Filters</span>
-                        </a>
-                    @endif
-                </div>
-
-                {{-- Keyword Search --}}
-                <div class="relative w-full md:w-72">
+            {{-- Row 2: Search, Type Filter, Status Filter & Reset in a Unified Grid --}}
+            <div class="grid grid-cols-1 sm:grid-cols-12 gap-2.5 pt-0.5 items-center">
+                {{-- Search Input (takes 5 cols) --}}
+                <div class="sm:col-span-5 relative">
                     <input 
                         type="text" 
                         name="search" 
                         value="{{ request('search') }}" 
-                        placeholder="Search alerts or order #..." 
-                        class="w-full text-xs py-1.5 pl-8 pr-3 border border-slate-300 rounded-xl bg-slate-50 text-slate-800 placeholder-slate-400 focus:bg-white focus:border-sky-500"
+                        placeholder="Search alerts by title, order #, or item name..." 
+                        class="w-full text-xs py-2 pl-9 pr-8 border border-slate-300 rounded-xl bg-slate-50/50 hover:bg-white focus:bg-white focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 text-slate-800 placeholder-slate-400 transition"
                     >
-                    <svg class="w-4 h-4 text-slate-400 absolute left-2.5 top-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                    <svg class="w-4 h-4 text-slate-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                    @if(request('search'))
+                        <a href="{{ route('admin.notifications.index', request()->except(['search', 'page'])) }}" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-sm font-bold">&times;</a>
+                    @endif
+                </div>
+
+                {{-- Alert Type Dropdown (takes 3 cols) --}}
+                <div class="sm:col-span-3">
+                    <select name="type" onchange="this.form.submit()" class="w-full text-xs font-bold py-2 px-3 border border-slate-300 rounded-xl bg-slate-50/50 hover:bg-white focus:bg-white focus:border-sky-500 transition cursor-pointer text-slate-700">
+                        <option value="all" {{ request('type') == 'all' || !request('type') ? 'selected' : '' }}>All Alert Types</option>
+                        <option value="order" {{ request('type') == 'order' ? 'selected' : '' }}>🛒 Orders</option>
+                        <option value="payment" {{ request('type') == 'payment' ? 'selected' : '' }}>💳 Payment Proofs</option>
+                        <option value="inventory" {{ request('type') == 'inventory' ? 'selected' : '' }}>⚠️ Low Stock Warnings</option>
+                        <option value="cashier" {{ request('type') == 'cashier' ? 'selected' : '' }}>🏪 Cashier & Shifts</option>
+                        <option value="system" {{ request('type') == 'system' ? 'selected' : '' }}>⚙️ System Alerts</option>
+                    </select>
+                </div>
+
+                {{-- Status Dropdown (takes 2 cols) --}}
+                <div class="sm:col-span-2">
+                    <select name="status" onchange="this.form.submit()" class="w-full text-xs font-bold py-2 px-3 border border-slate-300 rounded-xl bg-slate-50/50 hover:bg-white focus:bg-white focus:border-sky-500 transition cursor-pointer text-slate-700">
+                        <option value="all" {{ !request('status') || request('status') == 'all' ? 'selected' : '' }}>All Statuses</option>
+                        <option value="unread" {{ request('status') == 'unread' ? 'selected' : '' }}>Unread Only</option>
+                        <option value="read" {{ request('status') == 'read' ? 'selected' : '' }}>Read Only</option>
+                    </select>
+                </div>
+
+                {{-- Filter & Reset Action Buttons (takes 2 cols) --}}
+                <div class="sm:col-span-2 flex items-center gap-1.5">
+                    <button type="submit" class="flex-1 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl transition cursor-pointer shadow-2xs text-center">
+                        Filter
+                    </button>
+                    @if(request()->hasAny(['type', 'status', 'search', 'custom_date']) || $dateFilter !== 'today')
+                        <a href="{{ route('admin.notifications.index') }}" class="px-2.5 py-2 bg-slate-100 hover:bg-rose-50 text-slate-600 hover:text-rose-600 text-xs font-bold rounded-xl border border-slate-200 transition text-center shrink-0" title="Reset all filters">
+                            Reset
+                        </a>
+                    @endif
                 </div>
             </div>
         </form>
