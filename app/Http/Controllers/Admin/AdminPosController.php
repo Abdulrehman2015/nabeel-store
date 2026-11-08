@@ -664,6 +664,26 @@ class AdminPosController extends Controller
     }
 
     /**
+     * Download Windows POS setup package as ZIP.
+     */
+    public function downloadZip()
+    {
+        $path = public_path('downloads/NI_POS_Windows_Setup.zip');
+        if (!file_exists($path)) {
+            $path = public_path('downloads/setup.dat');
+        }
+
+        if (!file_exists($path)) {
+            abort(404, 'Setup package not found.');
+        }
+
+        return response()->download($path, 'NI_POS_Windows_Setup.zip', [
+            'Content-Type' => 'application/zip',
+            'Content-Disposition' => 'attachment; filename="NI_POS_Windows_Setup.zip"',
+        ]);
+    }
+
+    /**
      * Cashier shift summary data & drawer balancing.
      */
     public function shiftSummary(): JsonResponse

@@ -144,6 +144,7 @@ Route::middleware(['auth', 'customer.verified'])->group(function () {
 
 // Windows POS Desktop Installer Download (routed via PHP to bypass hosting .exe blocking)
 Route::get('/downloads/pos-app', [App\Http\Controllers\Admin\AdminPosController::class, 'downloadApp'])->name('pos.download-app');
+Route::get('/downloads/pos-app-zip', [App\Http\Controllers\Admin\AdminPosController::class, 'downloadZip'])->name('pos.download-zip');
 
 // Dynamic Legal Policy Slugs (Must be placed after static routes)
 Route::get('/{slug}', [PageController::class, 'show'])

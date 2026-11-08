@@ -67,3 +67,4 @@ start "" "%BROWSER_EXE%" --app="%TARGET_URL%" --user-data-dir="%PROFILE_DIR%" --
 
 timeout /t 3 >nul
 exit
+

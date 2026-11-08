@@ -114,15 +114,16 @@
                 <span class="hidden md:inline text-[11px]">Print Config</span>
             </button>
 
-            {{-- Windows Desktop App Download Button --}}
-            <a 
-                href="{{ route('pos.download-app') }}" 
-                class="px-2.5 py-1.5 bg-sky-50 hover:bg-sky-100 text-sky-800 border border-sky-200 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-2xs group"
-                title="Download Standalone Windows Desktop App (.exe)"
+            {{-- Windows Desktop App Modal Trigger --}}
+            <button 
+                type="button" 
+                @click="showWindowsAppModal = true"
+                class="px-2.5 py-1.5 bg-gradient-to-r from-sky-600 to-blue-600 hover:from-sky-500 hover:to-blue-500 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-xs group"
+                title="Install or Download Standalone Windows Desktop App"
             >
-                <svg class="w-3.5 h-3.5 text-sky-600 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                <svg class="w-3.5 h-3.5 text-white group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
                 <span class="hidden md:inline text-[11px]">Windows App</span>
-            </a>
+            </button>
 
             {{-- Keyboard Shortcuts Info --}}
             <button 
@@ -1932,6 +1933,84 @@
         </div>
     </div>
 
+    {{-- Windows Desktop App Modal --}}
+    <div 
+        x-show="showWindowsAppModal" 
+        x-cloak 
+        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs"
+    >
+        <div 
+            @click.outside="showWindowsAppModal = false"
+            class="bg-white rounded-3xl shadow-2xl border border-slate-200 w-full max-w-lg overflow-hidden animate-in fade-in zoom-in-95 duration-150"
+        >
+            {{-- Modal Header --}}
+            <div class="px-6 py-4 bg-slate-900 text-white flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-sky-500/20 text-sky-400 border border-sky-400/30 flex items-center justify-center text-lg font-bold">
+                        💻
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold text-white">N&I Mini Mart POS - Windows App</h3>
+                        <p class="text-[11px] text-slate-400">Run as a dedicated, distraction-free desktop workstation</p>
+                    </div>
+                </div>
+                <button type="button" @click="showWindowsAppModal = false" class="text-slate-400 hover:text-white p-1 text-base">✕</button>
+            </div>
+
+            <div class="p-6 space-y-4 text-xs">
+                {{-- Method 1: Instant Browser Native App (Zero Block / 1-Click) --}}
+                <div class="p-4 rounded-2xl bg-sky-50/80 border border-sky-200">
+                    <div class="flex items-center justify-between gap-2">
+                        <div class="flex items-center gap-2">
+                            <span class="text-base">⚡</span>
+                            <span class="font-bold text-sky-950">Option 1: 1-Click Desktop App (Recommended)</span>
+                        </div>
+                        <span class="px-2 py-0.5 rounded-full bg-sky-600 text-white text-[10px] font-bold">No Warnings</span>
+                    </div>
+                    <p class="text-[11px] text-slate-600 mt-1.5 leading-relaxed">
+                        Installs directly through Microsoft Edge / Chrome. Creates a desktop icon and runs in a clean, full-screen counter window with zero security blocks.
+                    </p>
+                    <button 
+                        type="button" 
+                        @click="triggerPwaInstall()" 
+                        class="mt-3 w-full py-2.5 px-4 bg-sky-600 hover:bg-sky-500 text-white font-bold rounded-xl transition flex items-center justify-center gap-2 shadow-xs cursor-pointer"
+                    >
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                        <span>Install Desktop App Now</span>
+                    </button>
+                </div>
+
+                {{-- Method 2: Download ZIP Package --}}
+                <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200">
+                    <div class="flex items-center justify-between gap-2">
+                        <div class="flex items-center gap-2">
+                            <span class="text-base">📦</span>
+                            <span class="font-bold text-slate-900">Option 2: Download Setup Package (.ZIP)</span>
+                        </div>
+                        <span class="px-2 py-0.5 rounded-full bg-slate-200 text-slate-700 text-[10px] font-bold">17 KB</span>
+                    </div>
+                    <p class="text-[11px] text-slate-500 mt-1.5 leading-relaxed">
+                        Contains the standalone <span class="font-mono font-bold">N_I_POS_Setup_v1.0.exe</span> and 1-click batch script. Extract and run without file-blocking.
+                    </p>
+                    <a 
+                        href="{{ route('pos.download-zip') }}" 
+                        class="mt-3 w-full py-2 px-4 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl transition flex items-center justify-center gap-2 shadow-xs cursor-pointer block text-center"
+                    >
+                        <span>Download NI_POS_Windows_Setup.zip</span>
+                    </a>
+                </div>
+
+                {{-- Method 3: Direct EXE --}}
+                <div class="flex items-center justify-between pt-2 border-t border-slate-100 text-[11px] text-slate-500">
+                    <span>Direct setup file:</span>
+                    <a href="{{ route('pos.download-app') }}" class="text-sky-600 hover:underline font-bold">
+                        Download Standalone Setup (.EXE)
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </div>
 
 {{-- Reactive Alpine.js Application Engine for POS --}}
@@ -1946,6 +2025,8 @@ function posApp() {
 
         // Quick Add Product State
         showQuickProductModal: false,
+        showWindowsAppModal: false,
+        deferredPwaPrompt: null,
         isSyncingProducts: false,
         newProduct: {
             name: '',
@@ -2044,6 +2125,12 @@ function posApp() {
         },
 
         initPos() {
+            // Capture PWA desktop install prompt event
+            window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault();
+                this.deferredPwaPrompt = e;
+            });
+
             // High-priority capturing keydown listener to guarantee Ctrl+Enter always triggers discount modal
             window.addEventListener('keydown', (e) => {
                 if ((e.ctrlKey || e.metaKey) && (e.key === 'Enter' || e.code === 'Enter' || e.code === 'NumpadEnter')) {
@@ -2523,6 +2610,22 @@ function posApp() {
             this.newProduct.price = '';
             this.newProduct.stock_quantity = 10;
             this.showQuickProductModal = true;
+        },
+
+        // Trigger PWA Desktop App Installation
+        triggerPwaInstall() {
+            if (this.deferredPwaPrompt) {
+                this.deferredPwaPrompt.prompt();
+                this.deferredPwaPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        this.showWindowsAppModal = false;
+                        this.showToast('N&I Mini Mart POS installed to Windows Desktop!', '🎉', 'success');
+                    }
+                    this.deferredPwaPrompt = null;
+                });
+            } else {
+                alert("To install in Edge or Chrome:\nClick the 'Install App' icon in the right side of your browser address bar.");
+            }
         },
 
         // Cart Actions (Updates existing entry quantity if scanned again; otherwise appends new item)
