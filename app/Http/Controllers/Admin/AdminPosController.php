@@ -643,6 +643,27 @@ class AdminPosController extends Controller
     }
 
     /**
+     * Download Windows POS desktop installer.
+     * Serves via PHP stream to bypass shared hosting static .exe blocking.
+     */
+    public function downloadApp()
+    {
+        $path = public_path('downloads/setup.dat');
+        if (!file_exists($path)) {
+            $path = base_path('windows-pos-app/N_I_POS_Setup_v1.0.exe');
+        }
+
+        if (!file_exists($path)) {
+            abort(404, 'Setup installer not found.');
+        }
+
+        return response()->download($path, 'N_I_POS_Setup_v1.0.exe', [
+            'Content-Type' => 'application/octet-stream',
+            'Content-Disposition' => 'attachment; filename="N_I_POS_Setup_v1.0.exe"',
+        ]);
+    }
+
+    /**
      * Cashier shift summary data & drawer balancing.
      */
     public function shiftSummary(): JsonResponse

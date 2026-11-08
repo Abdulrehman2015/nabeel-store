@@ -116,8 +116,7 @@
 
             {{-- Windows Desktop App Download Button --}}
             <a 
-                href="{{ asset('downloads/N_I_POS_Setup_v1.0.exe') }}" 
-                download="N_I_POS_Setup_v1.0.exe"
+                href="{{ route('pos.download-app') }}" 
                 class="px-2.5 py-1.5 bg-sky-50 hover:bg-sky-100 text-sky-800 border border-sky-200 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-2xs group"
                 title="Download Standalone Windows Desktop App (.exe)"
             >

@@ -260,8 +260,7 @@
                 {{-- Windows Desktop POS App Download Card --}}
                 <div class="pt-3 pb-1">
                     <a 
-                        href="{{ asset('downloads/N_I_POS_Setup_v1.0.exe') }}" 
-                        download="N_I_POS_Setup_v1.0.exe"
+                        href="{{ route('pos.download-app') }}" 
                         class="flex items-center justify-between px-3 py-2 rounded-xl bg-gradient-to-r from-sky-600/20 to-blue-600/20 hover:from-sky-600/30 hover:to-blue-600/30 border border-sky-500/30 text-sky-300 hover:text-white transition group"
                         title="Download Standalone Windows Desktop POS App (.exe)"
                     >

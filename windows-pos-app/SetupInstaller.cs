@@ -317,3 +317,4 @@ namespace NabeelStore.POS.Setup
         }
     }
 }
+

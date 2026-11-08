@@ -142,6 +142,9 @@ Route::middleware(['auth', 'customer.verified'])->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
+// Windows POS Desktop Installer Download (routed via PHP to bypass hosting .exe blocking)
+Route::get('/downloads/pos-app', [App\Http\Controllers\Admin\AdminPosController::class, 'downloadApp'])->name('pos.download-app');
+
 // Dynamic Legal Policy Slugs (Must be placed after static routes)
 Route::get('/{slug}', [PageController::class, 'show'])
     ->where('slug', 'privacy-policy|terms-and-conditions|refund-and-return-policy|shipping-and-delivery-policy|payment-policy|cancellation-policy|cookie-policy|security-policy|disclaimer')
