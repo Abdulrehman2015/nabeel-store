@@ -125,6 +125,15 @@ class AdminProductController extends Controller
         ]);
 
         $validated['slug'] = !empty($validated['slug']) ? Str::slug($validated['slug']) : Str::slug($validated['name']);
+        $validated['pack_size'] = $validated['pack_size'] ?? '';
+        $validated['unit_description'] = $validated['unit_description'] ?? '';
+        $validated['weight_volume'] = $validated['weight_volume'] ?? '';
+        $validated['short_description'] = $validated['short_description'] ?? '';
+        $validated['description'] = $validated['description'] ?? '';
+        $validated['meta_title'] = $validated['meta_title'] ?? '';
+        $validated['meta_description'] = $validated['meta_description'] ?? '';
+        $validated['meta_keywords'] = $validated['meta_keywords'] ?? '';
+        $validated['focus_keyword'] = $validated['focus_keyword'] ?? '';
         if (\Illuminate\Support\Facades\Schema::hasColumn('products', 'low_stock_threshold')) {
             $validated['low_stock_threshold'] = $request->filled('low_stock_threshold') ? max(0, (int) $request->input('low_stock_threshold')) : 10;
         } else {
@@ -208,6 +217,15 @@ class AdminProductController extends Controller
         ]);
 
         $validated['slug'] = !empty($validated['slug']) ? Str::slug($validated['slug']) : Str::slug($validated['name']);
+        $validated['pack_size'] = $validated['pack_size'] ?? '';
+        $validated['unit_description'] = $validated['unit_description'] ?? '';
+        $validated['weight_volume'] = $validated['weight_volume'] ?? '';
+        $validated['short_description'] = $validated['short_description'] ?? '';
+        $validated['description'] = $validated['description'] ?? '';
+        $validated['meta_title'] = $validated['meta_title'] ?? '';
+        $validated['meta_description'] = $validated['meta_description'] ?? '';
+        $validated['meta_keywords'] = $validated['meta_keywords'] ?? '';
+        $validated['focus_keyword'] = $validated['focus_keyword'] ?? '';
         if (\Illuminate\Support\Facades\Schema::hasColumn('products', 'low_stock_threshold')) {
             $validated['low_stock_threshold'] = $request->filled('low_stock_threshold') ? max(0, (int) $request->input('low_stock_threshold')) : 10;
         } else {

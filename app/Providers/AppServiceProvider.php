@@ -34,9 +34,19 @@ class AppServiceProvider extends ServiceProvider
 
         // Auto-migrate missing columns for shared hosting environments (InfinityFree) where CLI migrate cannot run
         try {
-            $flagFile = storage_path('framework/cache/schema_synced_v5.flag');
+            $flagFile = storage_path('framework/cache/schema_synced_v6.flag');
             if (!file_exists($flagFile)) {
                 if (\Illuminate\Support\Facades\Schema::hasTable('products')) {
+                    try {
+                        \Illuminate\Support\Facades\DB::statement("ALTER TABLE `products` MODIFY `pack_size` VARCHAR(255) NULL DEFAULT NULL");
+                    } catch (\Throwable $e) {}
+                    try {
+                        \Illuminate\Support\Facades\DB::statement("ALTER TABLE `products` MODIFY `unit_description` VARCHAR(255) NULL DEFAULT NULL");
+                    } catch (\Throwable $e) {}
+                    try {
+                        \Illuminate\Support\Facades\DB::statement("ALTER TABLE `products` MODIFY `weight_volume` VARCHAR(255) NULL DEFAULT NULL");
+                    } catch (\Throwable $e) {}
+
                     if (!\Illuminate\Support\Facades\Schema::hasColumn('products', 'purchase_price')) {
                         \Illuminate\Support\Facades\Schema::table('products', function (\Illuminate\Database\Schema\Blueprint $table) {
                             $table->decimal('purchase_price', 10, 2)->default(0.00)->after('price');

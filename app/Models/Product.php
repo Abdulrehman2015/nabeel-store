@@ -46,6 +46,14 @@ class Product extends Model
         'schema_type',
     ];
 
+    protected $attributes = [
+        'pack_size' => '',
+        'unit_description' => '',
+        'weight_volume' => '',
+        'short_description' => '',
+        'description' => '',
+    ];
+
     protected $casts = [
         'price' => 'decimal:2',
         'purchase_price' => 'decimal:2',

@@ -480,7 +480,7 @@ class AdminPosController extends Controller
             'price' => (float) $validated['price'],
             'sale_price' => !empty($validated['sale_price']) ? (float) $validated['sale_price'] : null,
             'stock_quantity' => (int) $validated['stock_quantity'],
-            'pack_size' => $validated['pack_size'] ?? null,
+            'pack_size' => $validated['pack_size'] ?? '',
             'sku' => $sku,
             'is_active' => true,
         ];
