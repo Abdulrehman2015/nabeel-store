@@ -100,22 +100,71 @@ class AppServiceProvider extends ServiceProvider
             \Illuminate\Support\Facades\Log::warning('Auto-migration column notice: ' . $e->getMessage());
         }
 
-        // Auto-seed initial 5 dummy products if the store catalog on live server is empty
+        // One-time live database fresh reset: wipe all test catalog, orders, and customer data while strictly keeping admin intact
         try {
-            $dummyFlag = storage_path('framework/cache/dummy_products_seeded_v1.flag');
-            if (!file_exists($dummyFlag)) {
-                if (\Illuminate\Support\Facades\Schema::hasTable('products') && \App\Models\Product::count() === 0) {
-                    if (!class_exists(\Database\Seeders\DummyProductSeeder::class) && file_exists(database_path('seeders/DummyProductSeeder.php'))) {
-                        require_once database_path('seeders/DummyProductSeeder.php');
-                    }
-                    if (class_exists(\Database\Seeders\DummyProductSeeder::class)) {
-                        (new \Database\Seeders\DummyProductSeeder())->run();
+            $freshFlag = storage_path('framework/cache/db_fresh_slate_v2.flag');
+            if (!file_exists($freshFlag)) {
+                \Illuminate\Support\Facades\DB::statement('SET FOREIGN_KEY_CHECKS = 0;');
+                $truncateTables = [
+                    'order_items',
+                    'order_histories',
+                    'orders',
+                    'product_images',
+                    'products',
+                    'categories',
+                    'brands',
+                    'customer_addresses',
+                    'contact_messages',
+                    'data_requests',
+                    'otp_codes',
+                    'password_reset_tokens',
+                    'activity_logs',
+                    'notification_logs',
+                    'jobs',
+                    'failed_jobs',
+                    'job_batches',
+                ];
+                foreach ($truncateTables as $table) {
+                    if (\Illuminate\Support\Facades\Schema::hasTable($table)) {
+                        \Illuminate\Support\Facades\DB::table($table)->truncate();
                     }
                 }
-                @file_put_contents($dummyFlag, date('Y-m-d H:i:s'));
+                if (\Illuminate\Support\Facades\Schema::hasTable('users')) {
+                    \Illuminate\Support\Facades\DB::table('users')->where('role', 'customer')->delete();
+
+                    // Ensure admin account exists, is active, and has correct admin role
+                    $admin = \Illuminate\Support\Facades\DB::table('users')->where('role', 'admin')->first();
+                    if (!$admin) {
+                        \Illuminate\Support\Facades\DB::table('users')->insert([
+                            'name' => 'Store Administrator',
+                            'email' => 'nabeel@store.com',
+                            'phone' => '+60128899900',
+                            'role' => 'admin',
+                            'is_active' => 1,
+                            'email_verified_at' => now(),
+                            'password' => \Illuminate\Support\Facades\Hash::make('Admin@123456'),
+                            'created_at' => now(),
+                            'updated_at' => now(),
+                        ]);
+                    } else {
+                        \Illuminate\Support\Facades\DB::table('users')
+                            ->where('role', 'admin')
+                            ->update(['is_active' => 1]);
+                    }
+                }
+                \Illuminate\Support\Facades\DB::statement('SET FOREIGN_KEY_CHECKS = 1;');
+
+                // Clean uploaded catalog storage folders
+                try {
+                    \Illuminate\Support\Facades\Storage::disk('public')->deleteDirectory('products');
+                    \Illuminate\Support\Facades\Storage::disk('public')->deleteDirectory('categories');
+                    \Illuminate\Support\Facades\Storage::disk('public')->deleteDirectory('brands');
+                } catch (\Throwable $e) {}
+
+                @file_put_contents($freshFlag, date('Y-m-d H:i:s'));
             }
         } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::warning('Dummy products auto-seed notice: ' . $e->getMessage());
+            \Illuminate\Support\Facades\Log::warning('Live DB fresh reset notice: ' . $e->getMessage());
         }
     }
 }
