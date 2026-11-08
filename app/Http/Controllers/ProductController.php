@@ -14,26 +14,40 @@ class ProductController extends Controller
 
     public function show(string $slug)
     {
-        $product = Product::where('slug', $slug)
-            ->where('is_active', true)
-            ->with(['category', 'brand', 'images'])
-            ->firstOrFail();
+        $query = Product::where('slug', $slug)->with(['category', 'brand', 'images']);
+
+        if (!auth()->check() || !auth()->user()->isStaff()) {
+            $query->where('is_active', true);
+        }
+
+        $product = $query->first();
+
+        // Also check by ID in case a link used ID instead of slug
+        if (!$product && is_numeric($slug)) {
+            $product = Product::with(['category', 'brand', 'images'])->find($slug);
+        }
+
+        if (!$product) {
+            return redirect()->route('category.index')->with('error', 'Product not found or is currently unavailable.');
+        }
 
         // Related products in the same category
-        $relatedProducts = Product::where('category_id', $product->category_id)
+        $relatedProducts = $product->category_id ? Product::where('category_id', $product->category_id)
             ->where('id', '!=', $product->id)
             ->where('is_active', true)
             ->with(['brand', 'category'])
             ->take(4)
-            ->get();
+            ->get() : collect();
 
         // SEO & Structured Data
         $seo = $this->seoService->resolveMetadata($product);
         $breadcrumbs = [
             'Home' => url('/'),
-            $product->category->name => route('category.show', $product->category->slug),
-            $product->name => route('product.show', $product->slug),
         ];
+        if ($product->category) {
+            $breadcrumbs[$product->category->name] = route('category.show', $product->category->slug);
+        }
+        $breadcrumbs[$product->name] = route('product.show', $product->slug);
         $breadcrumbsJsonLd = $this->seoService->generateBreadcrumbsJsonLd($breadcrumbs);
         $productJsonLd = $this->seoService->generateProductJsonLd($product);
 

@@ -23,6 +23,8 @@ class AppServiceProvider extends ServiceProvider
         if (
             request()->header('x-forwarded-proto') === 'https' ||
             request()->server('HTTP_X_FORWARDED_PROTO') === 'https' ||
+            str_contains(request()->getHost(), 'nabeel.site.je') ||
+            str_contains(request()->getHost(), 'site.je') ||
             str_contains(request()->getHost(), 'lhr.life') ||
             str_contains(request()->getHost(), 'ngrok') ||
             str_contains(request()->getHost(), 'trycloudflare') ||

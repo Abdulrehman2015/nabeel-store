@@ -71,6 +71,15 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::delete('products/delete-all', [AdminProductController::class, 'deleteAll'])->name('products.delete-all')->middleware('admin.only');
     Route::get('products/export', [AdminProductImportExportController::class, 'export'])->name('products.export');
     Route::post('products/import', [AdminProductImportExportController::class, 'import'])->name('products.import')->middleware('admin.only');
+
+    // Route aliases and fallbacks for product pages
+    Route::get('product', fn() => redirect()->route('admin.products.index'));
+    Route::get('product/create', fn() => redirect()->route('admin.products.create'));
+    Route::get('products/add', fn() => redirect()->route('admin.products.create'));
+    Route::get('product/add', fn() => redirect()->route('admin.products.create'));
+    Route::get('add-product', fn() => redirect()->route('admin.products.create'));
+    Route::get('create-product', fn() => redirect()->route('admin.products.create'));
+
     Route::resource('products', AdminProductController::class);
 
     // Orders Management & PDF Invoices

@@ -88,6 +88,11 @@ class AdminProductController extends Controller
         return view('admin.products.create', compact('categories', 'brands'));
     }
 
+    public function show(Product $product)
+    {
+        return redirect()->route('admin.products.edit', $product->id);
+    }
+
     public function store(Request $request)
     {
         $validated = $request->validate([
