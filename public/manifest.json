@@ -1,0 +1,22 @@
+{
+  "name": "N&I Mini Mart POS",
+  "short_name": "N&I POS",
+  "description": "Retail Cashier Workstation & Point of Sale System",
+  "start_url": "/admin/pos",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#0284c7",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "/images/logo.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/images/logo.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

@@ -114,6 +114,17 @@
                 <span class="hidden md:inline text-[11px]">Print Config</span>
             </button>
 
+            {{-- Windows Desktop App Download Button --}}
+            <a 
+                href="{{ asset('downloads/N_I_POS_Setup_v1.0.exe') }}" 
+                download="N_I_POS_Setup_v1.0.exe"
+                class="px-2.5 py-1.5 bg-sky-50 hover:bg-sky-100 text-sky-800 border border-sky-200 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-2xs group"
+                title="Download Standalone Windows Desktop App (.exe)"
+            >
+                <svg class="w-3.5 h-3.5 text-sky-600 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                <span class="hidden md:inline text-[11px]">Windows App</span>
+            </a>
+
             {{-- Keyboard Shortcuts Info --}}
             <button 
                 type="button" 

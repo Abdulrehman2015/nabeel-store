@@ -6,6 +6,8 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <title>@yield('title', 'Admin Dashboard') | {{ store_name() }} Admin</title>
+    <link rel="manifest" href="{{ asset('manifest.json') }}">
+    <meta name="theme-color" content="#0284c7">
 
     {{-- Google Fonts: Plus Jakarta Sans & Inter --}}
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -254,6 +256,24 @@
                         <span>Store Data Reset</span>
                     </a>
                 @endif
+
+                {{-- Windows Desktop POS App Download Card --}}
+                <div class="pt-3 pb-1">
+                    <a 
+                        href="{{ asset('downloads/N_I_POS_Setup_v1.0.exe') }}" 
+                        download="N_I_POS_Setup_v1.0.exe"
+                        class="flex items-center justify-between px-3 py-2 rounded-xl bg-gradient-to-r from-sky-600/20 to-blue-600/20 hover:from-sky-600/30 hover:to-blue-600/30 border border-sky-500/30 text-sky-300 hover:text-white transition group"
+                        title="Download Standalone Windows Desktop POS App (.exe)"
+                    >
+                        <div class="flex items-center gap-2.5">
+                            <svg class="w-4 h-4 text-sky-400 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                            <span class="text-[11px] font-bold">Windows POS App</span>
+                        </div>
+                        <span class="text-[9px] font-black uppercase px-1.5 py-0.5 rounded bg-sky-500 text-white shadow-2xs">
+                            .EXE
+                        </span>
+                    </a>
+                </div>
 
             </nav>
         </div>
