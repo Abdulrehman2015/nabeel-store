@@ -460,25 +460,34 @@ class AdminReportController extends Controller
      */
     protected function getCashierPerformance(Carbon $startDate, Carbon $endDate)
     {
-        return User::whereIn('role', ['admin', 'staff', 'cashier'])
-            ->withCount([
-                'cashierOrders as period_orders_count' => function ($q) use ($startDate, $endDate) {
-                    $q->whereBetween('created_at', [$startDate, $endDate])
-                      ->where('order_status', 'delivered');
-                },
-            ])
-            ->withSum([
-                'cashierOrders as period_sales_sum' => function ($q) use ($startDate, $endDate) {
-                    $q->whereBetween('created_at', [$startDate, $endDate])
-                      ->where('order_status', 'delivered');
-                },
-            ], 'grand_total')
-            ->get()
-            ->filter(function ($u) {
-                return $u->period_orders_count > 0 || $u->period_sales_sum > 0;
-            })
-            ->sortByDesc('period_sales_sum')
-            ->values();
+        try {
+            if (!\Illuminate\Support\Facades\Schema::hasColumn('orders', 'cashier_id')) {
+                return collect([]);
+            }
+
+            return User::whereIn('role', ['admin', 'staff', 'cashier'])
+                ->withCount([
+                    'cashierOrders as period_orders_count' => function ($q) use ($startDate, $endDate) {
+                        $q->whereBetween('created_at', [$startDate, $endDate])
+                          ->where('order_status', 'delivered');
+                    },
+                ])
+                ->withSum([
+                    'cashierOrders as period_sales_sum' => function ($q) use ($startDate, $endDate) {
+                        $q->whereBetween('created_at', [$startDate, $endDate])
+                          ->where('order_status', 'delivered');
+                    },
+                ], 'grand_total')
+                ->get()
+                ->filter(function ($u) {
+                    return $u->period_orders_count > 0 || $u->period_sales_sum > 0;
+                })
+                ->sortByDesc('period_sales_sum')
+                ->values();
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Cashier performance report notice: ' . $e->getMessage());
+            return collect([]);
+        }
     }
 }
 

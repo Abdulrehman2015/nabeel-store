@@ -34,7 +34,7 @@ class AppServiceProvider extends ServiceProvider
 
         // Auto-migrate missing columns for shared hosting environments (InfinityFree) where CLI migrate cannot run
         try {
-            $flagFile = storage_path('framework/cache/schema_synced.flag');
+            $flagFile = storage_path('framework/cache/schema_synced_v5.flag');
             if (!file_exists($flagFile)) {
                 if (\Illuminate\Support\Facades\Schema::hasTable('products')) {
                     if (!\Illuminate\Support\Facades\Schema::hasColumn('products', 'purchase_price')) {
@@ -57,7 +57,8 @@ class AppServiceProvider extends ServiceProvider
                 if (\Illuminate\Support\Facades\Schema::hasTable('orders')) {
                     if (!\Illuminate\Support\Facades\Schema::hasColumn('orders', 'cashier_id')) {
                         \Illuminate\Support\Facades\Schema::table('orders', function (\Illuminate\Database\Schema\Blueprint $table) {
-                            $table->foreignId('cashier_id')->nullable()->after('user_id')->constrained('users')->nullOnDelete();
+                            $table->unsignedBigInteger('cashier_id')->nullable()->after('user_id');
+                            $table->index('cashier_id');
                         });
                     }
                 }
