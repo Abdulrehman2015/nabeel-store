@@ -106,11 +106,38 @@ class AppServiceProvider extends ServiceProvider
                         );
                     }
                 }
+                if (!\Illuminate\Support\Facades\Schema::hasTable('admin_notifications')) {
+                    \Illuminate\Support\Facades\Schema::create('admin_notifications', function (\Illuminate\Database\Schema\Blueprint $table) {
+                        $table->id();
+                        $table->string('type', 40)->default('system');
+                        $table->string('level', 20)->default('info');
+                        $table->string('title');
+                        $table->text('message');
+                        $table->string('url')->nullable();
+                        $table->string('action_text', 50)->nullable();
+                        $table->json('data')->nullable();
+                        $table->boolean('is_read')->default(false);
+                        $table->timestamp('read_at')->nullable();
+                        $table->timestamps();
+
+                        $table->index('type');
+                        $table->index('is_read');
+                        $table->index('created_at');
+                    });
+                }
+
                 @file_put_contents($flagFile, 'synced');
             }
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::warning('Auto-migration column notice: ' . $e->getMessage());
         }
+
+        // Automatic 30-day retention cleanup for notifications
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasTable('admin_notifications')) {
+                \App\Models\AdminNotification::purgeExpired(30);
+            }
+        } catch (\Throwable $e) {}
 
         // One-time live database fresh reset: wipe all test catalog, orders, and customer data while strictly keeping admin intact
         try {

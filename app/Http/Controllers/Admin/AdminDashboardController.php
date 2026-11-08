@@ -195,6 +195,25 @@ class AdminDashboardController extends Controller
                 ->get()
                 ->map(function ($order) {
                     $itemsCount = $order->items ? (int) $order->items->sum('quantity') : 1;
+                    
+                    try {
+                        $alreadyNotified = \App\Models\AdminNotification::where('type', 'order')
+                            ->whereJsonContains('data->order_id', $order->id)
+                            ->exists();
+                        if (!$alreadyNotified) {
+                            \App\Models\AdminNotification::create([
+                                'type' => 'order',
+                                'level' => 'success',
+                                'title' => "New Online Order #{$order->order_number}",
+                                'message' => "Customer {$order->customer_name} placed an order for RM " . number_format((float) $order->grand_total, 2) . " via " . ($order->payment_method ?? 'Online') . ".",
+                                'url' => route('admin.orders.show', $order->id),
+                                'action_text' => 'View Order',
+                                'data' => ['order_id' => $order->id, 'order_number' => $order->order_number],
+                                'is_read' => false,
+                            ]);
+                        }
+                    } catch (\Throwable $e) {}
+
                     return [
                         'id' => $order->id,
                         'order_number' => $order->order_number,

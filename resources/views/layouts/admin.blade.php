@@ -108,6 +108,15 @@
                     </a>
                 @endif
 
+                {{-- Daily Notifications & Alert Feed --}}
+                <a href="{{ route('admin.notifications.index') }}" class="flex items-center justify-between px-3 py-2 rounded-xl transition {{ request()->routeIs('admin.notifications.index') ? 'bg-sky-600 text-white font-bold shadow-sm shadow-sky-600/30' : 'hover:bg-slate-900 text-slate-300' }}">
+                    <div class="flex items-center gap-3">
+                        <svg class="w-4 h-4 {{ request()->routeIs('admin.notifications.index') ? 'text-white' : 'text-slate-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                        <span>Notifications</span>
+                    </div>
+                    <span x-show="bellCount > 0" x-text="bellCount" class="bg-rose-500 text-white font-black text-[10px] px-2 py-0.5 rounded-full"></span>
+                </a>
+
                 <div class="pt-3 pb-1 px-3 text-[10px] uppercase font-bold text-slate-500 tracking-wider">Catalog</div>
 
                 {{-- Products --}}
@@ -445,7 +454,10 @@
                                     class="text-[10px] font-bold px-2 py-0.5 bg-amber-100 text-amber-800 rounded-full"
                                 ></span>
                             </div>
-                            <span class="text-[10px] text-slate-400 font-medium">Live Sync 6s</span>
+                            <a href="{{ route('admin.notifications.index') }}" class="text-[10px] font-bold text-sky-600 hover:text-sky-800 hover:underline flex items-center gap-0.5">
+                                <span>Daily Feed</span>
+                                <span>&rarr;</span>
+                            </a>
                         </div>
 
                         <div class="max-h-80 overflow-y-auto divide-y divide-slate-100 text-xs">
@@ -515,9 +527,12 @@
                             </template>
                         </div>
 
-                        <div class="px-4 py-2 border-t border-slate-100 bg-slate-50/50 flex items-center justify-between text-[11px]">
-                            <a href="{{ route('admin.orders.index') }}" class="font-bold text-sky-600 hover:text-sky-700">View All Orders &rarr;</a>
-                            <a href="{{ route('admin.dashboard') }}" class="text-slate-500 hover:text-slate-800">Dashboard</a>
+                        <div class="px-4 py-2.5 border-t border-slate-100 bg-slate-50/80 flex items-center justify-between text-[11px]">
+                            <a href="{{ route('admin.notifications.index') }}" class="font-bold text-sky-600 hover:text-sky-800 flex items-center gap-1.5">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                                <span>Open Notification Center &rarr;</span>
+                            </a>
+                            <a href="{{ route('admin.orders.index') }}" class="text-slate-500 hover:text-slate-800 font-semibold">Orders</a>
                         </div>
                     </div>
                 </div>

@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\AdminCategoryController;
 use App\Http\Controllers\Admin\AdminCmsController;
 use App\Http\Controllers\Admin\AdminCustomerController;
 use App\Http\Controllers\Admin\AdminDashboardController;
+use App\Http\Controllers\Admin\AdminNotificationController;
 use App\Http\Controllers\Admin\AdminOrderController;
 use App\Http\Controllers\Admin\AdminPolicyController;
 use App\Http\Controllers\Admin\AdminPosController;
@@ -26,9 +27,19 @@ use Illuminate\Support\Facades\Route;
 */
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
     
-    // Dashboard
+    // Dashboard & Notifications
     Route::get('/', [AdminDashboardController::class, 'index'])->name('dashboard');
     Route::get('/notifications/poll', [AdminDashboardController::class, 'pollNotifications'])->name('notifications.poll');
+
+    // Daily Notifications & Alert Feed Module (30-day auto retention)
+    Route::prefix('notifications')->name('notifications.')->group(function () {
+        Route::get('/', [AdminNotificationController::class, 'index'])->name('index');
+        Route::post('/{notification}/read', [AdminNotificationController::class, 'markAsRead'])->name('read');
+        Route::post('/mark-all-read', [AdminNotificationController::class, 'markAllAsRead'])->name('mark-all-read');
+        Route::delete('/{notification}', [AdminNotificationController::class, 'destroy'])->name('destroy');
+        Route::post('/purge-old', [AdminNotificationController::class, 'purgeOld'])->name('purge-old');
+        Route::post('/clear-all', [AdminNotificationController::class, 'clearAll'])->name('clear-all');
+    });
 
     // One-click Database Migration Runner for Shared Hosting
     Route::get('/migrate-db', function () {
