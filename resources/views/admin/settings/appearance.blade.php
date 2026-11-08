@@ -109,9 +109,9 @@
                     <label class="block text-xs font-bold uppercase tracking-wider text-gray-700">Header Store Logo</label>
                     <div class="flex items-center gap-3">
                         @if(setting('site_logo'))
-                            <img src="{{ asset('storage/' . setting('site_logo')) }}" class="h-12 max-w-[160px] object-contain border border-slate-200 p-1 bg-white rounded-lg shadow-2xs">
+                            <img src="{{ asset('storage/' . setting('site_logo')) }}" class="h-12 max-w-[160px] object-contain border border-slate-200 p-1.5 bg-slate-900 rounded-lg shadow-2xs" onerror="this.onerror=null; this.src='{{ asset('images/logo.png') }}';">
                         @else
-                            <img src="{{ asset('images/logo.png') }}" class="h-12 max-w-[160px] object-contain border border-slate-200 p-1 bg-white rounded-lg shadow-2xs" alt="Default Logo">
+                            <img src="{{ asset('images/logo.png') }}" class="h-12 max-w-[160px] object-contain border border-slate-200 p-1.5 bg-slate-900 rounded-lg shadow-2xs" alt="Default Logo">
                         @endif
                     </div>
                     <input type="file" name="site_logo" accept="image/*" class="w-full text-xs text-gray-500 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-sky-50 file:text-sky-700 hover:file:bg-sky-100 transition cursor-pointer">

@@ -251,10 +251,20 @@ class AdminSettingsController extends Controller
         if ($request->hasFile('site_logo')) {
             $path = $request->file('site_logo')->store('theme', 'public');
             Setting::set('site_logo', $path, 'appearance');
+            try {
+                $target = public_path('storage/' . $path);
+                @mkdir(dirname($target), 0755, true);
+                @copy(storage_path('app/public/' . $path), $target);
+            } catch (\Throwable $e) {}
         }
         if ($request->hasFile('site_favicon')) {
             $path = $request->file('site_favicon')->store('theme', 'public');
             Setting::set('site_favicon', $path, 'appearance');
+            try {
+                $target = public_path('storage/' . $path);
+                @mkdir(dirname($target), 0755, true);
+                @copy(storage_path('app/public/' . $path), $target);
+            } catch (\Throwable $e) {}
         }
 
         // If the main admin account currently has old store name, synchronize it as well

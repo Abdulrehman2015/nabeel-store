@@ -25,6 +25,31 @@ Route::get('/robots.txt', [SitemapController::class, 'robots'])->name('robots');
 | Storefront Customer Routes (Phase 1 & Phase 3)
 |--------------------------------------------------------------------------
 */
+// Media Storage Asset Handler & Fallback (Shared Hosting Support)
+Route::get('/storage/{path}', function ($path) {
+    $storageFile = storage_path('app/public/' . $path);
+    if (file_exists($storageFile) && is_file($storageFile)) {
+        return response()->file($storageFile);
+    }
+    $publicFile = public_path('storage/' . $path);
+    if (file_exists($publicFile) && is_file($publicFile)) {
+        return response()->file($publicFile);
+    }
+    abort(404);
+})->where('path', '.*');
+
+Route::get('/public/storage/{path}', function ($path) {
+    $storageFile = storage_path('app/public/' . $path);
+    if (file_exists($storageFile) && is_file($storageFile)) {
+        return response()->file($storageFile);
+    }
+    $publicFile = public_path('storage/' . $path);
+    if (file_exists($publicFile) && is_file($publicFile)) {
+        return response()->file($publicFile);
+    }
+    abort(404);
+})->where('path', '.*');
+
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
 // Search (with rate limiting)

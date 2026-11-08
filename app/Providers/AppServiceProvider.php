@@ -178,5 +178,31 @@ class AppServiceProvider extends ServiceProvider
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::warning('Live DB fresh reset notice: ' . $e->getMessage());
         }
+
+        // Synchronize uploaded files from storage/app/public into public/storage for InfinityFree shared hosting
+        try {
+            $syncDirs = ['theme', 'products', 'categories', 'brands', 'banners'];
+            foreach ($syncDirs as $d) {
+                $srcDir = storage_path('app/public/' . $d);
+                $dstDir = public_path('storage/' . $d);
+                if (is_dir($srcDir)) {
+                    if (!is_dir($dstDir)) {
+                        @mkdir($dstDir, 0755, true);
+                    }
+                    $items = @scandir($srcDir);
+                    if ($items) {
+                        foreach ($items as $item) {
+                            if ($item !== '.' && $item !== '..') {
+                                $srcFile = $srcDir . DIRECTORY_SEPARATOR . $item;
+                                $dstFile = $dstDir . DIRECTORY_SEPARATOR . $item;
+                                if (is_file($srcFile) && !file_exists($dstFile)) {
+                                    @copy($srcFile, $dstFile);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (\Throwable $e) {}
     }
 }
