@@ -827,9 +827,18 @@
         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs"
     >
         <div 
-            @click.outside="showReceiptModal = false"
-            class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-100 text-center space-y-4 animate-in fade-in zoom-in-95 duration-150"
+            @click.outside="reEditCurrentOrder()"
+            class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-100 text-center space-y-4 animate-in fade-in zoom-in-95 duration-150 relative"
         >
+            <button 
+                type="button" 
+                @click="reEditCurrentOrder()" 
+                class="absolute top-4 right-4 text-slate-400 hover:text-slate-700 w-8 h-8 rounded-full flex items-center justify-center hover:bg-slate-100 transition cursor-pointer"
+                title="Re-Edit Order (Esc)"
+            >
+                ✕
+            </button>
+
             <div class="w-14 h-14 rounded-full bg-emerald-100 text-emerald-600 mx-auto flex items-center justify-center text-2xl shadow-xs">
                 ✓
             </div>
@@ -867,22 +876,37 @@
                 <div class="grid grid-cols-2 gap-3">
                     <button 
                         type="button" 
-                        @click="printReceipt(completedOrder.receipt_url)" 
+                        @click="printReceiptAndNext(completedOrder.receipt_url)" 
                         class="py-2.5 px-4 bg-sky-600 hover:bg-sky-500 active:scale-98 text-white rounded-xl text-xs font-bold shadow-md shadow-sky-600/20 flex items-center justify-center gap-1.5 transition cursor-pointer"
+                        title="Print Thermal Receipt (Enter)"
                     >
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
                         <span>Print Receipt</span>
+                        <span class="text-[10px] text-sky-200 font-mono font-bold">(Enter)</span>
                     </button>
 
                     <button 
                         type="button" 
                         @click="resetForNextSale()"
                         class="py-2.5 px-4 bg-slate-900 hover:bg-slate-800 active:scale-98 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
+                        title="New Order Entry (Space)"
                     >
                         <span>Next Customer</span>
-                        <span class="text-[10px] text-slate-400 font-mono">(Space)</span>
+                        <span class="text-[10px] text-slate-400 font-mono font-bold">(Space)</span>
                     </button>
                 </div>
+
+                {{-- Re-Edit Order Button --}}
+                <button 
+                    type="button" 
+                    @click="reEditCurrentOrder()"
+                    class="w-full py-2 bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-900 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
+                    title="Re-open order for editing (Esc)"
+                >
+                    <svg class="w-3.5 h-3.5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                    <span>Re-Edit This Order</span>
+                    <span class="text-[10px] text-amber-600 font-mono font-bold">(Esc)</span>
+                </button>
 
                 {{-- Quick Config Link & Active Printer Status --}}
                 <div class="flex items-center justify-between text-[11px] text-slate-500 pt-1.5 border-t border-slate-100">
@@ -1103,12 +1127,16 @@
                     <kbd class="px-2 py-0.5 bg-slate-100 border border-slate-200 rounded text-slate-700 font-mono font-bold">F4</kbd>
                 </div>
                 <div class="flex justify-between items-center py-1 border-b border-slate-100">
-                    <span class="text-slate-600">Next Sale (After Receipt)</span>
+                    <span class="text-slate-600">Print Receipt (On Completed Modal)</span>
+                    <kbd class="px-2 py-0.5 bg-sky-50 border border-sky-200 text-sky-800 rounded font-mono font-bold">Enter</kbd>
+                </div>
+                <div class="flex justify-between items-center py-1 border-b border-slate-100">
+                    <span class="text-slate-600">Next Customer / Order Entry</span>
                     <kbd class="px-2 py-0.5 bg-slate-100 border border-slate-200 rounded text-slate-700 font-mono font-bold">Space</kbd>
                 </div>
                 <div class="flex justify-between items-center py-1">
-                    <span class="text-slate-600">Close Modals / Clear Search</span>
-                    <kbd class="px-2 py-0.5 bg-slate-100 border border-slate-200 rounded text-slate-700 font-mono font-bold">Esc</kbd>
+                    <span class="text-slate-600">Re-Edit Order (or Close Modal)</span>
+                    <kbd class="px-2 py-0.5 bg-amber-50 border border-amber-200 text-amber-800 rounded font-mono font-bold">Esc</kbd>
                 </div>
             </div>
 
@@ -1787,6 +1815,7 @@ function posApp() {
         showShortcutsModal: false,
         showPrinterConfigModal: false,
         completedOrder: {},
+        lastCompletedBasket: [],
         currentTime: '',
 
         // Thermal Slip Printer Configuration
@@ -2381,6 +2410,7 @@ function posApp() {
                 if (data.success) {
                     // Do NOT play chime or notification bell on walk-in sale
                     this.completedOrder = data;
+                    this.lastCompletedBasket = JSON.parse(JSON.stringify(this.cart));
                     this.showReceiptModal = true;
 
                     // Update live stock in memory
@@ -2389,10 +2419,7 @@ function posApp() {
                         if (p) p.stock_quantity = Math.max(0, p.stock_quantity - item.quantity);
                     });
 
-                    // Clear cart
-                    this.cart = [];
-                    this.discountAmount = 0;
-                    this.paymentReference = '';
+                    // Keep basket visible in background until Space or Enter is pressed for next customer
 
                     // Auto-print thermal slip if enabled in settings
                     if (this.printerConfig && this.printerConfig.autoPrint) {
@@ -2413,7 +2440,59 @@ function posApp() {
         resetForNextSale() {
             this.showReceiptModal = false;
             this.completedOrder = {};
+            this.lastCompletedBasket = [];
+            this.cart = [];
+            this.discountAmount = 0;
+            this.paymentReference = '';
+            this.amountTendered = 0;
             this.resetCustomer();
+            this.$nextTick(() => {
+                this.focusBarcodeInput();
+            });
+        },
+
+        printReceiptAndNext(receiptUrl) {
+            this.printReceipt(receiptUrl);
+            this.resetForNextSale();
+        },
+
+        async reEditCurrentOrder() {
+            const orderId = this.completedOrder.order_id;
+            this.showReceiptModal = false;
+
+            // Ensure cart has the items to re-edit
+            if ((!this.cart || this.cart.length === 0) && this.lastCompletedBasket && this.lastCompletedBasket.length > 0) {
+                this.cart = JSON.parse(JSON.stringify(this.lastCompletedBasket));
+            }
+
+            // Restore in-memory stock for each item
+            if (this.cart && this.cart.length > 0) {
+                this.cart.forEach(item => {
+                    const p = this.products.find(prod => prod.id === item.id);
+                    if (p) p.stock_quantity += item.quantity;
+                });
+            }
+
+            // Void database order on server so it doesn't double-count
+            if (orderId) {
+                try {
+                    await fetch('{{ route("admin.pos.void-order") }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Accept': 'application/json',
+                        },
+                        body: JSON.stringify({ order_id: orderId })
+                    });
+                } catch(e) {
+                    console.warn('Could not void order on server:', e);
+                }
+            }
+
+            this.completedOrder = {};
+            this.lastCompletedBasket = [];
+            this.showToast('Order reopened for editing (Esc)', '⚡', 'warning');
             this.$nextTick(() => {
                 this.focusBarcodeInput();
             });
@@ -2643,10 +2722,29 @@ function posApp() {
         handleGlobalKeydown(e) {
             // Check modals first
             if (this.isAnyModalOpen()) {
-                // Esc to close modals
+                // Receipt / Sale Completed Modal specific hotkeys
+                if (this.showReceiptModal) {
+                    if (e.key === 'Escape') {
+                        e.preventDefault();
+                        this.reEditCurrentOrder();
+                        return;
+                    }
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        this.printReceiptAndNext(this.completedOrder.receipt_url);
+                        return;
+                    }
+                    if (e.key === ' ') {
+                        e.preventDefault();
+                        this.resetForNextSale();
+                        return;
+                    }
+                    return;
+                }
+
+                // Esc to close other modals
                 if (e.key === 'Escape') {
                     this.categoryDropdownOpen = false;
-                    this.showReceiptModal = false;
                     this.showCustomerModal = false;
                     this.showQrModal = false;
                     this.showHeldOrdersModal = false;
@@ -2655,11 +2753,6 @@ function posApp() {
                     this.showShiftModal = false;
                     this.showPrinterConfigModal = false;
                     this.$nextTick(() => this.focusBarcodeInput());
-                }
-                // Space to reset next sale on receipt modal
-                if (e.key === ' ' && this.showReceiptModal) {
-                    e.preventDefault();
-                    this.resetForNextSale();
                 }
                 return;
             }

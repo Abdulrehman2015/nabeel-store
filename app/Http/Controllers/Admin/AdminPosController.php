@@ -297,6 +297,50 @@ class AdminPosController extends Controller
     }
 
     /**
+     * Void / Reopen recent POS counter sale for re-editing.
+     */
+    public function voidOrder(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'order_id' => 'required|integer|exists:orders,id',
+        ]);
+
+        $order = Order::with('items')->find($validated['order_id']);
+
+        if (!$order) {
+            return response()->json(['success' => false, 'message' => 'Order not found.'], 404);
+        }
+
+        // Only allow voiding recent POS counter sales created in the last 30 minutes
+        if ($order->created_at->diffInMinutes(now()) > 30) {
+            return response()->json(['success' => false, 'message' => 'Order is too old to be reopened for editing.'], 422);
+        }
+
+        DB::transaction(function () use ($order) {
+            // Restore inventory stock for all items
+            foreach ($order->items as $item) {
+                Product::where('id', $item->product_id)->increment('stock_quantity', $item->quantity);
+            }
+
+            ActivityLog::log('pos.order_reopened_reedit', $order, [
+                'order_number' => $order->order_number,
+                'grand_total' => $order->grand_total,
+                'reopened_by' => auth()->user()->name,
+            ]);
+
+            // Delete order items, histories and the order
+            $order->items()->delete();
+            $order->histories()->delete();
+            $order->delete();
+        });
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Order voided and reopened for counter editing.',
+        ]);
+    }
+
+    /**
      * Display printable thermal POS receipt.
      */
     public function receipt($order): View
