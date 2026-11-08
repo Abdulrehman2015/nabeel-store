@@ -122,7 +122,7 @@
                     <label class="block text-xs font-bold uppercase tracking-wider text-gray-700">Browser Favicon (.ico or .png)</label>
                     <div class="flex items-center gap-3">
                         @if(setting('site_favicon'))
-                            <img src="{{ asset('storage/' . setting('site_favicon')) }}" class="w-10 h-10 object-contain border border-slate-200 p-1 bg-white rounded-lg shadow-2xs">
+                            <img src="{{ asset('storage/' . setting('site_favicon')) }}" class="w-10 h-10 object-contain border border-slate-200 p-1 bg-white rounded-lg shadow-2xs" onerror="this.onerror=null; this.src='{{ asset('images/favicon.png') }}';">
                         @else
                             <div class="w-10 h-10 border border-slate-200 p-1 bg-white rounded-lg shadow-2xs flex items-center justify-center text-xs font-bold text-slate-400">ICO</div>
                         @endif

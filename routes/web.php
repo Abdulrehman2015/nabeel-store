@@ -35,6 +35,15 @@ Route::get('/storage/{path}', function ($path) {
     if (file_exists($publicFile) && is_file($publicFile)) {
         return response()->file($publicFile);
     }
+    if (str_starts_with($path, 'theme/')) {
+        if (str_contains($path, 'favicon') || str_ends_with($path, '.ico')) {
+            return response()->file(public_path('images/app.ico'));
+        }
+        return response()->file(public_path('images/logo.png'));
+    }
+    if (str_starts_with($path, 'products/')) {
+        return response()->file(public_path('images/default-product.png'));
+    }
     abort(404);
 })->where('path', '.*');
 
@@ -46,6 +55,15 @@ Route::get('/public/storage/{path}', function ($path) {
     $publicFile = public_path('storage/' . $path);
     if (file_exists($publicFile) && is_file($publicFile)) {
         return response()->file($publicFile);
+    }
+    if (str_starts_with($path, 'theme/')) {
+        if (str_contains($path, 'favicon') || str_ends_with($path, '.ico')) {
+            return response()->file(public_path('images/app.ico'));
+        }
+        return response()->file(public_path('images/logo.png'));
+    }
+    if (str_starts_with($path, 'products/')) {
+        return response()->file(public_path('images/default-product.png'));
     }
     abort(404);
 })->where('path', '.*');

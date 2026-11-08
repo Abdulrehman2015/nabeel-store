@@ -47,7 +47,7 @@
             {{-- Admin Brand Header --}}
             <div class="h-16 flex items-center justify-between px-5 bg-slate-950 border-b border-slate-900 sticky top-0 z-10">
                 <a href="{{ auth()->user()->isAdmin() ? route('admin.dashboard') : route('admin.pos.index') }}" class="flex items-center gap-2.5">
-                    <img src="{{ setting('site_logo') ? asset('storage/' . setting('site_logo')) : asset('images/logo.png') }}" alt="{{ store_name() }}" class="h-8 w-auto object-contain">
+                    <img src="{{ setting('site_logo') ? asset('storage/' . setting('site_logo')) : asset('images/logo.png') }}" alt="{{ store_name() }}" class="h-8 w-auto object-contain" onerror="this.onerror=null; this.src='{{ asset('images/logo.png') }}';">
                     <span class="text-[10px] font-bold {{ auth()->user()->isAdmin() ? 'text-sky-400 bg-sky-950/70 border-sky-800/60' : 'text-emerald-400 bg-emerald-950/70 border-emerald-800/60' }} border px-1.5 py-0.5 rounded uppercase tracking-wider">
                         {{ auth()->user()->role === 'cashier' ? 'Cashier' : (auth()->user()->isAdmin() ? 'Admin' : 'Staff') }}
                     </span>

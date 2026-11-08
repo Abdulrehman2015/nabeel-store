@@ -172,7 +172,12 @@ class Product extends Model
             }
             return asset('storage/' . $this->featured_image);
         }
-        return asset('images/product-placeholder.png');
+        return asset('images/default-product.png');
+    }
+
+    public function getHasCustomImageAttribute(): bool
+    {
+        return !empty($this->featured_image);
     }
 
     public function getFeaturedImageUrlAttribute(): string

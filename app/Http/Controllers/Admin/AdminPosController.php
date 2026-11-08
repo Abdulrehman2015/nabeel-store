@@ -43,9 +43,10 @@ class AdminPosController extends Controller
                     'sale_price' => $product->sale_price ? (float) $product->sale_price : null,
                     'effective_price' => (float) ($product->sale_price ?? $product->price),
                     'stock_quantity' => (int) $product->stock_quantity,
+                    'has_custom_image' => !empty($product->featured_image),
                     'image_url' => $product->featured_image
                         ? (str_starts_with($product->featured_image, 'http') ? $product->featured_image : asset('storage/' . $product->featured_image))
-                        : asset('images/logo.png'),
+                        : asset('images/default-product.png'),
                 ];
             });
 
@@ -520,7 +521,8 @@ class AdminPosController extends Controller
                 'sale_price' => $product->sale_price ? (float) $product->sale_price : null,
                 'effective_price' => (float) ($product->sale_price ?? $product->price),
                 'stock_quantity' => (int) $product->stock_quantity,
-                'image_url' => asset('images/logo.png'),
+                'has_custom_image' => false,
+                'image_url' => asset('images/default-product.png'),
             ],
         ]);
     }

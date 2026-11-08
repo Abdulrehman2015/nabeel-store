@@ -256,7 +256,7 @@
                 <div class="flex items-center">
                     <a href="{{ url('/') }}" class="flex items-center gap-3 group">
                         <div class="bg-slate-950 p-2 sm:px-3 sm:py-2 rounded-2xl shadow-md border border-slate-800 flex items-center transition-all group-hover:border-lime-500/50 group-hover:shadow-lime-500/10">
-                            <img src="{{ setting('site_logo') ? asset('storage/' . setting('site_logo')) : asset('images/logo.png') }}" alt="{{ store_name() }}" class="h-9 sm:h-11 w-auto object-contain">
+                            <img src="{{ setting('site_logo') ? asset('storage/' . setting('site_logo')) : asset('images/logo.png') }}" alt="{{ store_name() }}" class="h-9 sm:h-11 w-auto object-contain" onerror="this.onerror=null; this.src='{{ asset('images/logo.png') }}';">
                         </div>
                         <div class="hidden xl:block">
                             <span class="block text-xs font-black text-slate-900 uppercase tracking-tight">Mini Mart</span>
@@ -652,7 +652,7 @@
                 <div class="lg:col-span-2 space-y-4">
                     <div class="flex items-center gap-3">
                         <div class="bg-slate-950 p-2.5 rounded-2xl border border-slate-800 shadow-md">
-                            <img src="{{ setting('site_logo') ? asset('storage/' . setting('site_logo')) : asset('images/logo.png') }}" alt="{{ store_name() }}" class="h-10 sm:h-12 w-auto object-contain">
+                            <img src="{{ setting('site_logo') ? asset('storage/' . setting('site_logo')) : asset('images/logo.png') }}" alt="{{ store_name() }}" class="h-10 sm:h-12 w-auto object-contain" onerror="this.onerror=null; this.src='{{ asset('images/logo.png') }}';">
                         </div>
                     </div>
                     <p class="text-xs text-slate-400 leading-relaxed max-w-sm">
