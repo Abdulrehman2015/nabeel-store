@@ -190,7 +190,7 @@
         {{-- ======================================================== --}}
         <div 
             :class="layoutView === 'scanner_table' ? 'lg:col-span-8 xl:col-span-8' : 'lg:col-span-7 xl:col-span-8'"
-            class="flex flex-col min-h-0 h-full overflow-hidden space-y-2.5"
+            class="lg:col-span-8 xl:col-span-8 flex flex-col min-h-0 h-full overflow-hidden space-y-2.5"
         >
             {{-- Staff Mode Alert Banner (Visible only in Staff POS Mode) --}}
             <div x-show="posMode === 'staff'" class="shrink-0 px-3 py-2 bg-linear-to-r from-amber-500 via-amber-600 to-orange-500 text-slate-950 font-bold text-xs flex items-center justify-between gap-2 rounded-2xl shadow-sm border border-amber-400">
@@ -844,7 +844,7 @@
         {{-- RIGHT COLUMN: CASHIER REGISTER & ACTIVE CART (4-5 Cols)  --}}
         {{-- 100% VIEWPORT-LOCKED CONTAINER (NEVER SCROLLS BELOW FOLD)--}}
         {{-- ======================================================== --}}
-        <div :class="layoutView === 'scanner_table' ? 'lg:col-span-4 xl:col-span-4' : 'lg:col-span-5 xl:col-span-4'" class="flex flex-col min-h-0 h-full overflow-hidden bg-white rounded-2xl sm:rounded-3xl border border-slate-200/90 shadow-md">
+        <div :class="layoutView === 'scanner_table' ? 'lg:col-span-4 xl:col-span-4' : 'lg:col-span-5 xl:col-span-4'" class="lg:col-span-4 xl:col-span-4 flex flex-col min-h-0 h-full overflow-hidden bg-white rounded-2xl sm:rounded-3xl border border-slate-200/90 shadow-md">
             
             {{-- 1A. STORE POS MODE: Customer Selector Banner (Fixed Top) --}}
             <div x-show="posMode === 'store'" class="shrink-0 p-2.5 sm:px-3 sm:py-2 bg-slate-50/90 border-b border-slate-200 flex items-center justify-between gap-2">
@@ -3118,7 +3118,6 @@ function posApp() {
                     pack_size: product.pack_size,
                     purchase_price: Number(product.purchase_price || basePrice),
                     effective_price: Number(product.effective_price || product.price),
-                });
                 });
                 this.selectedCartIndex = this.cart.length - 1;
                 this.playBeep('success');
