@@ -114,16 +114,33 @@
                 <span class="hidden md:inline text-[11px]">Print Config</span>
             </button>
 
-            {{-- Windows Desktop App Modal Trigger --}}
-            <button 
-                type="button" 
-                @click="showWindowsAppModal = true"
-                class="px-2.5 py-1.5 bg-gradient-to-r from-sky-600 to-blue-600 hover:from-sky-500 hover:to-blue-500 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-xs group"
-                title="Install or Download Standalone Windows Desktop App"
-            >
-                <svg class="w-3.5 h-3.5 text-white group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-                <span class="hidden md:inline text-[11px]">Windows App</span>
-            </button>
+            {{-- View Design Layout Switcher (Default: Scanned Items View, 2nd: Catalog Grid) --}}
+            <div class="flex items-center p-0.5 bg-slate-100 border border-slate-200/90 rounded-xl text-xs font-bold shadow-2xs">
+                <span class="px-2 py-1 text-[10px] text-slate-500 font-black uppercase tracking-wider hidden xl:inline-flex items-center gap-1">
+                    <span>🎨</span>
+                    <span>View:</span>
+                </span>
+                <button 
+                    type="button" 
+                    @click="setLayoutView('scanner_table')" 
+                    :class="layoutView === 'scanner_table' ? 'bg-sky-600 text-white shadow-xs font-extrabold' : 'text-slate-600 hover:text-slate-900'"
+                    class="px-2.5 py-1 rounded-lg transition flex items-center gap-1.5 cursor-pointer text-[11px]"
+                    title="Default View: Scanned Products Table on Left, Checkout on Right"
+                >
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 4h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                    <span>Scanned View</span>
+                </button>
+                <button 
+                    type="button" 
+                    @click="setLayoutView('catalog')" 
+                    :class="layoutView === 'catalog' ? 'bg-sky-600 text-white shadow-xs font-extrabold' : 'text-slate-600 hover:text-slate-900'"
+                    class="px-2.5 py-1 rounded-lg transition flex items-center gap-1.5 cursor-pointer text-[11px]"
+                    title="Current / Classic View: Catalog Products Grid on Left, Cart on Right"
+                >
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+                    <span>Catalog View</span>
+                </button>
+            </div>
 
             {{-- Keyboard Shortcuts Info --}}
             <button 
@@ -143,7 +160,10 @@
         {{-- ======================================================== --}}
         {{-- LEFT COLUMN: FAST CATALOG & BARCODE SCANNER (7-8 Cols)   --}}
         {{-- ======================================================== --}}
-        <div class="lg:col-span-7 xl:col-span-8 flex flex-col min-h-0 h-full overflow-hidden space-y-2.5">
+        <div 
+            :class="layoutView === 'scanner_table' ? 'lg:col-span-8 xl:col-span-8' : 'lg:col-span-7 xl:col-span-8'"
+            class="flex flex-col min-h-0 h-full overflow-hidden space-y-2.5"
+        >
             
             {{-- Search & Category Controls Toolbar --}}
             <div class="shrink-0 bg-white p-3 rounded-2xl border border-slate-200/90 shadow-2xs space-y-2.5">
@@ -177,8 +197,8 @@
                         </div>
                     </div>
 
-                    {{-- Professional Category Custom Dropdown Selector with Real Icons --}}
-                    <div class="relative sm:w-64 shrink-0" @click.outside="categoryDropdownOpen = false">
+                    {{-- Professional Category Custom Dropdown Selector with Real Icons (Catalog View Only) --}}
+                    <div class="relative sm:w-64 shrink-0" x-show="layoutView === 'catalog'" @click.outside="categoryDropdownOpen = false">
                         {{-- Trigger Button --}}
                         <button 
                             type="button" 
@@ -366,7 +386,7 @@
                 </div>
 
                 {{-- Smooth Category Carousel Bar with Left & Right Arrows --}}
-                <div class="pt-1.5 border-t border-slate-100 flex items-center gap-1.5">
+                <div x-show="layoutView === 'catalog'" class="pt-1.5 border-t border-slate-100 flex items-center gap-1.5">
                     
                     {{-- Carousel Left Scroll Button --}}
                     <button 
@@ -427,7 +447,7 @@
             </div>
 
             {{-- Products Tile Grid (Independently Scrollable within Viewport) --}}
-            <div class="flex-1 min-h-0 overflow-y-auto pr-1">
+            <div x-show="layoutView === 'catalog'" class="flex-1 min-h-0 overflow-y-auto pr-1">
                 <div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-2.5 pb-4">
                     <template x-for="product in filteredProducts" :key="product.id">
                         <div 
@@ -550,13 +570,224 @@
                     </div>
                 </div>
             </div>
+
+            {{-- ======================================================== --}}
+            {{-- DEFAULT VIEW: SCANNED PRODUCTS TABLE (layoutView === 'scanner_table') --}}
+            {{-- ======================================================== --}}
+            <div 
+                x-show="layoutView === 'scanner_table'" 
+                class="flex-1 min-h-0 flex flex-col bg-white rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden"
+            >
+                {{-- Table Header Toolbar --}}
+                <div class="shrink-0 px-3 py-2 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center justify-between gap-2">
+                    <div class="flex items-center gap-2">
+                        <div class="w-6 h-6 rounded-lg bg-sky-100 text-sky-700 flex items-center justify-center text-xs font-bold">
+                            📋
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="text-xs font-black text-slate-800">Scanned Products</span>
+                            <span class="px-2 py-0.5 rounded-full bg-slate-200/80 text-slate-700 text-[11px] font-bold" x-text="totalItemCount + ' items'"></span>
+                            <span class="text-[10px] text-slate-400 font-mono" x-show="cart.length > 0" x-text="'(' + cart.length + ' lines)'"></span>
+                        </div>
+                    </div>
+
+                    {{-- Actions: Hold Basket, Clear All, Scanner Ready status --}}
+                    <div class="flex items-center gap-2">
+                        <div class="hidden sm:flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200/60 text-[10px] font-semibold">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                            <span>Scanner Ready (F2)</span>
+                        </div>
+                        <button 
+                            type="button" 
+                            @click="holdCurrentOrder()" 
+                            :disabled="cart.length === 0"
+                            class="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 rounded-lg text-xs font-bold transition disabled:opacity-40 disabled:pointer-events-none cursor-pointer flex items-center gap-1"
+                        >
+                            <span>⏸️</span>
+                            <span>Hold Basket</span>
+                        </button>
+                        <button 
+                            type="button" 
+                            @click="clearCart()" 
+                            :disabled="cart.length === 0"
+                            class="px-2.5 py-1 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-lg text-xs font-bold transition disabled:opacity-40 disabled:pointer-events-none cursor-pointer flex items-center gap-1"
+                        >
+                            <span>🗑️</span>
+                            <span>Clear All</span>
+                        </button>
+                    </div>
+                </div>
+
+                {{-- Table Content / Scrollable Area --}}
+                <div class="flex-1 min-h-0 overflow-y-auto">
+                    <template x-if="cart.length > 0">
+                        <table class="w-full text-left text-xs border-collapse">
+                            <thead class="sticky top-0 bg-slate-100/90 backdrop-blur-xs text-slate-600 font-bold border-b border-slate-200 text-[11px] uppercase tracking-wider z-10">
+                                <tr>
+                                    <th class="py-2 px-2.5 text-center w-10">#</th>
+                                    <th class="py-2 px-3">Product / SKU</th>
+                                    <th class="py-2 px-2.5 text-right w-24">Price</th>
+                                    <th class="py-2 px-2.5 text-center w-36">Quantity</th>
+                                    <th class="py-2 px-2 text-center w-20">Discount</th>
+                                    <th class="py-2 px-3 text-right w-28">Total</th>
+                                    <th class="py-2 px-2 text-center w-12">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                                <template x-for="(item, index) in cart" :key="item.id">
+                                    <tr 
+                                        :data-cart-item="index"
+                                        @click="selectedCartIndex = index"
+                                        :class="selectedCartIndex === index ? 'bg-sky-50/70 ring-1 ring-inset ring-sky-300' : 'hover:bg-slate-50/80'"
+                                        class="transition-colors group"
+                                    >
+                                        {{-- Row Index --}}
+                                        <td class="py-2 px-2.5 text-center font-mono text-[11px] text-slate-400 font-bold" x-text="index + 1"></td>
+                                        
+                                        {{-- Product Name & Barcode/SKU --}}
+                                        <td class="py-2 px-3">
+                                            <div class="font-extrabold text-slate-900 group-hover:text-sky-700 transition-colors" x-text="item.name"></div>
+                                            <div class="flex items-center gap-1.5 mt-0.5">
+                                                <span class="font-mono text-[10px] text-slate-500 bg-slate-100 px-1 py-0.5 rounded" x-text="item.sku || 'N/A'"></span>
+                                                <template x-if="item.barcode">
+                                                    <span class="font-mono text-[10px] text-slate-400" x-text="'[' + item.barcode + ']'"></span>
+                                                </template>
+                                                <template x-if="item.stock_quantity !== undefined">
+                                                    <span class="text-[10px] text-emerald-600 font-semibold" x-text="'Stock: ' + item.stock_quantity"></span>
+                                                </template>
+                                            </div>
+                                        </td>
+
+                                        {{-- Price --}}
+                                        <td class="py-2 px-2.5 text-right">
+                                            <template x-if="item.discount_price !== null && Number(item.discount_price) < Number(item.original_price || item.price)">
+                                                <div>
+                                                    <span class="line-through text-slate-400 text-[10px] block">RM <span x-text="Number(item.original_price || item.price).toFixed(2)"></span></span>
+                                                    <span class="font-black text-rose-600 text-xs">RM <span x-text="Number(item.price).toFixed(2)"></span></span>
+                                                </div>
+                                            </template>
+                                            <template x-if="item.discount_price === null || Number(item.discount_price) >= Number(item.original_price || item.price)">
+                                                <span class="font-bold text-slate-800 text-xs">RM <span x-text="Number(item.price).toFixed(2)"></span></span>
+                                            </template>
+                                        </td>
+
+                                        {{-- Quantity with - / + Stepper --}}
+                                        <td class="py-2 px-2.5 text-center" @click.stop>
+                                            <div class="inline-flex items-center justify-center border border-slate-200 rounded-lg bg-white shadow-2xs overflow-hidden">
+                                                <button 
+                                                    type="button" 
+                                                    @click="decrementQty(index)" 
+                                                    class="w-7 h-7 flex items-center justify-center text-slate-500 hover:bg-slate-100 hover:text-slate-800 font-black text-xs active:bg-slate-200 transition cursor-pointer"
+                                                    title="Decrease Qty"
+                                                >
+                                                    &minus;
+                                                </button>
+                                                <input 
+                                                    type="number" 
+                                                    min="1" 
+                                                    :max="item.stock_quantity || 9999" 
+                                                    x-model.number="item.quantity" 
+                                                    @change="validateQty(index)" 
+                                                    class="w-10 text-center font-black text-xs border-x border-slate-200 py-1 focus:ring-0 focus:outline-hidden bg-slate-50/50 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                                >
+                                                <button 
+                                                    type="button" 
+                                                    @click="incrementQty(index)" 
+                                                    :disabled="item.quantity >= item.stock_quantity"
+                                                    class="w-7 h-7 flex items-center justify-center text-slate-500 hover:bg-slate-100 hover:text-slate-800 disabled:opacity-30 disabled:pointer-events-none font-black text-xs active:bg-slate-200 transition cursor-pointer"
+                                                    title="Increase Qty"
+                                                >
+                                                    +
+                                                </button>
+                                            </div>
+                                        </td>
+
+                                        {{-- Discount Modal Trigger --}}
+                                        <td class="py-2 px-2 text-center" @click.stop>
+                                            <button 
+                                                type="button" 
+                                                @click="openItemDiscountModal(index)" 
+                                                class="px-1.5 py-0.5 rounded text-[10px] font-bold transition cursor-pointer"
+                                                :class="item.discount_price !== null ? 'bg-rose-100 text-rose-700 hover:bg-rose-200 ring-1 ring-rose-300' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'"
+                                                title="Apply Discount to Item"
+                                            >
+                                                <span x-text="item.discount_price !== null ? '🏷️ Applied' : '🏷️ Disc'"></span>
+                                            </button>
+                                        </td>
+
+                                        {{-- Total --}}
+                                        <td class="py-2 px-3 text-right">
+                                            <div class="font-black text-xs" :class="item.discount_price !== null ? 'text-rose-600' : 'text-slate-900'">
+                                                RM <span x-text="(item.price * item.quantity).toFixed(2)"></span>
+                                            </div>
+                                        </td>
+
+                                        {{-- Delete / Remove --}}
+                                        <td class="py-2 px-2 text-center" @click.stop>
+                                            <button 
+                                                type="button" 
+                                                @click="removeItem(index)" 
+                                                class="w-7 h-7 rounded-lg text-rose-500 hover:text-rose-700 hover:bg-rose-50 flex items-center justify-center transition cursor-pointer mx-auto"
+                                                title="Remove Item from Cart"
+                                            >
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </template>
+
+                    {{-- Empty State: Scanner Ready Prompt --}}
+                    <div x-show="cart.length === 0" class="h-full flex flex-col items-center justify-center p-8 text-center text-slate-400">
+                        <div class="w-16 h-16 rounded-2xl bg-sky-50 border border-sky-100 flex items-center justify-center text-3xl mb-3 shadow-inner">
+                            ⚡
+                        </div>
+                        <h3 class="text-sm font-extrabold text-slate-700">Ready for Barcode Scanning</h3>
+                        <p class="text-xs text-slate-400 max-w-sm mt-1">
+                            Scan any product barcode or type SKU/Name in the search bar above.
+                        </p>
+                        <div class="flex items-center gap-2 mt-4">
+                            <button 
+                                type="button" 
+                                @click="$refs.barcodeInput?.focus()" 
+                                class="px-3 py-1.5 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-xs cursor-pointer"
+                            >
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
+                                <span>Focus Barcode Input (F2)</span>
+                            </button>
+                            <button 
+                                type="button" 
+                                @click="setLayoutView('catalog')" 
+                                class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition cursor-pointer"
+                            >
+                                Switch to Catalog Grid
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Table Bottom Bar Summary --}}
+                <div class="shrink-0 px-3 py-2 bg-slate-50/90 border-t border-slate-200 flex items-center justify-between text-xs">
+                    <div class="flex items-center gap-2 text-slate-500 text-[11px]">
+                        <span>Total Items: <strong class="text-slate-800" x-text="totalItemCount"></strong></span>
+                        <span>&bull;</span>
+                        <span>Distinct Lines: <strong class="text-slate-800" x-text="cart.length"></strong></span>
+                    </div>
+                    <div class="flex items-center gap-1.5 text-xs">
+                        <span class="text-slate-500 font-bold">Items Total:</span>
+                        <span class="font-black text-slate-900 text-sm">RM <span x-text="subtotal.toFixed(2)"></span></span>
+                    </div>
+                </div>
+            </div>
         </div>
 
         {{-- ======================================================== --}}
         {{-- RIGHT COLUMN: CASHIER REGISTER & ACTIVE CART (4-5 Cols)  --}}
         {{-- 100% VIEWPORT-LOCKED CONTAINER (NEVER SCROLLS BELOW FOLD)--}}
         {{-- ======================================================== --}}
-        <div class="lg:col-span-5 xl:col-span-4 flex flex-col min-h-0 h-full overflow-hidden bg-white rounded-2xl sm:rounded-3xl border border-slate-200/90 shadow-md">
+        <div :class="layoutView === 'scanner_table' ? 'lg:col-span-4 xl:col-span-4' : 'lg:col-span-5 xl:col-span-4'" class="flex flex-col min-h-0 h-full overflow-hidden bg-white rounded-2xl sm:rounded-3xl border border-slate-200/90 shadow-md">
             
             {{-- 1. Customer Selector Banner (Fixed Top) --}}
             <div class="shrink-0 p-2.5 sm:px-3 sm:py-2 bg-slate-50/90 border-b border-slate-200 flex items-center justify-between gap-2">
@@ -590,8 +821,8 @@
                 </div>
             </div>
 
-            {{-- 2. Cart Header & Batch Actions (Fixed Top) --}}
-            <div class="shrink-0 px-3 py-1.5 bg-slate-100/70 border-b border-slate-200/80 flex items-center justify-between text-xs font-bold text-slate-700">
+            {{-- 2. Cart Header & Batch Actions (Catalog View Only) --}}
+            <div x-show="layoutView === 'catalog'" class="shrink-0 px-3 py-1.5 bg-slate-100/70 border-b border-slate-200/80 flex items-center justify-between text-xs font-bold text-slate-700">
                 <div class="flex items-center gap-1.5">
                     <span>Active Basket</span>
                     <span class="px-2 py-0.5 rounded-full bg-slate-200/90 text-slate-800 text-[10px] font-black" x-text="totalItemCount + ' items'"></span>
@@ -621,8 +852,8 @@
                 </div>
             </div>
 
-            {{-- 3. Cart Items Scrollable List (FLEX-1: SCROLLS INSIDE ITS CONTAINER) --}}
-            <div class="flex-1 min-h-0 overflow-y-auto divide-y divide-slate-100 p-2 text-xs">
+            {{-- 3. Cart Items Scrollable List (Catalog View Only) --}}
+            <div x-show="layoutView === 'catalog'" class="flex-1 min-h-0 overflow-y-auto divide-y divide-slate-100 p-2 text-xs">
                 <template x-for="(item, index) in cart" :key="item.id">
                     <div 
                         :data-cart-item="index"
@@ -722,6 +953,60 @@
                     <div class="text-2xl mb-1">🛒</div>
                     <p class="font-bold text-xs text-slate-600">Basket is empty</p>
                     <p class="text-[10px] text-slate-400 mt-0.5">Scan a barcode or tap products to build order.</p>
+                </div>
+            </div>
+
+            {{-- Scanned Table Mode: Checkout Terminal Status & Basket Mini-Preview --}}
+            <div x-show="layoutView === 'scanner_table'" class="flex-1 min-h-0 overflow-y-auto p-3 flex flex-col justify-between">
+                {{-- Terminal Header Card --}}
+                <div class="space-y-2.5">
+                    <div class="p-3 bg-linear-to-br from-slate-900 to-slate-800 rounded-2xl text-white shadow-xs">
+                        <div class="flex items-center justify-between text-[11px] text-slate-400">
+                            <span class="flex items-center gap-1.5 font-bold uppercase tracking-wider text-[10px]">
+                                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                                Checkout Terminal
+                            </span>
+                            <span class="font-mono text-emerald-400 font-bold" x-text="currentTime"></span>
+                        </div>
+                        <div class="mt-2 flex items-baseline justify-between">
+                            <div>
+                                <div class="text-[10px] text-slate-400">Total Scanned Items</div>
+                                <div class="text-2xl font-black text-white" x-text="totalItemCount + ' units'"></div>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-[10px] text-slate-400">Distinct Lines</div>
+                                <div class="text-sm font-bold text-slate-300 font-mono" x-text="cart.length + ' products'"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Quick Cashier & Counter Info Card --}}
+                    <div class="p-2.5 bg-slate-50 border border-slate-200/80 rounded-xl space-y-1.5 text-xs">
+                        <div class="flex justify-between items-center text-[11px]">
+                            <span class="text-slate-500 font-medium">Cashier:</span>
+                            <span class="font-bold text-slate-800">{{ auth()->user()->name ?? 'Administrator' }}</span>
+                        </div>
+                        <div class="flex justify-between items-center text-[11px]">
+                            <span class="text-slate-500 font-medium">Customer:</span>
+                            <span class="font-bold text-slate-800 truncate max-w-[150px]" x-text="customer.name"></span>
+                        </div>
+                        <div class="flex justify-between items-center text-[11px]">
+                            <span class="text-slate-500 font-medium">Register Status:</span>
+                            <span class="px-1.5 py-0.2 bg-emerald-100 text-emerald-800 text-[10px] font-bold rounded">Active & Ready</span>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Helpful Scanner Keyboard Tip --}}
+                <div class="p-2.5 rounded-xl bg-sky-50/70 border border-sky-100 text-[11px] text-sky-800 space-y-1 mt-2">
+                    <div class="font-bold flex items-center gap-1">
+                        <span>⚡</span>
+                        <span>Fast POS Shortcuts</span>
+                    </div>
+                    <div class="grid grid-cols-2 gap-1 text-[10px] text-sky-700">
+                        <div><kbd class="px-1 py-0.5 bg-white border border-sky-200 rounded font-mono font-bold text-slate-800">F2</kbd> Focus Barcode</div>
+                        <div><kbd class="px-1 py-0.5 bg-white border border-sky-200 rounded font-mono font-bold text-slate-800">F4</kbd> Complete Sale</div>
+                    </div>
                 </div>
             </div>
 
@@ -1933,84 +2218,6 @@
         </div>
     </div>
 
-    {{-- Windows Desktop App Modal --}}
-    <div 
-        x-show="showWindowsAppModal" 
-        x-cloak 
-        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs"
-    >
-        <div 
-            @click.outside="showWindowsAppModal = false"
-            class="bg-white rounded-3xl shadow-2xl border border-slate-200 w-full max-w-lg overflow-hidden animate-in fade-in zoom-in-95 duration-150"
-        >
-            {{-- Modal Header --}}
-            <div class="px-6 py-4 bg-slate-900 text-white flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-sky-500/20 text-sky-400 border border-sky-400/30 flex items-center justify-center text-lg font-bold">
-                        💻
-                    </div>
-                    <div>
-                        <h3 class="text-sm font-bold text-white">N&I Mini Mart POS - Windows App</h3>
-                        <p class="text-[11px] text-slate-400">Run as a dedicated, distraction-free desktop workstation</p>
-                    </div>
-                </div>
-                <button type="button" @click="showWindowsAppModal = false" class="text-slate-400 hover:text-white p-1 text-base">✕</button>
-            </div>
-
-            <div class="p-6 space-y-4 text-xs">
-                {{-- Method 1: Instant Browser Native App (Zero Block / 1-Click) --}}
-                <div class="p-4 rounded-2xl bg-sky-50/80 border border-sky-200">
-                    <div class="flex items-center justify-between gap-2">
-                        <div class="flex items-center gap-2">
-                            <span class="text-base">⚡</span>
-                            <span class="font-bold text-sky-950">Option 1: 1-Click Desktop App (Recommended)</span>
-                        </div>
-                        <span class="px-2 py-0.5 rounded-full bg-sky-600 text-white text-[10px] font-bold">No Warnings</span>
-                    </div>
-                    <p class="text-[11px] text-slate-600 mt-1.5 leading-relaxed">
-                        Installs directly through Microsoft Edge / Chrome. Creates a desktop icon and runs in a clean, full-screen counter window with zero security blocks.
-                    </p>
-                    <button 
-                        type="button" 
-                        @click="triggerPwaInstall()" 
-                        class="mt-3 w-full py-2.5 px-4 bg-sky-600 hover:bg-sky-500 text-white font-bold rounded-xl transition flex items-center justify-center gap-2 shadow-xs cursor-pointer"
-                    >
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                        <span>Install Desktop App Now</span>
-                    </button>
-                </div>
-
-                {{-- Method 2: Download ZIP Package --}}
-                <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200">
-                    <div class="flex items-center justify-between gap-2">
-                        <div class="flex items-center gap-2">
-                            <span class="text-base">📦</span>
-                            <span class="font-bold text-slate-900">Option 2: Download Setup Package (.ZIP)</span>
-                        </div>
-                        <span class="px-2 py-0.5 rounded-full bg-slate-200 text-slate-700 text-[10px] font-bold">17 KB</span>
-                    </div>
-                    <p class="text-[11px] text-slate-500 mt-1.5 leading-relaxed">
-                        Contains the standalone <span class="font-mono font-bold">N_I_POS_Setup_v1.0.exe</span> and 1-click batch script. Extract and run without file-blocking.
-                    </p>
-                    <a 
-                        href="{{ route('pos.download-zip') }}" 
-                        class="mt-3 w-full py-2 px-4 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl transition flex items-center justify-center gap-2 shadow-xs cursor-pointer block text-center"
-                    >
-                        <span>Download NI_POS_Windows_Setup.zip</span>
-                    </a>
-                </div>
-
-                {{-- Method 3: Direct EXE --}}
-                <div class="flex items-center justify-between pt-2 border-t border-slate-100 text-[11px] text-slate-500">
-                    <span>Direct setup file:</span>
-                    <a href="{{ route('pos.download-app') }}" class="text-sky-600 hover:underline font-bold">
-                        Download Standalone Setup (.EXE)
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
-
 </div>
 
 {{-- Reactive Alpine.js Application Engine for POS --}}
@@ -2023,10 +2230,11 @@ function posApp() {
         brands: @json($brands ?? []),
         customers: @json($customers),
 
+        // POS Layout View Design State ('scanner_table' = Default New View, 'catalog' = Classic View)
+        layoutView: localStorage.getItem('pos_layout_view') || 'scanner_table',
+
         // Quick Add Product State
         showQuickProductModal: false,
-        showWindowsAppModal: false,
-        deferredPwaPrompt: null,
         isSyncingProducts: false,
         newProduct: {
             name: '',
@@ -2125,12 +2333,6 @@ function posApp() {
         },
 
         initPos() {
-            // Capture PWA desktop install prompt event
-            window.addEventListener('beforeinstallprompt', (e) => {
-                e.preventDefault();
-                this.deferredPwaPrompt = e;
-            });
-
             // High-priority capturing keydown listener to guarantee Ctrl+Enter always triggers discount modal
             window.addEventListener('keydown', (e) => {
                 if ((e.ctrlKey || e.metaKey) && (e.key === 'Enter' || e.code === 'Enter' || e.code === 'NumpadEnter')) {
@@ -2612,20 +2814,15 @@ function posApp() {
             this.showQuickProductModal = true;
         },
 
-        // Trigger PWA Desktop App Installation
-        triggerPwaInstall() {
-            if (this.deferredPwaPrompt) {
-                this.deferredPwaPrompt.prompt();
-                this.deferredPwaPrompt.userChoice.then((choiceResult) => {
-                    if (choiceResult.outcome === 'accepted') {
-                        this.showWindowsAppModal = false;
-                        this.showToast('N&I Mini Mart POS installed to Windows Desktop!', '🎉', 'success');
-                    }
-                    this.deferredPwaPrompt = null;
-                });
-            } else {
-                alert("To install in Edge or Chrome:\nClick the 'Install App' icon in the right side of your browser address bar.");
-            }
+        // Switch POS Layout View Design
+        setLayoutView(view) {
+            this.layoutView = view;
+            try {
+                localStorage.setItem('pos_layout_view', view);
+            } catch (e) {}
+            this.$nextTick(() => {
+                this.focusBarcodeInput();
+            });
         },
 
         // Cart Actions (Updates existing entry quantity if scanned again; otherwise appends new item)
