@@ -207,6 +207,12 @@
                 </div>
             @endif
 
+            @if(str_starts_with($order->order_number, 'STF-'))
+                <div class="text-center pb-1 text-[8.5px] font-black uppercase tracking-wider text-black border-b border-black mb-1">
+                    *** STAFF CONSUMPTION VOUCHER (AT COST) ***
+                </div>
+            @endif
+
             {{-- Store Branding & Header (Prominent Dark Receipt Logo + Clean Typography) --}}
             <div class="text-center pb-2 border-b border-dashed border-black">
                 @if($showLogo)
@@ -362,6 +368,13 @@
                             <span class="font-bold text-black">
                                 {{ Str::after($order->internal_notes, 'Change: ') }}
                             </span>
+                        </div>
+                    @endif
+
+                    @if(str_starts_with($order->order_number, 'STF-') && $order->internal_notes)
+                        <div class="pt-1 border-t border-dotted border-black text-[7.5px] text-black">
+                            <div class="font-bold">Staff Split Breakdown:</div>
+                            <div class="leading-tight">{{ Str::after($order->internal_notes, 'Staff POS Consumption at Cost Price. ') }}</div>
                         </div>
                     @endif
                 </div>

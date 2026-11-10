@@ -42,6 +42,9 @@ class AdminPosController extends Controller
                     'price' => (float) $product->price,
                     'sale_price' => $product->sale_price ? (float) $product->sale_price : null,
                     'effective_price' => (float) ($product->sale_price ?? $product->price),
+                    'purchase_price' => (float) ($product->purchase_price !== null && (float) $product->purchase_price > 0 
+                        ? $product->purchase_price 
+                        : ($product->sale_price ?? $product->price)),
                     'stock_quantity' => (int) $product->stock_quantity,
                     'has_custom_image' => !empty($product->featured_image),
                     'image_url' => $product->featured_image
@@ -111,11 +114,31 @@ class AdminPosController extends Controller
         // Active brands for quick product creation
         $brands = \App\Models\Brand::where('is_active', true)->select('id', 'name')->orderBy('name')->get();
 
+        // Staff members for Staff POS consumption mode
+        \App\Models\ProductExpense::ensureTableExists();
+        $staffUsers = User::whereIn('role', ['admin', 'staff', 'cashier'])
+            ->select('id', 'name', 'role')
+            ->orderBy('name')
+            ->get();
+        $expenseStaffNames = \App\Models\ProductExpense::distinct()
+            ->whereNotNull('staff_name')
+            ->pluck('staff_name');
+        $staffMembers = $staffUsers->pluck('name')
+            ->merge($expenseStaffNames)
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+        if (empty($staffMembers)) {
+            $staffMembers = ['N&I Mini Mart', 'Dispatch Staff'];
+        }
+
         return view('admin.pos.index', compact(
             'products',
             'categories',
             'brands',
             'customers',
+            'staffMembers',
             'todaySales',
             'todayTransactions',
             'cashSales',
@@ -138,7 +161,7 @@ class AdminPosController extends Controller
             'items.*.unit_price' => 'nullable|numeric|min:0',
             'items.*.original_price' => 'nullable|numeric|min:0',
             'items.*.discount_price' => 'nullable|numeric|min:0',
-            'payment_method' => 'required|string|in:cash,duitnow_qr,card',
+            'payment_method' => 'required|string|in:cash,duitnow_qr,card,staff_expense',
             'amount_tendered' => 'nullable|numeric|min:0',
             'discount_amount' => 'nullable|numeric|min:0',
             'customer_name' => 'nullable|string|max:100',
@@ -146,9 +169,23 @@ class AdminPosController extends Controller
             'customer_email' => 'nullable|email|max:100',
             'user_id' => 'nullable|integer|exists:users,id',
             'notes' => 'nullable|string|max:500',
+            'pos_mode' => 'nullable|string|in:store,staff',
+            'staff_members' => 'nullable|array',
+            'staff_members.*' => 'string|max:100',
         ]);
 
-        return DB::transaction(function () use ($validated) {
+        $isStaffPos = ($validated['pos_mode'] ?? 'store') === 'staff';
+        $staffMembers = [];
+        if ($isStaffPos) {
+            \App\Models\ProductExpense::ensureTableExists();
+            $staffMembers = array_values(array_filter(array_map('trim', $validated['staff_members'] ?? [])));
+            if (empty($staffMembers)) {
+                $staffMembers = [auth()->user()->name ?? 'Staff'];
+            }
+        }
+        $staffCount = max(1, count($staffMembers));
+
+        return DB::transaction(function () use ($validated, $isStaffPos, $staffMembers, $staffCount) {
             $productIds = collect($validated['items'])->pluck('id');
             $products = Product::whereIn('id', $productIds)->lockForUpdate()->get()->keyBy('id');
 
@@ -171,7 +208,13 @@ class AdminPosController extends Controller
                     ], 422);
                 }
 
-                $catalogPrice = (float) ($product->sale_price ?? $product->price);
+                // If Staff POS, default fallback is purchase_price
+                $costPrice = (float) ($product->purchase_price !== null && (float) $product->purchase_price > 0 
+                    ? $product->purchase_price 
+                    : ($product->sale_price ?? $product->price));
+                $retailPrice = (float) ($product->sale_price ?? $product->price);
+                $catalogPrice = $isStaffPos ? $costPrice : $retailPrice;
+
                 $originalPrice = isset($item['original_price']) && is_numeric($item['original_price'])
                     ? round((float) $item['original_price'], 2)
                     : $catalogPrice;
@@ -188,6 +231,28 @@ class AdminPosController extends Controller
 
                 // Decrement inventory in real-time
                 $product->decrement('stock_quantity', $qty);
+
+                // If Staff POS mode: record into product_expenses and split equally among selected staff members
+                if ($isStaffPos) {
+                    $splitLineTotal = round($lineTotal / $staffCount, 2);
+                    $splitUnitCost = round($unitPrice / $staffCount, 2);
+
+                    foreach ($staffMembers as $member) {
+                        \App\Models\ProductExpense::create([
+                            'product_id' => $product->id,
+                            'product_name' => $product->name,
+                            'product_sku' => $product->sku ?? '',
+                            'user_id' => auth()->id(),
+                            'staff_name' => $member,
+                            'category' => 'staff_consumption',
+                            'quantity' => $qty,
+                            'unit_cost' => $splitUnitCost,
+                            'total_cost' => $splitLineTotal,
+                            'reason' => "Staff POS Consumption (Divided equally among {$staffCount} member(s): " . implode(', ', $staffMembers) . ")",
+                            'expense_date' => today(),
+                        ]);
+                    }
+                }
 
                 $orderItemsData[] = [
                     'product_id' => $product->id,
@@ -209,9 +274,9 @@ class AdminPosController extends Controller
             $tendered = (float) ($validated['amount_tendered'] ?? $grandTotal);
             $changeDue = max(0, round($tendered - $grandTotal, 2));
 
-            // Generate POS Order Number
+            // Generate POS Order Number (STF- for Staff POS, POS- for Store POS)
             $year = date('Y');
-            $prefix = 'POS-' . $year . '-';
+            $prefix = $isStaffPos ? ('STF-' . $year . '-') : ('POS-' . $year . '-');
             $latestPos = Order::where('order_number', 'LIKE', $prefix . '%')
                 ->lockForUpdate()
                 ->latest('id')
@@ -221,21 +286,32 @@ class AdminPosController extends Controller
                 $lastNumber = (int) Str::afterLast($latestPos->order_number, '-');
                 $nextNumber = $lastNumber + 1;
             } else {
-                $nextNumber = 1001; // Start POS serial at 1001
+                $nextNumber = $isStaffPos ? 5001 : 1001; // Start POS serial
             }
 
             $orderNumber = $prefix . str_pad((string) $nextNumber, 5, '0', STR_PAD_LEFT);
 
-            $customerName = trim($validated['customer_name'] ?? '') ?: 'Walk-in Customer';
-            $customerPhone = trim($validated['customer_phone'] ?? '') ?: '-';
-            $customerEmail = trim($validated['customer_email'] ?? '') ?: 'pos@nandjminimart.com';
+            if ($isStaffPos) {
+                $customerName = 'Staff: ' . implode(', ', $staffMembers) . ' (' . $staffCount . ' persons)';
+                $customerPhone = 'Staff Consumption';
+                $customerEmail = 'staff@store.com';
+                $splitPerPerson = round($grandTotal / $staffCount, 2);
+                $notes = "Staff POS Consumption at Cost Price. Total: RM " . number_format($grandTotal, 2) . ". Split: RM " . number_format($splitPerPerson, 2) . " each among {$staffCount} staff (" . implode(', ', $staffMembers) . "). Cashier: " . auth()->user()->name;
+                if (!empty($validated['notes'])) {
+                    $notes .= ' | Note: ' . $validated['notes'];
+                }
+            } else {
+                $customerName = trim($validated['customer_name'] ?? '') ?: 'Walk-in Customer';
+                $customerPhone = trim($validated['customer_phone'] ?? '') ?: '-';
+                $customerEmail = trim($validated['customer_email'] ?? '') ?: 'pos@nandjminimart.com';
 
-            $notes = 'In-store POS counter checkout by ' . auth()->user()->name . '.';
-            if (!empty($validated['notes'])) {
-                $notes .= ' Note: ' . $validated['notes'];
-            }
-            if ($validated['payment_method'] === 'cash') {
-                $notes .= ' Tendered: RM ' . number_format($tendered, 2) . ', Change: RM ' . number_format($changeDue, 2);
+                $notes = 'In-store POS counter checkout by ' . auth()->user()->name . '.';
+                if (!empty($validated['notes'])) {
+                    $notes .= ' Note: ' . $validated['notes'];
+                }
+                if ($validated['payment_method'] === 'cash') {
+                    $notes .= ' Tendered: RM ' . number_format($tendered, 2) . ', Change: RM ' . number_format($changeDue, 2);
+                }
             }
 
             $order = Order::create([
@@ -245,15 +321,15 @@ class AdminPosController extends Controller
                 'customer_name' => $customerName,
                 'customer_phone' => $customerPhone,
                 'customer_email' => $customerEmail,
-                'delivery_address' => 'N&J Mini Mart Counter (Walk-in POS)',
+                'delivery_address' => $isStaffPos ? 'Store Staff Consumption' : 'N&J Mini Mart Counter (Walk-in POS)',
                 'delivery_city' => 'Puchong',
                 'floor' => 0,
-                'landmark' => 'In-Store Register #1',
+                'landmark' => $isStaffPos ? 'Staff Consumption Desk' : 'In-Store Register #1',
                 'order_notes' => $validated['notes'] ?? null,
                 'latitude' => (float) setting('store_latitude', 1.5206574),
                 'longitude' => (float) setting('store_longitude', 103.6616431),
                 'distance_km' => 0.00,
-                'delivery_zone' => 'pos_counter',
+                'delivery_zone' => $isStaffPos ? 'staff_consumption' : 'pos_counter',
                 'subtotal' => $calculatedSubtotal,
                 'floor_charge' => 0.00,
                 'delivery_charge' => 0.00,
@@ -262,7 +338,7 @@ class AdminPosController extends Controller
                 'advance_amount' => $grandTotal,
                 'balance_amount' => 0.00,
                 'payment_method' => $validated['payment_method'],
-                'payment_reference' => 'POS-' . strtoupper($validated['payment_method']) . '-' . strtoupper(Str::random(6)),
+                'payment_reference' => ($isStaffPos ? 'STF-' : 'POS-') . strtoupper($validated['payment_method']) . '-' . strtoupper(Str::random(6)),
                 'payment_proof_path' => null,
                 'payment_status' => 'verified',
                 'payment_verified_at' => now(),
@@ -283,11 +359,15 @@ class AdminPosController extends Controller
                 'order_id' => $order->id,
                 'status_from' => null,
                 'status_to' => 'delivered',
-                'comment' => 'POS in-store counter sale completed. Items handed to customer.',
+                'comment' => $isStaffPos 
+                    ? 'Staff internal consumption recorded at cost price and logged in Store Expenses.'
+                    : 'POS in-store counter sale completed. Items handed to customer.',
                 'changed_by' => auth()->id(),
             ]);
 
-            ActivityLog::log('pos.sale_completed', $order, [
+            ActivityLog::log($isStaffPos ? 'pos.staff_consumption' : 'pos.sale_completed', $order, [
+                'is_staff_pos' => $isStaffPos,
+                'staff_members' => $staffMembers,
                 'grand_total' => $grandTotal,
                 'payment_method' => $validated['payment_method'],
                 'tendered' => $tendered,
@@ -297,6 +377,10 @@ class AdminPosController extends Controller
 
             return response()->json([
                 'success' => true,
+                'is_staff_pos' => $isStaffPos,
+                'staff_members' => $staffMembers,
+                'staff_count' => $staffCount,
+                'split_per_person' => $isStaffPos ? round($grandTotal / $staffCount, 2) : 0,
                 'order_id' => $order->id,
                 'order_number' => $order->order_number,
                 'grand_total' => $order->grand_total,
@@ -627,6 +711,9 @@ class AdminPosController extends Controller
                     'price' => (float) $product->price,
                     'sale_price' => $product->sale_price ? (float) $product->sale_price : null,
                     'effective_price' => (float) ($product->sale_price ?? $product->price),
+                    'purchase_price' => (float) ($product->purchase_price !== null && (float) $product->purchase_price > 0 
+                        ? $product->purchase_price 
+                        : ($product->sale_price ?? $product->price)),
                     'stock_quantity' => (int) $product->stock_quantity,
                     'has_custom_image' => !empty($product->featured_image),
                     'image_url' => $product->featured_image

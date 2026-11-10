@@ -114,6 +114,34 @@
                 <span class="hidden md:inline text-[11px]">Print Config</span>
             </button>
 
+            {{-- POS Mode Switcher (Store POS vs Staff POS) --}}
+            <div class="flex items-center p-0.5 bg-slate-100 border border-slate-200/90 rounded-xl text-xs font-bold shadow-2xs">
+                <span class="px-2 py-1 text-[10px] text-slate-500 font-black uppercase tracking-wider hidden xl:inline-flex items-center gap-1">
+                    <span>Mode:</span>
+                </span>
+                <button 
+                    type="button" 
+                    @click="setPosMode('store')" 
+                    :class="posMode === 'store' ? 'bg-slate-900 text-white shadow-xs font-black' : 'text-slate-600 hover:text-slate-900'"
+                    class="px-2.5 py-1 rounded-lg transition flex items-center gap-1.5 cursor-pointer text-[11px]"
+                    title="Standard Customer Retail Sale (Normal Selling Price)"
+                >
+                    <span>🏪</span>
+                    <span>Store POS</span>
+                </button>
+                <button 
+                    type="button" 
+                    @click="setPosMode('staff')" 
+                    :class="posMode === 'staff' ? 'bg-amber-600 text-white shadow-xs font-black ring-2 ring-amber-500/30' : 'text-slate-600 hover:text-slate-900'"
+                    class="px-2.5 py-1 rounded-lg transition flex items-center gap-1.5 cursor-pointer text-[11px]"
+                    title="Internal Staff Consumption (At Purchase / Cost Price)"
+                >
+                    <span>🥪</span>
+                    <span>Staff POS</span>
+                    <span x-show="posMode === 'staff'" class="w-1.5 h-1.5 rounded-full bg-amber-200 animate-ping"></span>
+                </button>
+            </div>
+
             {{-- View Design Layout Switcher (Default: Scanned Items View, 2nd: Catalog Grid) --}}
             <div class="flex items-center p-0.5 bg-slate-100 border border-slate-200/90 rounded-xl text-xs font-bold shadow-2xs">
                 <span class="px-2 py-1 text-[10px] text-slate-500 font-black uppercase tracking-wider hidden xl:inline-flex items-center gap-1">
@@ -164,6 +192,22 @@
             :class="layoutView === 'scanner_table' ? 'lg:col-span-8 xl:col-span-8' : 'lg:col-span-7 xl:col-span-8'"
             class="flex flex-col min-h-0 h-full overflow-hidden space-y-2.5"
         >
+            {{-- Staff Mode Alert Banner (Visible only in Staff POS Mode) --}}
+            <div x-show="posMode === 'staff'" class="shrink-0 px-3 py-2 bg-linear-to-r from-amber-500 via-amber-600 to-orange-500 text-slate-950 font-bold text-xs flex items-center justify-between gap-2 rounded-2xl shadow-sm border border-amber-400">
+                <div class="flex items-center gap-2">
+                    <span class="text-base">🥪</span>
+                    <div>
+                        <span class="font-black text-slate-950">Staff Consumption POS Active:</span>
+                        <span class="text-slate-900 font-semibold ml-1">Items charged at <strong>Purchase / Cost Price</strong> &amp; logged to Store Expenses.</span>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2 text-[11px] shrink-0">
+                    <span class="bg-black/15 text-slate-950 px-2 py-0.5 rounded font-mono font-black uppercase text-[10px] tracking-wider">At Cost Price</span>
+                    <button type="button" @click="setPosMode('store')" class="px-2 py-0.5 bg-slate-900 hover:bg-slate-800 text-white font-black rounded-lg transition cursor-pointer text-[10px]">
+                        Switch to Store POS
+                    </button>
+                </div>
+            </div>
             
             {{-- Search & Category Controls Toolbar --}}
             <div class="shrink-0 bg-white p-3 rounded-2xl border border-slate-200/90 shadow-2xs space-y-2.5">
@@ -373,16 +417,17 @@
                         <span class="whitespace-nowrap text-[11px] hidden sm:inline">Add Product</span>
                     </button>
 
-                    {{-- Staff Consumption / Store Expense Shortcut --}}
-                    <a 
-                        href="{{ route('admin.expenses.index') }}" 
-                        target="_blank"
-                        class="px-2.5 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 shrink-0 cursor-pointer shadow-md shadow-amber-600/25"
-                        title="Record Staff Consumption (Food/Drinks) or Store Expense"
+                    {{-- Staff Consumption / Store Expense Mode Toggle --}}
+                    <button 
+                        type="button" 
+                        @click="setPosMode(posMode === 'staff' ? 'store' : 'staff')" 
+                        :class="posMode === 'staff' ? 'bg-amber-700 ring-2 ring-amber-400 text-white' : 'bg-amber-600 hover:bg-amber-500 text-white'"
+                        class="px-2.5 py-2 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 shrink-0 cursor-pointer shadow-md shadow-amber-600/25"
+                        :title="posMode === 'staff' ? 'Click to return to Store POS' : 'Switch to Staff Consumption POS (Cost Price)'"
                     >
                         <span>🥪</span>
-                        <span class="whitespace-nowrap text-[11px] hidden sm:inline">Staff Use</span>
-                    </a>
+                        <span class="whitespace-nowrap text-[11px] hidden sm:inline" x-text="posMode === 'staff' ? 'Staff POS (Active)' : 'Staff POS'"></span>
+                    </button>
                 </div>
 
                 {{-- Smooth Category Carousel Bar with Left & Right Arrows --}}
@@ -507,12 +552,24 @@
                             {{-- Bottom: Price & Tactile Add Button --}}
                             <div class="pt-1.5 mt-1 border-t border-slate-100 flex items-center justify-between gap-1">
                                 <div>
-                                    <div class="text-xs sm:text-sm font-black text-slate-900">
-                                        RM <span x-text="product.effective_price.toFixed(2)"></span>
-                                    </div>
-                                    <template x-if="product.sale_price && product.sale_price < product.price">
-                                        <div class="text-[9px] text-slate-400 line-through">
-                                            RM <span x-text="product.price.toFixed(2)"></span>
+                                    <template x-if="posMode === 'staff'">
+                                        <div>
+                                            <span class="text-[9px] font-black uppercase text-amber-800 bg-amber-100 px-1 py-0.2 rounded font-mono">Cost</span>
+                                            <div class="text-xs sm:text-sm font-black text-amber-950">
+                                                RM <span x-text="getItemPrice(product).toFixed(2)"></span>
+                                            </div>
+                                        </div>
+                                    </template>
+                                    <template x-if="posMode !== 'staff'">
+                                        <div>
+                                            <div class="text-xs sm:text-sm font-black text-slate-900">
+                                                RM <span x-text="product.effective_price.toFixed(2)"></span>
+                                            </div>
+                                            <template x-if="product.sale_price && product.sale_price < product.price">
+                                                <div class="text-[9px] text-slate-400 line-through">
+                                                    RM <span x-text="product.price.toFixed(2)"></span>
+                                                </div>
+                                            </template>
                                         </div>
                                     </template>
                                 </div>
@@ -626,7 +683,7 @@
                                 <tr>
                                     <th class="py-2 px-2.5 text-center w-10">#</th>
                                     <th class="py-2 px-3">Product / SKU</th>
-                                    <th class="py-2 px-2.5 text-right w-24">Price</th>
+                                    <th class="py-2 px-2.5 text-right w-24" x-text="posMode === 'staff' ? 'Cost Price' : 'Price'"></th>
                                     <th class="py-2 px-2.5 text-center w-36">Quantity</th>
                                     <th class="py-2 px-2 text-center w-20">Discount</th>
                                     <th class="py-2 px-3 text-right w-28">Total</th>
@@ -789,8 +846,8 @@
         {{-- ======================================================== --}}
         <div :class="layoutView === 'scanner_table' ? 'lg:col-span-4 xl:col-span-4' : 'lg:col-span-5 xl:col-span-4'" class="flex flex-col min-h-0 h-full overflow-hidden bg-white rounded-2xl sm:rounded-3xl border border-slate-200/90 shadow-md">
             
-            {{-- 1. Customer Selector Banner (Fixed Top) --}}
-            <div class="shrink-0 p-2.5 sm:px-3 sm:py-2 bg-slate-50/90 border-b border-slate-200 flex items-center justify-between gap-2">
+            {{-- 1A. STORE POS MODE: Customer Selector Banner (Fixed Top) --}}
+            <div x-show="posMode === 'store'" class="shrink-0 p-2.5 sm:px-3 sm:py-2 bg-slate-50/90 border-b border-slate-200 flex items-center justify-between gap-2">
                 <div class="flex items-center gap-2 truncate">
                     <div class="w-7 h-7 rounded-lg bg-sky-100 text-sky-700 border border-sky-200 font-bold flex items-center justify-center text-xs shrink-0">
                         👤
@@ -818,6 +875,92 @@
                     >
                         Reset
                     </button>
+                </div>
+            </div>
+
+            {{-- 1B. STAFF POS MODE: Staff Member(s) Multi-Select & Divide / Split Box --}}
+            <div x-show="posMode === 'staff'" class="shrink-0 p-3 bg-linear-to-r from-amber-50 to-orange-50 border-b border-amber-200 space-y-2">
+                <div class="flex items-center justify-between gap-2">
+                    <div class="flex items-center gap-2">
+                        <div class="w-7 h-7 rounded-lg bg-amber-600 text-white font-bold flex items-center justify-center text-xs shrink-0 shadow-xs">
+                            🥪
+                        </div>
+                        <div>
+                            <div class="text-xs font-black text-amber-950 flex items-center gap-1.5">
+                                <span>Staff Consumption</span>
+                                <span class="px-1.5 py-0.2 bg-amber-200 text-amber-900 rounded-full text-[9px] font-mono font-bold" x-text="selectedStaffMembers.length + ' selected'"></span>
+                            </div>
+                            <div class="text-[10px] text-amber-700 font-medium">Select staff member(s) to divide / split cost</div>
+                        </div>
+                    </div>
+                    <button 
+                        type="button" 
+                        @click="setPosMode('store')" 
+                        class="px-2 py-0.5 bg-white hover:bg-slate-100 border border-amber-200 rounded-lg text-[10px] font-bold text-amber-800 transition cursor-pointer"
+                    >
+                        Exit Staff Mode
+                    </button>
+                </div>
+
+                {{-- Staff Members Multi-Select Chips / Pills --}}
+                <div class="flex flex-wrap items-center gap-1.5 pt-0.5">
+                    <template x-for="staff in staffMembersList" :key="staff">
+                        <button 
+                            type="button" 
+                            @click="toggleStaffMember(staff)" 
+                            :class="selectedStaffMembers.includes(staff) 
+                                ? 'bg-amber-600 text-white shadow-xs font-black ring-2 ring-amber-500/30' 
+                                : 'bg-white hover:bg-amber-100/70 text-slate-700 border border-amber-200'"
+                            class="px-2.5 py-1 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
+                        >
+                            <span x-text="selectedStaffMembers.includes(staff) ? '✓' : '+'"></span>
+                            <span x-text="staff"></span>
+                        </button>
+                    </template>
+                </div>
+
+                {{-- Quick Add Custom Staff Member Input --}}
+                <div class="flex items-center gap-1.5">
+                    <input 
+                        type="text" 
+                        x-model="newStaffInput" 
+                        @keydown.enter.prevent="addCustomStaffMember()"
+                        placeholder="+ Add custom staff name & press Enter..." 
+                        class="flex-1 px-2.5 py-1 text-xs bg-white border border-amber-200 rounded-xl placeholder-amber-400 text-slate-800 focus:ring-1 focus:ring-amber-500 focus:border-amber-500"
+                    >
+                    <button 
+                        type="button" 
+                        @click="addCustomStaffMember()" 
+                        class="px-2.5 py-1 bg-amber-700 hover:bg-amber-600 text-white rounded-xl text-xs font-bold transition cursor-pointer shrink-0"
+                    >
+                        Add
+                    </button>
+                </div>
+
+                {{-- Divide / Split Calculation Preview Card --}}
+                <div 
+                    x-show="selectedStaffMembers.length > 0"
+                    class="p-2.5 bg-white rounded-xl border border-amber-200 flex items-center justify-between text-xs shadow-2xs"
+                >
+                    <div class="min-w-0 pr-2">
+                        <div class="text-[9px] uppercase font-black text-amber-800 tracking-wider">
+                            <span x-show="selectedStaffMembers.length > 1">Divide / Split Between <span x-text="selectedStaffMembers.length"></span> Staff Members:</span>
+                            <span x-show="selectedStaffMembers.length === 1">100% Charged To:</span>
+                        </div>
+                        <div class="text-[11px] font-black text-slate-900 truncate" x-text="selectedStaffMembers.join(', ')"></div>
+                    </div>
+                    <div class="text-right shrink-0">
+                        <div class="text-[9px] text-slate-500 font-medium">Per Person</div>
+                        <div class="text-sm font-black text-amber-900">
+                            RM <span x-text="(grandTotal / Math.max(1, selectedStaffMembers.length)).toFixed(2)"></span>
+                            <span class="text-[10px] font-bold text-amber-700 block" x-show="selectedStaffMembers.length > 1" x-text="'(÷ ' + selectedStaffMembers.length + ')'"></span>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Warning if no staff selected --}}
+                <div x-show="selectedStaffMembers.length === 0" class="p-1.5 bg-rose-50 border border-rose-200 rounded-xl text-center text-xs text-rose-700 font-bold">
+                    ⚠️ Please select at least 1 staff member!
                 </div>
             </div>
 
@@ -1056,7 +1199,17 @@
 
             {{-- 5. Payment Engine & Complete Sale CTA (Anchored Bottom within Viewport) --}}
             <div class="shrink-0 p-2.5 bg-white border-t border-slate-200 space-y-2">
-                <div class="grid grid-cols-3 gap-1 p-0.5 bg-slate-100 rounded-xl text-xs font-bold">
+                <div class="grid gap-1 p-0.5 bg-slate-100 rounded-xl text-xs font-bold" :class="posMode === 'staff' ? 'grid-cols-4' : 'grid-cols-3'">
+                    <button 
+                        type="button" 
+                        x-show="posMode === 'staff'"
+                        @click="paymentMethod = 'staff_expense'; amountTendered = grandTotal" 
+                        :class="paymentMethod === 'staff_expense' ? 'bg-amber-600 text-white shadow-2xs font-extrabold' : 'text-slate-600 hover:text-slate-900'"
+                        class="py-1 rounded-lg transition text-center cursor-pointer flex items-center justify-center gap-1 text-[11px]"
+                    >
+                        <span>🥪</span>
+                        <span>Account</span>
+                    </button>
                     <button 
                         type="button" 
                         @click="paymentMethod = 'cash'; amountTendered = grandTotal" 
@@ -1084,6 +1237,11 @@
                         <span>💳</span>
                         <span>Card</span>
                     </button>
+                </div>
+
+                {{-- 0. STAFF EXPENSE ACCOUNT CONTROLS --}}
+                <div x-show="posMode === 'staff' && paymentMethod === 'staff_expense'" class="p-2 bg-amber-50 border border-amber-200 rounded-xl text-center text-xs text-amber-950 font-medium">
+                    Logged as <strong>Store Internal Expense</strong>. Charged &amp; divided across selected staff member(s).
                 </div>
 
                 {{-- 1. CASH PAYMENT CONTROLS --}}
@@ -1161,12 +1319,13 @@
                 <button 
                     type="button" 
                     @click="processCheckout()" 
-                    :disabled="cart.length === 0 || isProcessing || (paymentMethod === 'cash' && changeDue < 0)"
-                    class="w-full py-2.5 px-3 bg-emerald-600 hover:bg-emerald-500 active:scale-98 disabled:opacity-50 disabled:pointer-events-none text-white rounded-xl text-xs sm:text-sm font-black shadow-md shadow-emerald-600/25 flex items-center justify-center gap-2 transition cursor-pointer"
+                    :disabled="cart.length === 0 || isProcessing || (posMode === 'store' && paymentMethod === 'cash' && changeDue < 0) || (posMode === 'staff' && selectedStaffMembers.length === 0)"
+                    :class="posMode === 'staff' ? 'bg-amber-600 hover:bg-amber-500 shadow-amber-600/25' : 'bg-emerald-600 hover:bg-emerald-500 shadow-emerald-600/25'"
+                    class="w-full py-2.5 px-3 active:scale-98 disabled:opacity-50 disabled:pointer-events-none text-white rounded-xl text-xs sm:text-sm font-black shadow-md flex items-center justify-center gap-2 transition cursor-pointer"
                 >
                     <template x-if="!isProcessing">
                         <span class="flex items-center gap-1.5">
-                            <span>Complete Sale & Print Receipt</span>
+                            <span x-text="posMode === 'staff' ? 'Record Staff Expense & Print Slip' : 'Complete Sale & Print Receipt'"></span>
                             <span class="text-[10px] opacity-75 font-mono">(F4)</span>
                         </span>
                     </template>
@@ -1203,25 +1362,44 @@
                 ✕
             </button>
 
-            <div class="w-14 h-14 rounded-full bg-emerald-100 text-emerald-600 mx-auto flex items-center justify-center text-2xl shadow-xs">
-                ✓
+            <div class="w-14 h-14 rounded-full mx-auto flex items-center justify-center text-2xl shadow-xs"
+                :class="completedOrder.is_staff_pos ? 'bg-amber-100 text-amber-600' : 'bg-emerald-100 text-emerald-600'"
+            >
+                <span x-text="completedOrder.is_staff_pos ? '🥪' : '✓'"></span>
             </div>
 
             <div>
-                <span class="text-[10px] font-extrabold uppercase px-2.5 py-1 bg-emerald-50 text-emerald-800 rounded-full border border-emerald-200">
-                    Payment Verified & Stock Deducted
-                </span>
-                <h3 class="text-xl font-black text-slate-900 mt-2">Sale Completed!</h3>
+                <span 
+                    class="text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-full border"
+                    :class="completedOrder.is_staff_pos ? 'bg-amber-50 text-amber-900 border-amber-200' : 'bg-emerald-50 text-emerald-800 border-emerald-200'"
+                    x-text="completedOrder.is_staff_pos ? 'Staff Consumption Logged in Store Expenses' : 'Payment Verified & Stock Deducted'"
+                ></span>
+                <h3 class="text-xl font-black text-slate-900 mt-2" x-text="completedOrder.is_staff_pos ? 'Staff Consumption Saved!' : 'Sale Completed!'"></h3>
                 <p class="text-xs text-slate-500 font-mono mt-0.5">Order #: <span class="font-bold text-slate-800" x-text="completedOrder.order_number"></span></p>
             </div>
 
             {{-- Financial Summary Box --}}
             <div class="p-4 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-2 text-xs">
                 <div class="flex justify-between text-slate-600">
-                    <span>Total Amount Paid:</span>
+                    <span x-text="completedOrder.is_staff_pos ? 'Total Consumption Cost:' : 'Total Amount Paid:'"></span>
                     <span class="font-bold text-slate-900">RM <span x-text="completedOrder.grand_total ? Number(completedOrder.grand_total).toFixed(2) : '0.00'"></span></span>
                 </div>
-                <template x-if="completedOrder.payment_method === 'cash'">
+                
+                {{-- Staff Split Details if Staff POS --}}
+                <template x-if="completedOrder.is_staff_pos">
+                    <div class="p-2.5 bg-amber-50 rounded-xl border border-amber-200 space-y-1 text-left">
+                        <div class="flex justify-between items-center text-[11px] text-amber-950 font-bold">
+                            <span>Staff Member(s):</span>
+                            <span class="font-extrabold" x-text="completedOrder.staff_members ? completedOrder.staff_members.join(', ') : 'Staff'"></span>
+                        </div>
+                        <div class="flex justify-between items-center text-xs font-black text-amber-900 pt-1 border-t border-amber-200/80">
+                            <span>Divided Equal Share:</span>
+                            <span>RM <span x-text="completedOrder.split_per_person ? Number(completedOrder.split_per_person).toFixed(2) : '0.00'"></span> <span class="text-[10px] font-normal">each</span></span>
+                        </div>
+                    </div>
+                </template>
+
+                <template x-if="!completedOrder.is_staff_pos && completedOrder.payment_method === 'cash'">
                     <div>
                         <div class="flex justify-between text-slate-600">
                             <span>Cash Tendered:</span>
@@ -2229,6 +2407,12 @@ function posApp() {
         categories: @json($categories),
         brands: @json($brands ?? []),
         customers: @json($customers),
+        staffMembersList: @json($staffMembers ?? ['N&I Mini Mart', 'Dispatch Staff']),
+
+        // POS Mode State ('store' = Retail Customer Sale, 'staff' = Internal Staff Consumption at Cost Price)
+        posMode: localStorage.getItem('pos_mode') || 'store',
+        selectedStaffMembers: [ @json(auth()->user()->name ?? 'N&I Mini Mart') ],
+        newStaffInput: '',
 
         // POS Layout View Design State ('scanner_table' = Default New View, 'catalog' = Classic View)
         layoutView: localStorage.getItem('pos_layout_view') || 'scanner_table',
@@ -2825,6 +3009,78 @@ function posApp() {
             });
         },
 
+        // Switch POS Mode ('store' vs 'staff')
+        setPosMode(mode) {
+            this.posMode = mode;
+            try {
+                localStorage.setItem('pos_mode', mode);
+            } catch (e) {}
+
+            if (mode === 'staff') {
+                if (this.paymentMethod !== 'staff_expense' && this.paymentMethod !== 'cash' && this.paymentMethod !== 'duitnow_qr') {
+                    this.paymentMethod = 'staff_expense';
+                }
+            } else {
+                if (this.paymentMethod === 'staff_expense') {
+                    this.paymentMethod = 'cash';
+                }
+            }
+
+            // Dynamically refresh item prices in cart
+            this.cart.forEach(item => {
+                const prod = this.products.find(p => String(p.id) === String(item.id));
+                if (prod) {
+                    item.price = this.getItemPrice(prod);
+                    item.original_price = item.price;
+                    item.discount_price = null;
+                }
+            });
+            this.amountTendered = this.grandTotal;
+            this.playBeep('success');
+            this.showToast(mode === 'staff' ? 'Staff POS Mode: Products priced at Purchase Cost' : 'Store POS Mode: Retail Sale', mode === 'staff' ? '🥪' : '🏪', 'info');
+        },
+
+        // Get applicable item price based on active mode
+        getItemPrice(product) {
+            if (!product) return 0;
+            if (this.posMode === 'staff') {
+                const cost = Number(product.purchase_price);
+                if (!isNaN(cost) && cost > 0) {
+                    return cost;
+                }
+            }
+            return Number(product.effective_price ?? product.price ?? 0);
+        },
+
+        // Toggle staff member selection
+        toggleStaffMember(name) {
+            if (!name) return;
+            const idx = this.selectedStaffMembers.indexOf(name);
+            if (idx > -1) {
+                if (this.selectedStaffMembers.length > 1) {
+                    this.selectedStaffMembers.splice(idx, 1);
+                } else {
+                    this.showToast('At least one staff member must be selected.', '⚠️', 'warning');
+                }
+            } else {
+                this.selectedStaffMembers.push(name);
+            }
+        },
+
+        // Add custom staff member on the fly
+        addCustomStaffMember() {
+            const name = (this.newStaffInput || '').trim();
+            if (!name) return;
+            if (!this.staffMembersList.includes(name)) {
+                this.staffMembersList.push(name);
+            }
+            if (!this.selectedStaffMembers.includes(name)) {
+                this.selectedStaffMembers.push(name);
+            }
+            this.newStaffInput = '';
+            this.showToast(`Staff member "${name}" added`, '👤', 'success');
+        },
+
         // Cart Actions (Updates existing entry quantity if scanned again; otherwise appends new item)
         addToCart(product) {
             if (!product || product.stock_quantity <= 0) return;
@@ -2847,8 +3103,8 @@ function posApp() {
                     this.playBeep('warning');
                 }
             } else {
-                // New product scanned -> Add new row with Qty 1
-                const basePrice = Number(product.effective_price || product.price);
+                // New product scanned -> Add new row with Qty 1 based on active POS mode
+                const basePrice = this.getItemPrice(product);
                 this.cart.push({
                     id: product.id,
                     name: product.name,
@@ -2860,6 +3116,9 @@ function posApp() {
                     max_stock: Number(product.stock_quantity || 9999),
                     image_url: product.image_url,
                     pack_size: product.pack_size,
+                    purchase_price: Number(product.purchase_price || basePrice),
+                    effective_price: Number(product.effective_price || product.price),
+                });
                 });
                 this.selectedCartIndex = this.cart.length - 1;
                 this.playBeep('success');
@@ -3006,7 +3265,14 @@ function posApp() {
         async processCheckout() {
             if (this.cart.length === 0 || this.isProcessing) return;
 
-            if (this.paymentMethod === 'cash' && this.changeDue < 0) {
+            if (this.posMode === 'staff') {
+                if (!this.selectedStaffMembers || this.selectedStaffMembers.length === 0) {
+                    alert('Please select at least 1 staff member for this consumption.');
+                    return;
+                }
+            }
+
+            if (this.posMode === 'store' && this.paymentMethod === 'cash' && this.changeDue < 0) {
                 alert('Tendered cash is less than the grand total!');
                 return;
             }
@@ -3015,6 +3281,8 @@ function posApp() {
 
             try {
                 const payload = {
+                    pos_mode: this.posMode,
+                    staff_members: this.posMode === 'staff' ? this.selectedStaffMembers : [],
                     items: this.cart.map(i => ({ 
                         id: i.id, 
                         quantity: i.quantity,
@@ -3022,13 +3290,15 @@ function posApp() {
                         original_price: Number(i.original_price || i.price),
                         discount_price: i.discount_price !== null ? Number(i.discount_price) : null,
                     })),
-                    payment_method: this.paymentMethod,
+                    payment_method: this.posMode === 'staff' 
+                        ? (this.paymentMethod === 'cash' ? 'cash' : (this.paymentMethod === 'duitnow_qr' ? 'duitnow_qr' : (this.paymentMethod === 'card' ? 'card' : 'staff_expense')))
+                        : this.paymentMethod,
                     amount_tendered: Number(this.amountTendered) || this.grandTotal,
                     discount_amount: Number(this.discountAmount) || 0,
-                    customer_name: this.customer.name,
-                    customer_phone: this.customer.phone,
-                    customer_email: this.customer.email,
-                    user_id: this.customer.id,
+                    customer_name: this.posMode === 'staff' ? ('Staff: ' + this.selectedStaffMembers.join(', ')) : this.customer.name,
+                    customer_phone: this.posMode === 'staff' ? 'Staff Consumption' : this.customer.phone,
+                    customer_email: this.posMode === 'staff' ? 'staff@store.com' : this.customer.email,
+                    user_id: this.posMode === 'staff' ? null : this.customer.id,
                     notes: this.paymentReference ? 'Ref: ' + this.paymentReference : null,
                 };
 
@@ -3050,13 +3320,15 @@ function posApp() {
                     this.lastCompletedBasket = JSON.parse(JSON.stringify(this.cart));
                     this.showReceiptModal = true;
 
+                    if (data.is_staff_pos) {
+                        this.showToast(`Recorded Staff Consumption! Split RM ${Number(data.split_per_person || 0).toFixed(2)} each across ${data.staff_count} staff.`, '🥪', 'success');
+                    }
+
                     // Update live stock in memory
                     this.cart.forEach(item => {
                         const p = this.products.find(prod => prod.id === item.id);
                         if (p) p.stock_quantity = Math.max(0, p.stock_quantity - item.quantity);
                     });
-
-                    // Keep basket visible in background until Space or Enter is pressed for next customer
 
                     // Auto-print thermal slip if enabled in settings
                     if (this.printerConfig && this.printerConfig.autoPrint) {
