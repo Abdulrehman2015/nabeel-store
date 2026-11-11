@@ -328,7 +328,7 @@
                             <svg class="w-6 h-6 text-slate-400 group-hover:text-sky-500 mb-1.5 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                             <span class="text-xs font-bold text-slate-700 group-hover:text-sky-600">Add More Gallery Images</span>
                             <span class="text-[10px] text-slate-400 mt-0.5">Hold Ctrl/Cmd to select multiple pictures</span>
-                            <input type="file" name="gallery_images[]" multiple accept="image/*" class="hidden">
+                            <input type="file" name="gallery_images[]" multiple accept="image/*" @change="handleGalleryImages($event)" class="hidden">
                         </label>
                     </div>
                 </div>
@@ -826,13 +826,91 @@
                 setTimeout(() => this.copied = false, 2500);
             },
 
-            previewBanner(event) {
-                const file = event.target.files[0];
-                if (file) {
-                    this.bannerPreview = URL.createObjectURL(file);
+            async previewBanner(event) {
+                const input = event.target;
+                const file = input.files[0];
+                if (!file) return;
+
+                this.bannerPreview = URL.createObjectURL(file);
+
+                // Auto-compress high-resolution camera photos to prevent 502 Bad Gateway timeouts on InfinityFree
+                try {
+                    const compressed = await compressImageFile(file);
+                    if (compressed && compressed !== file && window.DataTransfer) {
+                        const dt = new DataTransfer();
+                        dt.items.add(compressed);
+                        input.files = dt.files;
+                        this.bannerPreview = URL.createObjectURL(compressed);
+                    }
+                } catch (e) {
+                    console.warn('Banner optimization skipped:', e);
+                }
+            },
+
+            async handleGalleryImages(event) {
+                const input = event.target;
+                if (!input.files || input.files.length === 0) return;
+                if (!window.DataTransfer) return;
+
+                try {
+                    const dt = new DataTransfer();
+                    for (let i = 0; i < input.files.length; i++) {
+                        const compressed = await compressImageFile(input.files[i]);
+                        dt.items.add(compressed);
+                    }
+                    input.files = dt.files;
+                } catch (e) {
+                    console.warn('Gallery optimization skipped:', e);
                 }
             }
         };
+    }
+
+    // High performance client-side image compression utility
+    async function compressImageFile(file, maxWidth = 1200, maxHeight = 1200, quality = 0.82) {
+        if (!file || !file.type.startsWith('image/')) return file;
+        if (file.type === 'image/svg+xml' || file.type === 'image/gif') return file;
+        if (file.size < 300 * 1024) return file; // Already < 300KB
+
+        return new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    let width = img.width;
+                    let height = img.height;
+                    if (width > maxWidth || height > maxHeight) {
+                        if (width > height) {
+                            height = Math.round((height * maxWidth) / width);
+                            width = maxWidth;
+                        } else {
+                            width = Math.round((width * maxHeight) / height);
+                            height = maxHeight;
+                        }
+                    }
+                    const canvas = document.createElement('canvas');
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    canvas.toBlob((blob) => {
+                        if (!blob || blob.size >= file.size) {
+                            resolve(file);
+                        } else {
+                            const newFile = new File([blob], file.name.replace(/\.[^.]+$/, '.jpg'), {
+                                type: 'image/jpeg',
+                                lastModified: Date.now()
+                            });
+                            resolve(newFile);
+                        }
+                    }, 'image/jpeg', quality);
+                };
+                img.onerror = () => resolve(file);
+                img.src = e.target.result;
+            };
+            reader.onerror = () => resolve(file);
+            reader.readAsDataURL(file);
+        });
     }
 
     document.addEventListener('DOMContentLoaded', function () {

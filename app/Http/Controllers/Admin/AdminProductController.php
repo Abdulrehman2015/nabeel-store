@@ -154,37 +154,42 @@ class AdminProductController extends Controller
         $validated['is_new'] = $request->boolean('is_new');
         $validated['is_promo'] = $request->boolean('is_promo');
 
-        if ($request->hasFile('featured_image')) {
-            $path = $request->file('featured_image')->store('products', 'public');
-            $validated['featured_image'] = $path;
-            try {
-                $target = public_path('storage/' . $path);
-                @mkdir(dirname($target), 0755, true);
-                @copy(storage_path('app/public/' . $path), $target);
-            } catch (\Throwable $e) {}
-        }
-
-        $product = Product::create($validated);
-
-        // Upload Gallery Images
-        if ($request->hasFile('gallery_images')) {
-            foreach ($request->file('gallery_images') as $idx => $img) {
-                $path = $img->store('products/gallery', 'public');
+        try {
+            if ($request->hasFile('featured_image')) {
+                $path = $request->file('featured_image')->store('products', 'public');
+                $validated['featured_image'] = $path;
                 try {
                     $target = public_path('storage/' . $path);
                     @mkdir(dirname($target), 0755, true);
                     @copy(storage_path('app/public/' . $path), $target);
                 } catch (\Throwable $e) {}
-                $product->images()->create([
-                    'image_path' => $path,
-                    'sort_order' => $idx,
-                ]);
             }
+
+            $product = Product::create($validated);
+
+            // Upload Gallery Images
+            if ($request->hasFile('gallery_images')) {
+                foreach ($request->file('gallery_images') as $idx => $img) {
+                    $path = $img->store('products/gallery', 'public');
+                    try {
+                        $target = public_path('storage/' . $path);
+                        @mkdir(dirname($target), 0755, true);
+                        @copy(storage_path('app/public/' . $path), $target);
+                    } catch (\Throwable $e) {}
+                    $product->images()->create([
+                        'image_path' => $path,
+                        'sort_order' => $idx,
+                    ]);
+                }
+            }
+
+            ActivityLog::log('product.created', $product, ['name' => $product->name, 'sku' => $product->sku]);
+
+            return redirect()->route('admin.products.index')->with('success', 'Product created successfully.');
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Product creation failed: ' . $e->getMessage());
+            return back()->withInput()->with('error', 'Could not create product: ' . $e->getMessage());
         }
-
-        ActivityLog::log('product.created', $product, ['name' => $product->name, 'sku' => $product->sku]);
-
-        return redirect()->route('admin.products.index')->with('success', 'Product created successfully.');
     }
 
     public function edit(Product $product)
@@ -257,36 +262,41 @@ class AdminProductController extends Controller
         $validated['is_new'] = $request->boolean('is_new');
         $validated['is_promo'] = $request->boolean('is_promo');
 
-        if ($request->hasFile('featured_image')) {
-            $path = $request->file('featured_image')->store('products', 'public');
-            $validated['featured_image'] = $path;
-            try {
-                $target = public_path('storage/' . $path);
-                @mkdir(dirname($target), 0755, true);
-                @copy(storage_path('app/public/' . $path), $target);
-            } catch (\Throwable $e) {}
-        }
-
-        $product->update($validated);
-
-        if ($request->hasFile('gallery_images')) {
-            foreach ($request->file('gallery_images') as $idx => $img) {
-                $path = $img->store('products/gallery', 'public');
+        try {
+            if ($request->hasFile('featured_image')) {
+                $path = $request->file('featured_image')->store('products', 'public');
+                $validated['featured_image'] = $path;
                 try {
                     $target = public_path('storage/' . $path);
                     @mkdir(dirname($target), 0755, true);
                     @copy(storage_path('app/public/' . $path), $target);
                 } catch (\Throwable $e) {}
-                $product->images()->create([
-                    'image_path' => $path,
-                    'sort_order' => $idx + $product->images()->count(),
-                ]);
             }
+
+            $product->update($validated);
+
+            if ($request->hasFile('gallery_images')) {
+                foreach ($request->file('gallery_images') as $idx => $img) {
+                    $path = $img->store('products/gallery', 'public');
+                    try {
+                        $target = public_path('storage/' . $path);
+                        @mkdir(dirname($target), 0755, true);
+                        @copy(storage_path('app/public/' . $path), $target);
+                    } catch (\Throwable $e) {}
+                    $product->images()->create([
+                        'image_path' => $path,
+                        'sort_order' => $idx + $product->images()->count(),
+                    ]);
+                }
+            }
+
+            ActivityLog::log('product.updated', $product, ['name' => $product->name, 'sku' => $product->sku]);
+
+            return redirect()->route('admin.products.index')->with('success', 'Product updated successfully.');
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Product update failed: ' . $e->getMessage());
+            return back()->withInput()->with('error', 'Could not update product: ' . $e->getMessage());
         }
-
-        ActivityLog::log('product.updated', $product, ['name' => $product->name, 'sku' => $product->sku]);
-
-        return redirect()->route('admin.products.index')->with('success', 'Product updated successfully.');
     }
 
     public function destroy(Product $product)
