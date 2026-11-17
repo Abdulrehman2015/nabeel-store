@@ -7,23 +7,24 @@
     <section class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 pt-4">
         <div class="flex flex-col lg:flex-row gap-6 items-stretch">
             
-            {{-- Left Column: Category Sidebar (Matching Banner Height) --}}
+            {{-- Left Column: Category Sidebar (Matching Banner Height with Full Scrollable List) --}}
             @if($categories->count() > 0)
                 <div class="w-full lg:w-[260px] xl:w-[280px] shrink-0 flex flex-col">
                     <div class="bg-white rounded-[15px] border border-[#ececec] p-4 sm:p-5 shadow-2xs h-full flex flex-col justify-between">
-                        <div>
-                            <div class="pb-2.5 mb-2 border-b border-[#ececec] flex items-center justify-between">
+                        <div class="flex-1 flex flex-col min-h-0">
+                            <div class="pb-2.5 mb-2 border-b border-[#ececec] flex items-center justify-between shrink-0">
                                 <h2 class="text-lg font-bold text-[#253D4E] font-['Quicksand']">
                                     Category
                                 </h2>
                                 <span class="text-xs text-[#7E7E7E]">({{ $categories->count() }})</span>
                             </div>
 
-                            <div class="space-y-0.5">
-                                @foreach($categories->take(9) as $cat)
+                            {{-- Scrollable List Showing ALL Categories --}}
+                            <div class="space-y-0.5 overflow-y-auto flex-1 pr-1.5 max-h-[440px] [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-thumb]:bg-[#BCE3C9] [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-transparent">
+                                @foreach($categories as $cat)
                                     <a 
                                         href="{{ route('category.show', $cat->slug) }}" 
-                                        class="flex items-center justify-between py-1.5 px-2 rounded-lg hover:bg-[#DEF9EC]/60 hover:text-[#3BB77E] transition group"
+                                        class="flex items-center justify-between py-2 px-2 rounded-lg hover:bg-[#DEF9EC]/60 hover:text-[#3BB77E] transition group"
                                     >
                                         <div class="flex items-center gap-2.5 min-w-0">
                                             <div class="w-5 h-5 rounded flex items-center justify-center shrink-0">
@@ -41,14 +42,12 @@
                             </div>
                         </div>
 
-                        @if($categories->count() > 9)
-                            <div class="pt-2 mt-2 border-t border-[#ececec] text-center">
-                                <a href="{{ route('category.index') }}" class="text-xs font-bold text-[#3BB77E] hover:underline font-['Quicksand'] flex items-center justify-center gap-1">
-                                    <span>Show More Categories</span>
-                                    <span>&rarr;</span>
-                                </a>
-                            </div>
-                        @endif
+                        <div class="pt-2.5 mt-2 border-t border-[#ececec] text-center shrink-0">
+                            <a href="{{ route('category.index') }}" class="text-xs font-bold text-[#3BB77E] hover:underline font-['Quicksand'] flex items-center justify-center gap-1">
+                                <span>View All Categories</span>
+                                <span>&rarr;</span>
+                            </a>
+                        </div>
                     </div>
                 </div>
             @endif
