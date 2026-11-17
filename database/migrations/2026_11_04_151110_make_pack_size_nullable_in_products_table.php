@@ -8,11 +8,15 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('products', function (Blueprint $table) {
-            $table->string('pack_size')->nullable()->change();
-            $table->string('unit_description')->nullable()->change();
-            $table->string('weight_volume')->nullable()->change();
-        });
+        if (Schema::hasTable('products')) {
+            try {
+                Schema::table('products', function (Blueprint $table) {
+                    $table->string('pack_size')->nullable()->change();
+                    $table->string('unit_description')->nullable()->change();
+                    $table->string('weight_volume')->nullable()->change();
+                });
+            } catch (\Throwable $e) {}
+        }
     }
 
     public function down(): void

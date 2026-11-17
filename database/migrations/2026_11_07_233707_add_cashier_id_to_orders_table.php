@@ -11,9 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('orders', function (Blueprint $table) {
-            $table->foreignId('cashier_id')->nullable()->after('user_id')->constrained('users')->nullOnDelete();
-        });
+        if (Schema::hasTable('orders') && !Schema::hasColumn('orders', 'cashier_id')) {
+            Schema::table('orders', function (Blueprint $table) {
+                $table->unsignedBigInteger('cashier_id')->nullable()->after('user_id');
+                $table->index('cashier_id');
+            });
+        }
     }
 
     /**

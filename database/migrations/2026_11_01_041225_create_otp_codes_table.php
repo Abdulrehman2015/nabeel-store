@@ -11,18 +11,20 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('otp_codes', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
-            $table->string('identifier')->index(); // email or phone
-            $table->string('code_hash'); // hashed 6-digit code
-            $table->string('type', 30)->default('email_verification')->index(); // 'email_verification', 'password_reset'
-            $table->unsignedTinyInteger('attempts')->default(0);
-            $table->unsignedTinyInteger('max_attempts')->default(5);
-            $table->timestamp('expires_at')->index();
-            $table->timestamp('verified_at')->nullable();
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('otp_codes')) {
+            Schema::create('otp_codes', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
+                $table->string('identifier')->index(); // email or phone
+                $table->string('code_hash'); // hashed 6-digit code
+                $table->string('type', 30)->default('email_verification')->index(); // 'email_verification', 'password_reset'
+                $table->unsignedTinyInteger('attempts')->default(0);
+                $table->unsignedTinyInteger('max_attempts')->default(5);
+                $table->timestamp('expires_at')->index();
+                $table->timestamp('verified_at')->nullable();
+                $table->timestamps();
+            });
+        }
     }
 
     /**

@@ -8,9 +8,11 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('products', function (Blueprint $table) {
-            $table->integer('low_stock_threshold')->default(10)->after('stock_quantity')->comment('Alert threshold quantity for low stock warning');
-        });
+        if (Schema::hasTable('products') && !Schema::hasColumn('products', 'low_stock_threshold')) {
+            Schema::table('products', function (Blueprint $table) {
+                $table->integer('low_stock_threshold')->default(10)->after('stock_quantity')->comment('Alert threshold quantity for low stock warning');
+            });
+        }
     }
 
     public function down(): void
