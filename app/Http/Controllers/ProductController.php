@@ -154,9 +154,13 @@ class ProductController extends Controller
      */
     public function featured(Request $request)
     {
-        $query = Product::where('is_active', true)
-            ->where('is_featured', true)
-            ->with(['category', 'brand']);
+        $featuredCount = Product::where('is_active', true)->where('is_featured', true)->count();
+
+        $query = Product::where('is_active', true)->with(['category', 'brand']);
+
+        if ($featuredCount >= 4) {
+            $query->where('is_featured', true);
+        }
 
         // Optional Category filter
         if ($request->filled('category')) {
