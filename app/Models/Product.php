@@ -179,6 +179,19 @@ class Product extends Model
             }
             return asset('storage/' . $cleanPath);
         }
+
+        // Automatic fallback for seed products so images show even if live DB has null featured_image
+        $idMap = [
+            1 => 'images/products/milo.png',
+            2 => 'images/products/maggi.jpg',
+            3 => 'images/products/100plus.png',
+            4 => 'images/products/oreo.png',
+            5 => 'images/products/nescafe.jpg',
+        ];
+        if (isset($idMap[$this->id])) {
+            return asset($idMap[$this->id]);
+        }
+
         return asset('images/default-product.png');
     }
 
