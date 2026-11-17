@@ -5,44 +5,47 @@
 
     {{-- 1. Nest Theme Home-3 Split Hero Layout (Wide Container Matching Screenshot) --}}
     <section class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 pt-4">
-        <div class="flex flex-col lg:flex-row gap-6 items-start">
+        <div class="flex flex-col lg:flex-row gap-6 items-stretch">
             
-            {{-- Left Column: Category Sidebar (Matching Screenshot) --}}
+            {{-- Left Column: Category Sidebar (Matching Banner Height) --}}
             @if($categories->count() > 0)
-                <div class="w-full lg:w-[260px] xl:w-[280px] shrink-0">
-                    <div class="bg-white rounded-[15px] border border-[#ececec] p-4 sm:p-5 shadow-2xs">
-                        <div class="pb-3 mb-3 border-b border-[#ececec] flex items-center justify-between">
-                            <h2 class="text-lg font-bold text-[#253D4E] font-['Quicksand']">
-                                Category
-                            </h2>
-                            <span class="text-xs text-[#7E7E7E]">({{ $categories->count() }})</span>
-                        </div>
+                <div class="w-full lg:w-[260px] xl:w-[280px] shrink-0 flex flex-col">
+                    <div class="bg-white rounded-[15px] border border-[#ececec] p-4 sm:p-5 shadow-2xs h-full flex flex-col justify-between">
+                        <div>
+                            <div class="pb-2.5 mb-2 border-b border-[#ececec] flex items-center justify-between">
+                                <h2 class="text-lg font-bold text-[#253D4E] font-['Quicksand']">
+                                    Category
+                                </h2>
+                                <span class="text-xs text-[#7E7E7E]">({{ $categories->count() }})</span>
+                            </div>
 
-                        <div class="space-y-1">
-                            @foreach($categories->take(11) as $cat)
-                                <a 
-                                    href="{{ route('category.show', $cat->slug) }}" 
-                                    class="flex items-center justify-between py-2 px-2 rounded-lg hover:bg-[#DEF9EC]/60 hover:text-[#3BB77E] transition group"
-                                >
-                                    <div class="flex items-center gap-2.5 min-w-0">
-                                        <div class="w-6 h-6 rounded flex items-center justify-center shrink-0">
-                                            {!! $cat->renderIcon('w-5 h-5 object-contain') !!}
+                            <div class="space-y-0.5">
+                                @foreach($categories->take(9) as $cat)
+                                    <a 
+                                        href="{{ route('category.show', $cat->slug) }}" 
+                                        class="flex items-center justify-between py-1.5 px-2 rounded-lg hover:bg-[#DEF9EC]/60 hover:text-[#3BB77E] transition group"
+                                    >
+                                        <div class="flex items-center gap-2.5 min-w-0">
+                                            <div class="w-5 h-5 rounded flex items-center justify-center shrink-0">
+                                                {!! $cat->renderIcon('w-4 h-4 object-contain') !!}
+                                            </div>
+                                            <span class="text-xs sm:text-[13px] font-bold text-[#253D4E] group-hover:text-[#3BB77E] truncate font-['Quicksand']">
+                                                {{ $cat->name }}
+                                            </span>
                                         </div>
-                                        <span class="text-xs sm:text-[13px] font-bold text-[#253D4E] group-hover:text-[#3BB77E] truncate font-['Quicksand']">
-                                            {{ $cat->name }}
+                                        <span class="text-[11px] font-bold text-[#253D4E] bg-[#BCE3C9]/40 group-hover:bg-[#3BB77E] group-hover:text-white px-2 py-0.5 rounded-full transition font-['Quicksand'] shrink-0">
+                                            {{ $cat->products_count }}
                                         </span>
-                                    </div>
-                                    <span class="text-[11px] font-bold text-[#253D4E] bg-[#BCE3C9]/40 group-hover:bg-[#3BB77E] group-hover:text-white px-2 py-0.5 rounded-full transition font-['Quicksand'] shrink-0">
-                                        {{ $cat->products_count }}
-                                    </span>
-                                </a>
-                            @endforeach
+                                    </a>
+                                @endforeach
+                            </div>
                         </div>
 
-                        @if($categories->count() > 11)
-                            <div class="pt-3 mt-2 border-t border-[#ececec] text-center">
-                                <a href="{{ route('category.index') }}" class="text-xs font-bold text-[#3BB77E] hover:underline font-['Quicksand']">
-                                    Show More Categories &rarr;
+                        @if($categories->count() > 9)
+                            <div class="pt-2 mt-2 border-t border-[#ececec] text-center">
+                                <a href="{{ route('category.index') }}" class="text-xs font-bold text-[#3BB77E] hover:underline font-['Quicksand'] flex items-center justify-center gap-1">
+                                    <span>Show More Categories</span>
+                                    <span>&rarr;</span>
                                 </a>
                             </div>
                         @endif
@@ -51,7 +54,7 @@
             @endif
 
             {{-- Right Column: Main Hero Mint Banner (Matching Screenshot Layout) --}}
-            <div class="flex-1 min-w-0 w-full">
+            <div class="flex-1 min-w-0 w-full flex flex-col">
                 @if($banners->count() > 0)
                     <div 
                         x-data="{
@@ -68,7 +71,7 @@
                         x-init="start()" 
                         @mouseenter="stop()" 
                         @mouseleave="start()"
-                        class="relative rounded-[25px] overflow-hidden bg-[#C5EAD9] min-h-[400px] sm:min-h-[470px] lg:min-h-[500px] flex items-center select-none shadow-sm"
+                        class="relative rounded-[25px] overflow-hidden bg-[#C5EAD9] min-h-[400px] sm:min-h-[470px] lg:min-h-[500px] h-full flex items-center select-none shadow-sm"
                     >
                         @foreach($banners as $index => $banner)
                             @php
