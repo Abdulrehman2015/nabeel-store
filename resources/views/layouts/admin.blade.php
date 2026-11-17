@@ -268,7 +268,14 @@
                             <span>Cloud Sync</span>
                         </div>
                         @php
-                            $pendingQueueCount = \App\Models\SyncQueue::whereIn('status', ['pending', 'failed'])->count();
+                            $pendingQueueCount = 0;
+                            try {
+                                if (\Illuminate\Support\Facades\Schema::hasTable('sync_queues')) {
+                                    $pendingQueueCount = \App\Models\SyncQueue::whereIn('status', ['pending', 'failed'])->count();
+                                }
+                            } catch (\Throwable $e) {
+                                $pendingQueueCount = 0;
+                            }
                         @endphp
                         @if($pendingQueueCount > 0)
                             <span class="px-1.5 py-0.5 rounded-full bg-amber-500 text-white text-[10px] font-black animate-pulse">

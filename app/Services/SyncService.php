@@ -313,7 +313,15 @@ class SyncService
     {
         SyncQueue::ensureTableExists();
 
-        $pendingCount = SyncQueue::pending()->count();
+        $pendingCount = 0;
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasTable('sync_queues')) {
+                $pendingCount = SyncQueue::pending()->count();
+            }
+        } catch (\Throwable $e) {
+            $pendingCount = 0;
+        }
+
         $lastSync = Setting::where('key', 'last_live_sync_at')->value('value');
 
         return [

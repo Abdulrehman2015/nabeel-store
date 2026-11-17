@@ -46,20 +46,24 @@ class SyncQueue extends Model
      */
     public static function ensureTableExists(): void
     {
-        if (!Schema::hasTable('sync_queues')) {
-            Schema::create('sync_queues', function ($table) {
-                $table->id();
-                $table->string('sync_uuid', 64)->unique()->index();
-                $table->string('record_type', 50)->index();
-                $table->unsignedBigInteger('record_id')->nullable()->index();
-                $table->string('action', 20)->default('created');
-                $table->longText('payload');
-                $table->string('status', 20)->default('pending')->index();
-                $table->unsignedSmallInteger('attempts')->default(0);
-                $table->text('error_message')->nullable();
-                $table->timestamp('synced_at')->nullable();
-                $table->timestamps();
-            });
+        try {
+            if (!Schema::hasTable('sync_queues')) {
+                Schema::create('sync_queues', function ($table) {
+                    $table->id();
+                    $table->string('sync_uuid', 64)->unique()->index();
+                    $table->string('record_type', 50)->index();
+                    $table->unsignedBigInteger('record_id')->nullable()->index();
+                    $table->string('action', 20)->default('created');
+                    $table->longText('payload');
+                    $table->string('status', 20)->default('pending')->index();
+                    $table->unsignedSmallInteger('attempts')->default(0);
+                    $table->text('error_message')->nullable();
+                    $table->timestamp('synced_at')->nullable();
+                    $table->timestamps();
+                });
+            }
+        } catch (\Throwable $e) {
+            // Fail safely if database user lacks DDL privileges
         }
     }
 
