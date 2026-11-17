@@ -180,19 +180,76 @@ class Product extends Model
             return asset('storage/' . $cleanPath);
         }
 
-        // Automatic fallback for seed products so images show even if live DB has null featured_image
-        $idMap = [
-            1 => 'images/products/milo.png',
-            2 => 'images/products/maggi.jpg',
-            3 => 'images/products/100plus.png',
-            4 => 'images/products/oreo.png',
-            5 => 'images/products/nescafe.jpg',
-        ];
-        if (isset($idMap[$this->id])) {
-            return asset($idMap[$this->id]);
+        // Match by product name or category keywords
+        $name = strtolower($this->name ?? '');
+        $cat = strtolower($this->category->name ?? $this->category->slug ?? '');
+
+        if (str_contains($name, 'milo')) {
+            return asset('images/products/milo.png');
+        }
+        if (str_contains($name, 'maggi') || str_contains($name, 'noodle')) {
+            return asset('images/products/maggi.jpg');
+        }
+        if (str_contains($name, '100') || str_contains($name, 'plus')) {
+            return asset('images/products/100plus.png');
+        }
+        if (str_contains($name, 'oreo') || str_contains($name, 'biscuit') || str_contains($name, 'cookie') || str_contains($cat, 'biscuit') || str_contains($cat, 'snack')) {
+            return asset('images/products/oreo.png');
+        }
+        if (str_contains($name, 'coffee') || str_contains($name, 'nescafe')) {
+            return asset('images/products/nescafe.jpg');
+        }
+        if (str_contains($name, 'tea')) {
+            return asset('images/products/tea.jpg');
+        }
+        if (str_contains($name, 'oil') || str_contains($cat, 'oil')) {
+            return asset('images/products/oil.png');
+        }
+        if (str_contains($name, 'rice') || str_contains($cat, 'rice') || str_contains($cat, 'grain')) {
+            return asset('images/products/rice.png');
+        }
+        if (str_contains($name, 'milk') || str_contains($name, 'dairy') || str_contains($cat, 'dairy') || str_contains($cat, 'milk')) {
+            return asset('images/products/milk.png');
+        }
+        if (str_contains($name, 'wash') || str_contains($name, 'detergent') || str_contains($name, 'laundry') || str_contains($cat, 'laundry')) {
+            return asset('images/products/washing_powder.png');
+        }
+        if (str_contains($name, 'clean') || str_contains($name, 'bleach') || str_contains($name, 'dobi') || str_contains($name, 'toilet') || str_contains($cat, 'sanitation')) {
+            return asset('images/products/cleaning.jpg');
+        }
+        if (str_contains($name, 'tissue') || str_contains($name, 'paper') || str_contains($cat, 'tissue') || str_contains($cat, 'paper')) {
+            return asset('images/products/tissue.jpg');
+        }
+        if (str_contains($name, 'canned') || str_contains($name, 'sardine') || str_contains($name, 'tuna') || str_contains($cat, 'canned')) {
+            return asset('images/products/canned.jpg');
+        }
+        if (str_contains($name, 'drink') || str_contains($name, 'juice') || str_contains($name, 'fanta') || str_contains($name, 'beverage') || str_contains($cat, 'beverage')) {
+            return asset('images/products/bottle.png');
         }
 
-        return asset('images/default-product.png');
+        // Varied fallback pool across available high-res product images
+        $pool = [
+            'images/products/milo.png',
+            'images/products/maggi.jpg',
+            'images/products/100plus.png',
+            'images/products/oreo.png',
+            'images/products/nescafe.jpg',
+            'images/products/bottle.png',
+            'images/products/milk.png',
+            'images/products/oil.png',
+            'images/products/rice.png',
+            'images/products/washing_powder.png',
+            'images/products/canned.jpg',
+            'images/products/cleaning.jpg',
+            'images/products/coffee.jpg',
+            'images/products/cookies.jpg',
+            'images/products/laundry.jpg',
+            'images/products/noodles.jpg',
+            'images/products/tea.jpg',
+            'images/products/tissue.jpg',
+        ];
+
+        return asset($pool[($this->id ?? 1) % count($pool)]);
     }
 
     public function getHasCustomImageAttribute(): bool

@@ -48,8 +48,16 @@ class HomeController extends Controller
         $featuredProducts = Product::featured()
             ->with(['category', 'brand'])
             ->latest()
-            ->take(8)
+            ->take(50)
             ->get();
+
+        if ($featuredProducts->count() < 10) {
+            $featuredProducts = Product::active()
+                ->with(['category', 'brand'])
+                ->latest()
+                ->take(50)
+                ->get();
+        }
 
         $bestSellers = Product::active()
             ->with(['category', 'brand'])
@@ -57,11 +65,7 @@ class HomeController extends Controller
             ->take(8)
             ->get();
 
-        $allProducts = Product::active()
-            ->with(['category', 'brand'])
-            ->latest()
-            ->take(15)
-            ->get();
+        $allProducts = $featuredProducts;
 
         // 5. Value content
         $steps = HowItWorksStep::active()->get();

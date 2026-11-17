@@ -212,60 +212,161 @@
         </div>
     </section>
 
-    {{-- 2. Popular Products Section (Wide Container Matching Screenshot) --}}
+    {{-- 2. Featured Products Section (Wide Container) --}}
     @if(isset($allProducts) && $allProducts->count() > 0)
+        @php
+            $categoriesWithProducts = $allProducts->pluck('category_id')->unique()->filter()->values()->all();
+        @endphp
         <section 
             class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8" 
             x-data="{
                 activeTab: 'all',
                 filterCategory: null,
-                setTab(tab, catId = null) {
+                selectedCategoryName: 'All Products',
+                selectedCategorySlug: '',
+                dropdownOpen: false,
+                setTab(tab, catId = null, name = 'All Products', slug = '') {
                     this.activeTab = tab;
                     this.filterCategory = catId;
+                    this.selectedCategoryName = name;
+                    this.selectedCategorySlug = slug;
+                    this.dropdownOpen = false;
+                },
+                getViewAllUrl() {
+                    if (this.activeTab !== 'all' && this.selectedCategorySlug) {
+                        return '/category/' + this.selectedCategorySlug;
+                    }
+                    return '{{ route('category.index') }}';
                 }
             }"
         >
-            {{-- Header Row: Left title + Right category filter tabs (Matching Screenshot) --}}
-            <div class="flex flex-col md:flex-row md:items-end justify-between pb-3 mb-6 border-b border-[#ececec] gap-4">
+            {{-- Header Row: Left title + Right category dropdown & View All button --}}
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-3 mb-6 border-b border-[#ececec] gap-4">
                 <div>
                     <h2 class="text-xl sm:text-2xl lg:text-[32px] font-bold text-[#253D4E] tracking-tight font-['Quicksand']">
-                        Popular Products
+                        Featured Products
                     </h2>
                 </div>
 
-                {{-- Filter Tabs (Matching Screenshot: All, categories, etc.) --}}
-                <div class="flex flex-wrap items-center gap-4 sm:gap-6 text-sm font-bold font-['Quicksand']">
-                    <button 
-                        type="button" 
-                        @click="setTab('all')" 
-                        :class="activeTab === 'all' ? 'text-[#3BB77E] border-b-2 border-[#3BB77E] pb-1' : 'text-[#7E7E7E] hover:text-[#3BB77E] pb-1'" 
-                        class="transition-colors cursor-pointer"
-                    >
-                        All
-                    </button>
-                    @foreach($categories->take(6) as $filterCat)
+                <div class="flex items-center gap-3">
+                    {{-- Category Dropdown (All Products selected by default) --}}
+                    <div class="relative" @click.outside="dropdownOpen = false">
                         <button 
-                            type="button"
-                            @click="setTab('cat_{{ $filterCat->id }}', {{ $filterCat->id }})" 
-                            :class="activeTab === 'cat_{{ $filterCat->id }}' ? 'text-[#3BB77E] border-b-2 border-[#3BB77E] pb-1' : 'text-[#7E7E7E] hover:text-[#3BB77E] pb-1'" 
-                            class="transition-colors cursor-pointer"
+                            type="button" 
+                            @click="dropdownOpen = !dropdownOpen" 
+                            class="inline-flex items-center gap-2.5 px-4 py-2 rounded-xl border border-[#ececec] bg-white text-sm font-bold font-['Quicksand'] text-[#253D4E] hover:border-[#3BB77E] transition-all cursor-pointer shadow-xs min-w-[170px] justify-between"
                         >
-                            {{ $filterCat->name }}
+                            <div class="flex items-center gap-2 truncate">
+                                <span class="w-2 h-2 rounded-full bg-[#3BB77E]"></span>
+                                <span class="text-[#253D4E] font-bold truncate" x-text="selectedCategoryName">All Products</span>
+                            </div>
+                            <svg class="w-4 h-4 transition-transform duration-200 text-[#7E7E7E] shrink-0" :class="dropdownOpen ? 'rotate-180 text-[#3BB77E]' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
+                            </svg>
                         </button>
-                    @endforeach
+
+                        {{-- Dropdown Menu --}}
+                        <div 
+                            x-show="dropdownOpen" 
+                            x-transition:enter="transition ease-out duration-150"
+                            x-transition:enter-start="opacity-0 scale-95"
+                            x-transition:enter-end="opacity-100 scale-100"
+                            x-transition:leave="transition ease-in duration-100"
+                            x-transition:leave-start="opacity-100 scale-100"
+                            x-transition:leave-end="opacity-0 scale-95"
+                            class="absolute right-0 mt-2 w-64 max-h-72 overflow-y-auto rounded-xl bg-white shadow-xl ring-1 ring-black/10 z-50 p-1.5 focus:outline-none divide-y divide-gray-50"
+                            style="display: none;"
+                        >
+                            {{-- All Products Option --}}
+                            <button 
+                                type="button"
+                                @click="setTab('all', null, 'All Products', '')" 
+                                :class="activeTab === 'all' ? 'bg-[#DEF9EC] text-[#3BB77E] font-bold' : 'text-[#253D4E] hover:bg-[#F2FCE4] hover:text-[#3BB77E]'" 
+                                class="w-full text-left px-3.5 py-2.5 text-sm rounded-lg transition-colors flex items-center justify-between cursor-pointer font-['Quicksand']"
+                            >
+                                <span class="flex items-center gap-2">
+                                    <span class="w-1.5 h-1.5 rounded-full" :class="activeTab === 'all' ? 'bg-[#3BB77E]' : 'bg-transparent'"></span>
+                                    All Products
+                                </span>
+                                <span class="text-[11px] text-[#7E7E7E]">({{ $allProducts->count() > 10 ? 10 : $allProducts->count() }})</span>
+                            </button>
+
+                            {{-- Category Options --}}
+                            <div class="pt-1 space-y-0.5">
+                                @foreach($categories as $filterCat)
+                                    <button 
+                                        type="button"
+                                        @click="setTab('cat_{{ $filterCat->id }}', {{ $filterCat->id }}, '{{ addslashes($filterCat->name) }}', '{{ $filterCat->slug }}')" 
+                                        :class="activeTab === 'cat_{{ $filterCat->id }}' ? 'bg-[#DEF9EC] text-[#3BB77E] font-bold' : 'text-[#253D4E] hover:bg-[#F2FCE4] hover:text-[#3BB77E]'" 
+                                        class="w-full text-left px-3.5 py-2 text-xs sm:text-sm rounded-lg transition-colors flex items-center justify-between cursor-pointer font-['Quicksand']"
+                                    >
+                                        <span class="truncate flex items-center gap-2">
+                                            <span class="w-1.5 h-1.5 rounded-full" :class="activeTab === 'cat_{{ $filterCat->id }}' ? 'bg-[#3BB77E]' : 'bg-transparent'"></span>
+                                            <span class="truncate">{{ $filterCat->name }}</span>
+                                        </span>
+                                        @if(isset($filterCat->products_count) && $filterCat->products_count > 0)
+                                            <span class="text-[11px] text-[#7E7E7E] ml-2 font-normal">({{ $filterCat->products_count }})</span>
+                                        @endif
+                                    </button>
+                                @endforeach
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- View All Button in Header (Dynamically links to selected category or all) --}}
+                    <a 
+                        :href="getViewAllUrl()" 
+                        class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#DEF9EC]/60 hover:bg-[#3BB77E] text-[#3BB77E] hover:text-white border border-[#3BB77E]/30 text-xs sm:text-sm font-bold font-['Quicksand'] transition-all shadow-2xs whitespace-nowrap group"
+                    >
+                        <span x-text="selectedCategorySlug ? 'View All ' + selectedCategoryName : 'View All'">View All</span>
+                        <svg class="w-4 h-4 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/>
+                        </svg>
+                    </a>
                 </div>
             </div>
 
-            {{-- Products Grid: 5 Columns Desktop Spanning Wide Screen --}}
+            {{-- Products Grid: 5 Columns Desktop Spanning Wide Screen (10 Products) --}}
             <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-6">
+                @php
+                    $catCounts = [];
+                @endphp
                 @foreach($allProducts as $product)
+                    @php 
+                        $cid = $product->category_id;
+                        $catCounts[$cid] = ($catCounts[$cid] ?? 0) + 1;
+                        $isCategoryTen = ($catCounts[$cid] <= 10);
+                        $isDefaultTen = ($loop->index < 10);
+                    @endphp
                     <div 
-                        x-show="activeTab === 'all' || filterCategory === {{ $product->category_id }}" 
+                        x-show="(activeTab === 'all' && {{ $isDefaultTen ? 'true' : 'false' }}) || (activeTab !== 'all' && filterCategory === {{ $product->category_id }} && {{ $isCategoryTen ? 'true' : 'false' }})" 
                         x-transition
                     >
                         @include('storefront.partials.product_card', ['product' => $product])
                     </div>
                 @endforeach
+
+                {{-- Empty State if Category Has No Products in Current Batch --}}
+                <div 
+                    x-show="activeTab !== 'all' && !{{ json_encode($categoriesWithProducts) }}.includes(filterCategory)" 
+                    class="col-span-full py-12 text-center"
+                    style="display: none;"
+                >
+                    <p class="text-[#7E7E7E] text-sm font-['Quicksand'] font-semibold">No products found in this category.</p>
+                </div>
+            </div>
+
+            {{-- Bottom View All Button (Dynamically links to selected category or all) --}}
+            <div class="mt-8 text-center">
+                <a 
+                    :href="getViewAllUrl()" 
+                    class="inline-flex items-center gap-2 px-8 py-3 rounded-full border-2 border-[#3BB77E] text-[#3BB77E] hover:bg-[#3BB77E] hover:text-white font-bold text-sm font-['Quicksand'] transition-all shadow-xs hover:shadow-md group"
+                >
+                    <span x-text="selectedCategorySlug ? 'View All ' + selectedCategoryName + ' Products' : 'View All Featured Products'">View All Products</span>
+                    <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/>
+                    </svg>
+                </a>
             </div>
         </section>
     @endif
