@@ -167,10 +167,17 @@ class Product extends Model
     public function getImageUrlAttribute(): string
     {
         if ($this->featured_image) {
-            if (str_starts_with($this->featured_image, 'http')) {
+            if (str_starts_with($this->featured_image, 'http://') || str_starts_with($this->featured_image, 'https://')) {
                 return $this->featured_image;
             }
-            return asset('storage/' . $this->featured_image);
+            $cleanPath = ltrim($this->featured_image, '/');
+            if (str_starts_with($cleanPath, 'storage/')) {
+                return asset($cleanPath);
+            }
+            if (str_starts_with($cleanPath, 'images/')) {
+                return asset($cleanPath);
+            }
+            return asset('storage/' . $cleanPath);
         }
         return asset('images/default-product.png');
     }

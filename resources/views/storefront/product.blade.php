@@ -1,7 +1,7 @@
 @extends('layouts.storefront')
 
 @section('content')
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-8 space-y-8 sm:space-y-12">
+<div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-8 space-y-8 sm:space-y-12">
 
     {{-- 1. Modern Pill Breadcrumbs (Mobile Scrollable) --}}
     <nav class="flex items-center text-xs font-semibold text-slate-500 overflow-x-auto whitespace-nowrap pb-1 scrollbar-none" aria-label="Breadcrumb">
@@ -399,66 +399,52 @@
         class="bg-white rounded-3xl border border-slate-200/90 p-5 sm:p-8 lg:p-10 shadow-sm space-y-6"
         x-data="{ tab: 'description' }"
     >
-        {{-- Responsive Tabs Bar (Horizontally scrollable on mobile) --}}
-        <div class="flex items-center gap-2 pb-4 border-b border-slate-200/90 overflow-x-auto whitespace-nowrap scrollbar-none">
+        {{-- Responsive Tabs Bar (Nest Style) --}}
+        <div class="flex items-center gap-2 pb-4 border-b border-[#ececec] overflow-x-auto whitespace-nowrap scrollbar-none font-['Quicksand']">
             <button 
                 type="button" 
                 @click="tab = 'description'" 
-                class="px-4 sm:px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center gap-2 shrink-0 select-none"
-                :class="tab === 'description' ? 'bg-slate-900 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:text-slate-900 hover:bg-slate-200'"
+                class="px-5 py-2.5 rounded-full text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center gap-2 shrink-0 select-none"
+                :class="tab === 'description' ? 'bg-[#DEF9EC] text-[#3BB77E] border border-[#BCE3C9]' : 'bg-[#f4f6fa] text-[#7E7E7E] hover:text-[#253D4E] hover:bg-[#e9edf4]'"
             >
-                <span>📝</span>
-                <span>Product Overview & Features</span>
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                <span>Product Description</span>
             </button>
             <button 
                 type="button" 
                 @click="tab = 'specs'" 
-                class="px-4 sm:px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center gap-2 shrink-0 select-none"
-                :class="tab === 'specs' ? 'bg-slate-900 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:text-slate-900 hover:bg-slate-200'"
+                class="px-5 py-2.5 rounded-full text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center gap-2 shrink-0 select-none"
+                :class="tab === 'specs' ? 'bg-[#DEF9EC] text-[#3BB77E] border border-[#BCE3C9]' : 'bg-[#f4f6fa] text-[#7E7E7E] hover:text-[#253D4E] hover:bg-[#e9edf4]'"
             >
-                <span>⚙️</span>
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
                 <span>Specifications & Packaging</span>
             </button>
             <button 
                 type="button" 
                 @click="tab = 'delivery'" 
-                class="px-4 sm:px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center gap-2 shrink-0 select-none"
-                :class="tab === 'delivery' ? 'bg-slate-900 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:text-slate-900 hover:bg-slate-200'"
+                class="px-5 py-2.5 rounded-full text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center gap-2 shrink-0 select-none"
+                :class="tab === 'delivery' ? 'bg-[#DEF9EC] text-[#3BB77E] border border-[#BCE3C9]' : 'bg-[#f4f6fa] text-[#7E7E7E] hover:text-[#253D4E] hover:bg-[#e9edf4]'"
             >
-                <span>🚚</span>
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0"/></svg>
                 <span>Delivery & Floor Policy</span>
             </button>
         </div>
 
-        {{-- Tab 1: Product Description --}}
-        <div x-show="tab === 'description'" x-cloak class="space-y-6">
-            <div class="prose prose-slate max-w-none text-sm text-slate-700 leading-relaxed">
-                {!! $product->description !!}
-            </div>
+        {{-- Tab 1: Product Description (100% Dynamic from Database) --}}
+        <div x-show="tab === 'description'" x-cloak class="space-y-4 pt-2">
+            @if($product->short_description)
+                <p class="text-sm sm:text-base text-[#253D4E] font-medium leading-relaxed font-['Lato']">
+                    {{ $product->short_description }}
+                </p>
+            @endif
 
-            {{-- Visual Features Grid --}}
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 pt-4 border-t border-slate-100">
-                <div class="p-3.5 sm:p-4 rounded-2xl bg-lime-50/70 border border-lime-200/70 space-y-1">
-                    <span class="text-xl">🍋</span>
-                    <h4 class="text-xs font-bold text-slate-900">Real Lime Formula</h4>
-                    <p class="text-[11px] text-slate-600 leading-snug">Cuts through heavy burnt oil and tough grease 100x faster.</p>
+            @if($product->description)
+                <div class="prose prose-slate max-w-none text-sm text-[#7E7E7E] leading-relaxed font-['Lato'] {{ $product->short_description ? 'border-t border-[#ececec] pt-4' : '' }}">
+                    {!! $product->description !!}
                 </div>
-                <div class="p-3.5 sm:p-4 rounded-2xl bg-sky-50/70 border border-sky-200/70 space-y-1">
-                    <span class="text-xl">✨</span>
-                    <h4 class="text-xs font-bold text-slate-900">Sparkling Shine</h4>
-                    <p class="text-[11px] text-slate-600 leading-snug">Rinses away cleanly with zero chemical residue left on tableware.</p>
-                </div>
-                <div class="p-3.5 sm:p-4 rounded-2xl bg-emerald-50/70 border border-emerald-200/70 space-y-1">
-                    <span class="text-xl">🛡️</span>
-                    <h4 class="text-xs font-bold text-slate-900">Gentle on Hands</h4>
-                    <p class="text-[11px] text-slate-600 leading-snug">Balanced pH formula ensures comfortable daily kitchen cleaning.</p>
-                </div>
-                <div class="p-3.5 sm:p-4 rounded-2xl bg-amber-50/70 border border-amber-200/70 space-y-1">
-                    <span class="text-xl">🏆</span>
-                    <h4 class="text-xs font-bold text-slate-900">{{ store_name() }} Quality Check</h4>
-                    <p class="text-[11px] text-slate-600 leading-snug">Every item is verified for freshness, packaging integrity and shelf-life.</p>
-                </div>
-            </div>
+            @elseif(!$product->short_description)
+                <p class="text-sm text-[#7E7E7E] italic font-['Lato']">No description provided for this product.</p>
+            @endif
         </div>
 
         {{-- Tab 2: Specifications Table --}}

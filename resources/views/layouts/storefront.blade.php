@@ -38,50 +38,63 @@
     <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}">
     <link rel="shortcut icon" type="image/png" href="{{ asset('favicon.png') }}">
 
-    {{-- Google Fonts --}}
+    {{-- Google Fonts: Quicksand & Lato (Nest Theme Official Typography) --}}
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,300;0,400;0,700;1,400&family=Quicksand:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
-    {{-- Phase 6: Dynamic CSS Variables & Tailwind Theme Injection --}}
+    {{-- Phase 6: Dynamic CSS Variables & Tailwind Theme Injection (Nest Theme Harmonized) --}}
     <style>
         [x-cloak] { display: none !important; }
         :root {
-            --color-primary: {{ setting('color_primary', '#0284c7') }};
-            --color-primary-hover: {{ setting('color_primary_hover', '#0369a1') }};
-            --color-secondary: {{ setting('color_secondary', '#0f172a') }};
-            --color-accent: {{ setting('color_accent', '#f59e0b') }};
-            --color-bg: {{ setting('color_bg', '#f8fafc') }};
-            --color-text: {{ setting('color_text', '#1e293b') }};
+            --color-primary: {{ setting('color_primary', '#3BB77E') }};
+            --color-primary-hover: {{ setting('color_primary_hover', '#29A56C') }};
+            --color-secondary: {{ setting('color_secondary', '#253D4E') }};
+            --color-accent: {{ setting('color_accent', '#FDC040') }};
+            --color-bg: {{ setting('color_bg', '#ffffff') }};
+            --color-text: {{ setting('color_text', '#253D4E') }};
             --color-header-bg: {{ setting('color_header_bg', '#ffffff') }};
-            --color-footer-bg: {{ setting('color_footer_bg', '#0f172a') }};
+            --color-footer-bg: {{ setting('color_footer_bg', '#253D4E') }};
             --color-button-text: {{ setting('color_button_text', '#ffffff') }};
-            --font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+            --font-family: 'Lato', system-ui, -apple-system, sans-serif;
+            --font-heading: 'Quicksand', system-ui, -apple-system, sans-serif;
             --border-radius: {{ setting('border_radius', '0.75rem') }};
+            --nest-green: #3BB77E;
+            --nest-green-hover: #29A56C;
+            --nest-dark: #253D4E;
+            --nest-muted: #7E7E7E;
+            --nest-border: #ececec;
+            --nest-light-bg: #F4F6FA;
         }
         body {
             font-family: var(--font-family);
             background-color: var(--color-bg);
             color: var(--color-text);
         }
+        h1, h2, h3, h4, h5, h6, .font-heading, .nest-heading {
+            font-family: var(--font-heading) !important;
+        }
         .btn-primary {
-            background-color: var(--color-primary);
+            background-color: var(--nest-green);
             color: var(--color-button-text);
             border-radius: var(--border-radius);
+            font-family: var(--font-heading);
+            font-weight: 700;
             transition: all 0.2s ease-in-out;
         }
         .btn-primary:hover {
-            background-color: var(--color-primary-hover);
+            background-color: var(--nest-green-hover);
         }
         .btn-accent {
             background-color: var(--color-accent);
-            color: #000;
+            color: #253D4E;
             border-radius: var(--border-radius);
-            font-weight: 600;
+            font-family: var(--font-heading);
+            font-weight: 700;
         }
-        .bg-primary { background-color: var(--color-primary); }
-        .text-primary { color: var(--color-primary); }
-        .border-primary { border-color: var(--color-primary); }
+        .bg-primary { background-color: var(--nest-green); }
+        .text-primary { color: var(--nest-green); }
+        .border-primary { border-color: var(--nest-green); }
     </style>
 
     {{-- Leaflet Map CSS for Map Picker --}}
@@ -227,7 +240,7 @@
 
     {{-- Top Announcement Bar --}}
     <div class="bg-slate-900 text-slate-200 text-xs py-2 px-4 border-b border-slate-800">
-        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-2">
+        <div class="max-w-[1600px] mx-auto flex flex-col sm:flex-row justify-between items-center gap-2">
             <div class="flex items-center gap-3">
                 <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-medium">
                     ⚡ Free Delivery
@@ -244,7 +257,7 @@
 
     {{-- Main Header --}}
     <header class="sticky top-0 z-40 bg-white border-b border-slate-200 shadow-sm">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-20 gap-4">
                 
                 {{-- Mobile menu button --}}
@@ -255,34 +268,30 @@
                 {{-- Brand Logo --}}
                 <div class="flex items-center">
                     <a href="{{ url('/') }}" class="flex items-center gap-3 group">
-                        <div class="bg-slate-950 p-2 sm:px-3 sm:py-2 rounded-2xl shadow-md border border-slate-800 flex items-center transition-all group-hover:border-lime-500/50 group-hover:shadow-lime-500/10">
+                        <div class="bg-black p-2 sm:px-3 sm:py-2 rounded-2xl shadow-md border border-neutral-800 flex items-center transition-all group-hover:border-lime-500/50">
                             <img src="{{ setting('site_logo') ? asset('storage/' . setting('site_logo')) : asset('images/logo.png') }}" alt="{{ store_name() }}" class="h-9 sm:h-11 w-auto object-contain" onerror="this.onerror=null; this.src='{{ asset('images/logo.png') }}';">
-                        </div>
-                        <div class="hidden xl:block">
-                            <span class="block text-xs font-black text-slate-900 uppercase tracking-tight">Mini Mart</span>
-                            <span class="block text-[10px] font-semibold text-lime-600">Daily Groceries & Essentials</span>
                         </div>
                     </a>
                 </div>
 
-                {{-- Live Search Bar (Center) --}}
+                {{-- Live Search Bar (Center - Nest Style) --}}
                 <div class="flex-1 max-w-xl mx-2 hidden sm:block relative">
                     <form action="{{ route('search') }}" method="GET" class="relative">
-                        <div class="relative">
+                        <div class="relative flex items-center">
                             <input 
                                 type="text" 
                                 name="q" 
                                 x-model="liveSearchQuery" 
                                 @input.debounce.300ms="fetchLiveSearch()" 
                                 @focus="fetchLiveSearch()" 
-                                placeholder="Search products by brand, name or SKU (e.g. Fanta, Milo, Maggi)..." 
-                                class="w-full pl-11 pr-24 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:bg-white focus:border-sky-500 focus:ring-2 focus:ring-sky-200 transition"
+                                placeholder="Search for products, fresh groceries..." 
+                                class="w-full pl-11 pr-24 py-2.5 bg-white border-2 border-[#BCE3C9] rounded-lg text-sm text-[#253D4E] focus:bg-white focus:border-[#3BB77E] focus:ring-2 focus:ring-[#DEF9EC] transition font-['Lato']"
                                 autocomplete="off"
                             >
-                            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#7E7E7E]">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                             </div>
-                            <button type="submit" class="absolute inset-y-1 right-1 px-4 bg-sky-600 hover:bg-sky-700 text-white text-xs font-semibold rounded-lg transition flex items-center">
+                            <button type="submit" class="absolute inset-y-1 right-1 px-5 bg-[#3BB77E] hover:bg-[#29A56C] text-white text-xs font-bold rounded-md transition flex items-center font-['Quicksand'] cursor-pointer">
                                 Search
                             </button>
                         </div>
@@ -402,21 +411,21 @@
                         </div>
                     @endauth
 
-                    {{-- Mini-Cart Trigger Button --}}
+                    {{-- Mini-Cart Trigger Button (Nest Style) --}}
                     <button 
                         type="button" 
                         @click="cartOpen = true; refreshMiniCart()" 
-                        class="relative flex items-center gap-2.5 bg-sky-600 hover:bg-sky-700 text-white px-3.5 py-2.5 rounded-xl font-semibold text-sm shadow-md transition"
+                        class="relative flex items-center gap-2.5 bg-[#DEF9EC] hover:bg-[#3BB77E] text-[#253D4E] hover:text-white border border-[#BCE3C9] px-4 py-2.5 rounded-lg font-bold text-sm shadow-2xs transition-all font-['Quicksand'] cursor-pointer"
                     >
                         <div class="relative">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
                             <span 
                                 x-show="cartCount > 0" 
                                 x-text="cartCount" 
-                                class="absolute -top-2 -right-2.5 bg-amber-400 text-slate-900 text-[11px] font-black w-5 h-5 rounded-full flex items-center justify-center shadow-sm"
+                                class="absolute -top-2.5 -right-3 bg-[#3BB77E] text-white text-[11px] font-black w-5 h-5 rounded-full flex items-center justify-center shadow-xs"
                             ></span>
                         </div>
-                        <span class="hidden md:inline" x-text="cartSubtotal"></span>
+                        <span class="hidden md:inline font-bold" x-text="cartSubtotal"></span>
                     </button>
                 </div>
             </div>
@@ -434,6 +443,78 @@
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                     </div>
                 </form>
+            </div>
+        </div>
+
+        {{-- Nest Style Sub-Navigation Bar (Home-3 Reference) --}}
+        <div class="hidden lg:block border-t border-[#ececec] bg-white">
+            <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
+                {{-- Left: Browse All Categories Button --}}
+                <div class="relative" x-data="{ browseOpen: false }">
+                    <button 
+                        @click="browseOpen = !browseOpen" 
+                        @click.away="browseOpen = false"
+                        class="bg-[#3BB77E] hover:bg-[#29A56C] text-white font-bold text-sm px-5 py-3 rounded-t-lg flex items-center gap-2.5 transition-colors font-['Quicksand'] cursor-pointer"
+                    >
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 6h16M4 12h16M4 18h16"/></svg>
+                        <span>Browse All Categories</span>
+                        <svg class="w-4 h-4 ml-1 transition-transform" :class="browseOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </button>
+
+                    {{-- Dropdown Menu for Browse Categories --}}
+                    <div 
+                        x-show="browseOpen" 
+                        x-transition 
+                        class="absolute left-0 top-full mt-0 w-72 bg-white rounded-b-xl shadow-2xl border border-[#ececec] border-t-0 p-3 z-50 divide-y divide-[#ececec]/60"
+                        style="display: none;"
+                    >
+                        @php
+                            $allNavCategories = \App\Models\Category::active()->orderBy('sort_order')->take(12)->get();
+                        @endphp
+                        <div class="py-1">
+                            @foreach($allNavCategories as $navCat)
+                                <a href="{{ route('category.show', $navCat->slug) }}" class="flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold text-[#253D4E] hover:bg-[#DEF9EC] hover:text-[#3BB77E] transition">
+                                    <span class="truncate">{{ $navCat->name }}</span>
+                                    <span class="text-[10px] text-[#253D4E] bg-[#DEF9EC] font-bold px-2 py-0.5 rounded-full">{{ $navCat->products()->count() }}</span>
+                                </a>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Center: Navigation Links --}}
+                <nav class="flex items-center gap-7 text-sm font-bold text-[#253D4E] font-['Quicksand']">
+                    <a href="{{ route('home') }}" class="hover:text-[#3BB77E] transition flex items-center gap-1.5 {{ request()->routeIs('home') ? 'text-[#3BB77E]' : '' }}">
+                        <svg class="w-4 h-4 text-[#f74b81]" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M12.395 2.553a1 1 0 00-1.45-.385c-.345.23-.614.558-.822.88-.316.492-.533 1.05-.694 1.62-.316 1.116-.407 2.29-.356 3.44.02.433.06.866.12 1.294a6.5 6.5 0 01-1.393-.85c-.343-.284-.66-.605-.935-.96a1 1 0 00-1.637.382c-.378.96-.547 2.01-.482 3.064.12 1.956 1.05 3.79 2.535 5.034 1.485 1.244 3.425 1.906 5.39 1.83 1.965-.075 3.84-.87 5.184-2.203 1.344-1.332 2.073-3.155 2.015-5.048-.057-1.854-.84-3.606-2.18-4.887a1 1 0 00-1.564.183c-.328.47-.73.882-1.18 1.218a5.5 5.5 0 01-.194-2.825c.196-.948.55-1.86 1.04-2.69a1 1 0 00-.47-1.405z" clip-rule="evenodd"/></svg>
+                        <span>Hot Deals</span>
+                    </a>
+                    <a href="{{ route('home') }}" class="hover:text-[#3BB77E] transition">
+                        <span>Home</span>
+                    </a>
+                    <a href="{{ route('category.index') }}" class="hover:text-[#3BB77E] transition">
+                        <span>Shop</span>
+                    </a>
+                    <a href="{{ route('order.track') }}" class="hover:text-[#3BB77E] transition">
+                        <span>Order Tracking</span>
+                    </a>
+                    <a href="{{ route('page.faqs') }}" class="hover:text-[#3BB77E] transition">
+                        <span>FAQs</span>
+                    </a>
+                    <a href="{{ route('page.contact') }}" class="hover:text-[#3BB77E] transition">
+                        <span>Contact</span>
+                    </a>
+                </nav>
+
+                {{-- Right: Support Phone Hotline --}}
+                <div class="flex items-center gap-2.5 text-[#253D4E]">
+                    <div class="w-8 h-8 rounded-full bg-[#DEF9EC] text-[#3BB77E] flex items-center justify-center">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+                    </div>
+                    <div>
+                        <span class="block text-sm font-bold text-[#3BB77E] font-['Quicksand'] leading-tight">{{ setting('store_phone', setting('admin_phone', '1900888123')) }}</span>
+                        <span class="block text-[10px] text-[#7E7E7E] font-medium leading-tight">24/7 Support Center</span>
+                    </div>
+                </div>
             </div>
         </div>
     </header>
@@ -645,14 +726,14 @@
 
     {{-- Dynamic Footer --}}
     <footer class="bg-slate-900 text-slate-400 text-sm mt-16 border-t border-slate-800">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
+        <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 lg:gap-12">
                 
                 {{-- Col 1: Brand Info --}}
                 <div class="lg:col-span-2 space-y-4">
                     <div class="flex items-center gap-3">
-                        <div class="bg-slate-950 p-2.5 rounded-2xl border border-slate-800 shadow-md">
-                            <img src="{{ setting('site_logo') ? asset('storage/' . setting('site_logo')) : asset('images/logo.png') }}" alt="{{ store_name() }}" class="h-10 sm:h-12 w-auto object-contain" onerror="this.onerror=null; this.src='{{ asset('images/logo.png') }}';">
+                        <div class="bg-black p-2.5 rounded-2xl border border-neutral-800 shadow-md">
+                            <img src="{{ setting('site_logo') ? asset('storage/' . setting('site_logo')) : asset('images/logo.png') }}" alt="{{ store_name() }}" class="h-11 sm:h-13 w-auto object-contain" onerror="this.onerror=null; this.src='{{ asset('images/logo.png') }}';">
                         </div>
                     </div>
                     <p class="text-xs text-slate-400 leading-relaxed max-w-sm">

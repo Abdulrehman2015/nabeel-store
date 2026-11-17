@@ -18,6 +18,7 @@ use App\Http\Controllers\Admin\AdminProfileController;
 use App\Http\Controllers\Admin\AdminReportController;
 use App\Http\Controllers\Admin\AdminSettingsController;
 use App\Http\Controllers\Admin\AdminStaffController;
+use App\Http\Controllers\Admin\AdminSyncController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -80,6 +81,15 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::post('pos/customer', [AdminPosController::class, 'quickCustomer'])->name('pos.customer');
     Route::post('pos/quick-product', [AdminPosController::class, 'quickProduct'])->name('pos.quick-product');
     Route::get('pos/shift-summary', [AdminPosController::class, 'shiftSummary'])->name('pos.shift-summary');
+
+    // Offline / Live Database Sync Center
+    Route::prefix('sync')->name('sync.')->group(function () {
+        Route::get('/', [AdminSyncController::class, 'index'])->name('index');
+        Route::get('/status', [AdminSyncController::class, 'status'])->name('status');
+        Route::post('/trigger', [AdminSyncController::class, 'triggerSync'])->name('trigger');
+        Route::post('/{syncQueue}/retry', [AdminSyncController::class, 'retry'])->name('retry');
+        Route::post('/clear-synced', [AdminSyncController::class, 'clearSynced'])->name('clear-synced');
+    });
 
     // Categories (Cashier can view/create, but cannot bulk delete)
     Route::delete('categories/delete-all', [AdminCategoryController::class, 'deleteAll'])->name('categories.delete-all')->middleware('admin.only');

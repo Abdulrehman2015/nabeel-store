@@ -35,6 +35,10 @@ Route::get('/storage/{path}', function ($path) {
     if (file_exists($publicFile) && is_file($publicFile)) {
         return response()->file($publicFile);
     }
+    $publicImg = public_path('images/' . $path);
+    if (file_exists($publicImg) && is_file($publicImg)) {
+        return response()->file($publicImg);
+    }
     if (str_starts_with($path, 'theme/')) {
         if (str_contains($path, 'favicon') || str_ends_with($path, '.ico')) {
             return response()->file(public_path('images/app.ico'));
@@ -55,6 +59,10 @@ Route::get('/public/storage/{path}', function ($path) {
     $publicFile = public_path('storage/' . $path);
     if (file_exists($publicFile) && is_file($publicFile)) {
         return response()->file($publicFile);
+    }
+    $publicImg = public_path('images/' . $path);
+    if (file_exists($publicImg) && is_file($publicImg)) {
+        return response()->file($publicImg);
     }
     if (str_starts_with($path, 'theme/')) {
         if (str_contains($path, 'favicon') || str_ends_with($path, '.ico')) {
@@ -145,6 +153,13 @@ Route::middleware(['auth', 'customer.verified'])->group(function () {
 // Windows POS Desktop Installer Download (routed via PHP to bypass hosting .exe blocking)
 Route::get('/downloads/pos-app', [App\Http\Controllers\Admin\AdminPosController::class, 'downloadApp'])->name('pos.download-app');
 Route::get('/downloads/pos-app-zip', [App\Http\Controllers\Admin\AdminPosController::class, 'downloadZip'])->name('pos.download-zip');
+
+// Offline-First Store & POS Synchronization API (Live Cloud Sync)
+Route::prefix('api/sync')->group(function () {
+    Route::get('/ping', [App\Http\Controllers\Api\SyncApiController::class, 'ping'])->name('api.sync.ping');
+    Route::post('/push', [App\Http\Controllers\Api\SyncApiController::class, 'push'])->name('api.sync.push');
+    Route::get('/pull', [App\Http\Controllers\Api\SyncApiController::class, 'pull'])->name('api.sync.pull');
+});
 
 // Dynamic Legal Policy Slugs (Must be placed after static routes)
 Route::get('/{slug}', [PageController::class, 'show'])

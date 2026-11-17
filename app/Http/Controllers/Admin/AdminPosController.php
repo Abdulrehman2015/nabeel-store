@@ -375,6 +375,13 @@ class AdminPosController extends Controller
                 'cashier' => auth()->user()->name,
             ]);
 
+            // Queue order into offline sync outbox
+            try {
+                \App\Models\SyncQueue::queueOrder($order);
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('POS Sync Queue Error: ' . $e->getMessage());
+            }
+
             return response()->json([
                 'success' => true,
                 'is_staff_pos' => $isStaffPos,
@@ -588,6 +595,13 @@ class AdminPosController extends Controller
             'stock' => $product->stock_quantity,
             'added_by' => auth()->user()->name,
         ]);
+
+        // Queue newly added product into offline sync outbox
+        try {
+            \App\Models\SyncQueue::queueProduct($product, 'created');
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('POS Product Sync Queue Error: ' . $e->getMessage());
+        }
 
         return response()->json([
             'success' => true,

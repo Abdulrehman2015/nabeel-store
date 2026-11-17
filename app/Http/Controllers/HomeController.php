@@ -57,6 +57,12 @@ class HomeController extends Controller
             ->take(8)
             ->get();
 
+        $allProducts = Product::active()
+            ->with(['category', 'brand'])
+            ->latest()
+            ->take(15)
+            ->get();
+
         // 5. Value content
         $steps = HowItWorksStep::active()->get();
         $benefits = Benefit::active()->get();
@@ -75,6 +81,7 @@ class HomeController extends Controller
             'newArrivalProducts',
             'featuredProducts',
             'bestSellers',
+            'allProducts',
             'steps',
             'benefits',
             'faqs',

@@ -67,6 +67,25 @@
                 <span class="text-[10px] text-emerald-600 bg-emerald-100/80 px-1 py-0.2 rounded font-bold">Drawer</span>
             </button>
 
+            {{-- Cloud Sync Indicator & Quick Trigger --}}
+            <button 
+                type="button" 
+                @click="triggerSync()" 
+                :disabled="syncIsRunning"
+                :title="syncIsOnline ? (syncPendingCount > 0 ? syncPendingCount + ' offline sales pending sync. Click to upload now.' : 'Cloud Synchronized: Everything matches live server.') : 'Offline Mode: Operating safely on local database.'"
+                class="px-2.5 py-1 border rounded-xl text-left flex items-center gap-1.5 cursor-pointer transition shadow-2xs group"
+                :class="syncIsOnline ? (syncPendingCount > 0 ? 'bg-amber-50 hover:bg-amber-100 border-amber-300 text-amber-900' : 'bg-emerald-50 hover:bg-emerald-100 border-emerald-200/80 text-emerald-900') : 'bg-rose-50 hover:bg-rose-100 border-rose-300 text-rose-900'"
+            >
+                <span class="w-2 h-2 rounded-full shrink-0" :class="syncIsOnline ? (syncPendingCount > 0 ? 'bg-amber-500 animate-ping' : 'bg-emerald-500') : 'bg-rose-500'"></span>
+                <svg :class="syncIsRunning ? 'animate-spin' : ''" class="w-3.5 h-3.5 text-current shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                <div class="flex flex-col leading-none">
+                    <span class="text-[8px] font-extrabold uppercase tracking-wider text-slate-400" x-text="syncIsOnline ? 'Cloud Sync' : 'Offline'"></span>
+                    <span class="text-[11px] font-black" x-text="syncIsRunning ? 'Syncing...' : (syncIsOnline ? (syncPendingCount > 0 ? syncPendingCount + ' Pending' : 'Live Synced') : 'Local Storage')"></span>
+                </div>
+            </button>
+
             {{-- Sound Beep Toggle --}}
             <button 
                 type="button" 
@@ -2417,6 +2436,12 @@ function posApp() {
         // POS Layout View Design State ('scanner_table' = Default New View, 'catalog' = Classic View)
         layoutView: localStorage.getItem('pos_layout_view') || 'scanner_table',
 
+        // Offline-First Cloud Sync State
+        syncIsOnline: true,
+        syncPendingCount: 0,
+        syncIsRunning: false,
+        syncLastTime: 'Checking...',
+
         // Quick Add Product State
         showQuickProductModal: false,
         isSyncingProducts: false,
@@ -2529,6 +2554,17 @@ function posApp() {
             // Update clock
             this.updateClock();
             setInterval(() => this.updateClock(), 1000);
+
+            // Offline-First Cloud Sync Monitoring
+            this.checkSyncStatus();
+            setInterval(() => this.checkSyncStatus(), 25000);
+            window.addEventListener('online', () => {
+                this.syncIsOnline = true;
+                this.triggerSync();
+            });
+            window.addEventListener('offline', () => {
+                this.syncIsOnline = false;
+            });
 
             // Load saved held baskets from local storage
             try {
@@ -3525,6 +3561,47 @@ function posApp() {
                 .finally(() => {
                     this.isLoadingShift = false;
                 });
+        },
+
+        async checkSyncStatus() {
+            try {
+                const res = await fetch('{{ route("admin.sync.status") }}');
+                const data = await res.json();
+                if (data.success) {
+                    this.syncIsOnline = data.is_online;
+                    this.syncPendingCount = data.pending_count;
+                    this.syncLastTime = data.last_synced_at;
+                }
+            } catch(e) {
+                this.syncIsOnline = false;
+            }
+        },
+
+        async triggerSync() {
+            if (this.syncIsRunning) return;
+            this.syncIsRunning = true;
+            try {
+                const res = await fetch('{{ route("admin.sync.trigger") }}', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json'
+                    }
+                });
+                const data = await res.json();
+                await this.checkSyncStatus();
+                if (data.pulled_count > 0) {
+                    // Update POS products in real-time
+                    await this.syncProducts();
+                }
+                if (data.pushed_count > 0) {
+                    this.showToast(`Synced ${data.pushed_count} offline sale(s) to cloud!`, '☁️', 'success');
+                }
+            } catch(e) {
+                this.syncIsOnline = false;
+            } finally {
+                this.syncIsRunning = false;
+            }
         },
 
         generateRandomSku() {
