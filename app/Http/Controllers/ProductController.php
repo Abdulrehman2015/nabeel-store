@@ -148,5 +148,49 @@ class ProductController extends Controller
 
         return view('storefront.search', compact('products', 'search', 'categories', 'sort', 'seo'));
     }
+
+    /**
+     * All Featured Products page.
+     */
+    public function featured(Request $request)
+    {
+        $query = Product::where('is_active', true)
+            ->where('is_featured', true)
+            ->with(['category', 'brand']);
+
+        // Optional Category filter
+        if ($request->filled('category')) {
+            $cat = Category::where('slug', $request->query('category'))->first();
+            if ($cat) {
+                $query->where('category_id', $cat->id);
+            }
+        }
+
+        // Sorting
+        $sort = $request->query('sort', 'newest');
+        switch ($sort) {
+            case 'price_asc':
+                $query->orderBy('price', 'asc');
+                break;
+            case 'price_desc':
+                $query->orderBy('price', 'desc');
+                break;
+            case 'newest':
+            default:
+                $query->latest('id');
+                break;
+        }
+
+        $products = $query->paginate(20)->withQueryString();
+        $categories = Category::active()->get();
+        $totalFeatured = Product::where('is_active', true)->where('is_featured', true)->count();
+
+        $seo = $this->seoService->resolveMetadata(null, 'featured', [
+            'title' => 'Featured Products - ' . setting('site_name', 'N&J Mini Mart'),
+            'description' => 'Browse all hand-picked featured products and daily essentials at N&J Mini Mart.',
+        ]);
+
+        return view('storefront.featured_products', compact('products', 'categories', 'sort', 'seo', 'totalFeatured'));
+    }
 }
 

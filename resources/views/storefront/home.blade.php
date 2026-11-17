@@ -236,7 +236,7 @@
                     if (this.activeTab !== 'all' && this.selectedCategorySlug) {
                         return '/category/' + this.selectedCategorySlug;
                     }
-                    return '{{ route('category.index') }}';
+                    return '{{ route('products.featured') }}';
                 }
             }"
         >
