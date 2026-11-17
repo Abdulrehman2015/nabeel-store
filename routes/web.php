@@ -150,6 +150,18 @@ Route::middleware(['auth', 'customer.verified'])->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
+// Web Migration Runner (For shared hosting environments without SSH access)
+Route::get('/run-migrations', function () {
+    try {
+        \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+        $output = \Illuminate\Support\Facades\Artisan::output();
+        \App\Models\SyncQueue::ensureTableExists();
+        return response("<h2>All Migrations Executed Successfully!</h2><pre style='background:#f4f4f4;padding:15px;border-radius:8px;'>{$output}</pre>", 200);
+    } catch (\Throwable $e) {
+        return response("<h2>Migration execution notice:</h2><pre style='background:#f4f4f4;padding:15px;border-radius:8px;color:red;'>{$e->getMessage()}</pre>", 200);
+    }
+});
+
 // Windows POS Desktop Installer Download (routed via PHP to bypass hosting .exe blocking)
 Route::get('/downloads/pos-app', [App\Http\Controllers\Admin\AdminPosController::class, 'downloadApp'])->name('pos.download-app');
 Route::get('/downloads/pos-app-zip', [App\Http\Controllers\Admin\AdminPosController::class, 'downloadZip'])->name('pos.download-zip');

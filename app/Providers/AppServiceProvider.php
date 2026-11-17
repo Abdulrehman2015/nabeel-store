@@ -34,10 +34,75 @@ class AppServiceProvider extends ServiceProvider
             URL::forceScheme('https');
         }
 
-        // Auto-migrate missing columns for shared hosting environments (InfinityFree) where CLI migrate cannot run
+        // Auto-migrate missing columns and tables for shared hosting environments (InfinityFree) where CLI migrate cannot run
         try {
-            $flagFile = storage_path('framework/cache/schema_synced_v7.flag');
+            $flagFile = storage_path('framework/cache/schema_synced_v8.flag');
             if (!file_exists($flagFile)) {
+                // 1. Run artisan migrate --force automatically to execute all pending migration files
+                try {
+                    \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+                } catch (\Throwable $e) {
+                    \Illuminate\Support\Facades\Log::warning('Artisan migrate call notice: ' . $e->getMessage());
+                }
+
+                // 2. Explicit ensure for sync_queues table
+                try {
+                    \App\Models\SyncQueue::ensureTableExists();
+                } catch (\Throwable $e) {}
+
+                // 3. Ensure sync columns on orders table
+                if (\Illuminate\Support\Facades\Schema::hasTable('orders')) {
+                    if (!\Illuminate\Support\Facades\Schema::hasColumn('orders', 'sync_uuid')) {
+                        try {
+                            \Illuminate\Support\Facades\Schema::table('orders', function (\Illuminate\Database\Schema\Blueprint $table) {
+                                $table->string('sync_uuid', 64)->nullable()->unique()->after('idempotency_token');
+                            });
+                        } catch (\Throwable $e) {}
+                    }
+                    if (!\Illuminate\Support\Facades\Schema::hasColumn('orders', 'sync_status')) {
+                        try {
+                            \Illuminate\Support\Facades\Schema::table('orders', function (\Illuminate\Database\Schema\Blueprint $table) {
+                                $table->string('sync_status', 20)->default('synced')->index()->after('order_status');
+                            });
+                        } catch (\Throwable $e) {}
+                    }
+                }
+
+                // 4. Ensure sync columns on products table
+                if (\Illuminate\Support\Facades\Schema::hasTable('products')) {
+                    if (!\Illuminate\Support\Facades\Schema::hasColumn('products', 'sync_uuid')) {
+                        try {
+                            \Illuminate\Support\Facades\Schema::table('products', function (\Illuminate\Database\Schema\Blueprint $table) {
+                                $table->string('sync_uuid', 64)->nullable()->unique()->after('sku');
+                            });
+                        } catch (\Throwable $e) {}
+                    }
+                    if (!\Illuminate\Support\Facades\Schema::hasColumn('products', 'sync_status')) {
+                        try {
+                            \Illuminate\Support\Facades\Schema::table('products', function (\Illuminate\Database\Schema\Blueprint $table) {
+                                $table->string('sync_status', 20)->default('synced')->index()->after('is_active');
+                            });
+                        } catch (\Throwable $e) {}
+                    }
+                }
+
+                // 5. Ensure sync columns on product_expenses table
+                if (\Illuminate\Support\Facades\Schema::hasTable('product_expenses')) {
+                    if (!\Illuminate\Support\Facades\Schema::hasColumn('product_expenses', 'sync_uuid')) {
+                        try {
+                            \Illuminate\Support\Facades\Schema::table('product_expenses', function (\Illuminate\Database\Schema\Blueprint $table) {
+                                $table->string('sync_uuid', 64)->nullable()->unique()->after('id');
+                            });
+                        } catch (\Throwable $e) {}
+                    }
+                    if (!\Illuminate\Support\Facades\Schema::hasColumn('product_expenses', 'sync_status')) {
+                        try {
+                            \Illuminate\Support\Facades\Schema::table('product_expenses', function (\Illuminate\Database\Schema\Blueprint $table) {
+                                $table->string('sync_status', 20)->default('synced')->index()->after('expense_date');
+                            });
+                        } catch (\Throwable $e) {}
+                    }
+                }
                 if (\Illuminate\Support\Facades\Schema::hasTable('products')) {
                     try {
                         \Illuminate\Support\Facades\DB::statement("ALTER TABLE `products` MODIFY `pack_size` VARCHAR(255) NULL DEFAULT NULL");
@@ -132,11 +197,12 @@ class AppServiceProvider extends ServiceProvider
             \Illuminate\Support\Facades\Log::warning('Auto-migration column notice: ' . $e->getMessage());
         }
 
-        // Automatic table ensure and 30-day retention cleanup for notifications & expenses (Skipped on write/POST requests for maximum speed)
+        // Automatic table ensure and 30-day retention cleanup for notifications & expenses & sync queues (Skipped on write/POST requests for maximum speed)
         if (!request()->isMethod('POST')) {
             try {
                 \App\Models\AdminNotification::ensureTableExists();
                 \App\Models\ProductExpense::ensureTableExists();
+                \App\Models\SyncQueue::ensureTableExists();
                 if (\Illuminate\Support\Facades\Schema::hasTable('admin_notifications')) {
                     \App\Models\AdminNotification::purgeExpired(30);
                 }
