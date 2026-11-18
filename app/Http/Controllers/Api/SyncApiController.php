@@ -322,8 +322,7 @@ class SyncApiController extends Controller
 
         $since = $request->query('since');
 
-        $productsQuery = Product::with(['category:id,name,slug', 'brand:id,name,slug'])
-            ->where('is_active', true);
+        $productsQuery = Product::with(['category:id,name,slug', 'brand:id,name,slug']);
 
         if ($since) {
             $productsQuery->where('updated_at', '>=', $since);
@@ -352,12 +351,10 @@ class SyncApiController extends Controller
             ];
         });
 
-        $categories = Category::where('is_active', true)
-            ->select('id', 'name', 'slug', 'is_active', 'sort_order')
+        $categories = Category::select('id', 'name', 'slug', 'is_active', 'sort_order')
             ->get();
 
-        $brands = Brand::where('is_active', true)
-            ->select('id', 'name', 'slug', 'is_active')
+        $brands = Brand::select('id', 'name', 'slug', 'is_active')
             ->get();
 
         return response()->json([

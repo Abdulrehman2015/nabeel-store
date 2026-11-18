@@ -2955,14 +2955,6 @@ function posApp() {
                     if (data.success && data.product) {
                         const serverProd = data.product;
 
-                        // Check if marked inactive
-                        if (serverProd.is_active === false) {
-                            this.showToast(`Product "${serverProd.name}" is marked INACTIVE in admin. Set status to Active to sell in POS.`, '⚠️', 'warning');
-                            this.playBeep('warning');
-                            this.searchQuery = code;
-                            return;
-                        }
-
                         // Add or update to local products array
                         const localIdx = this.products.findIndex(p => String(p.id) === String(serverProd.id));
                         if (localIdx > -1) {

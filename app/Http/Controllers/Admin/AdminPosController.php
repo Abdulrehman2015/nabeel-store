@@ -24,9 +24,8 @@ class AdminPosController extends Controller
      */
     public function index(): View
     {
-        // Active products with categories and brands
-        $products = Product::where('is_active', true)
-            ->with(['category:id,name,slug', 'brand:id,name'])
+        // All products with categories and brands (available in POS regardless of active status in online storefront)
+        $products = Product::with(['category:id,name,slug', 'brand:id,name'])
             ->orderBy('name')
             ->get()
             ->map(function ($product) {
@@ -53,9 +52,8 @@ class AdminPosController extends Controller
                 ];
             });
 
-        // Active categories with products for filter tabs
-        $categories = Category::where('is_active', true)
-            ->withCount(['products' => fn($q) => $q->where('is_active', true)])
+        // Categories with products for POS filter tabs
+        $categories = Category::withCount('products')
             ->having('products_count', '>', 0)
             ->orderBy('sort_order')
             ->get()
@@ -704,12 +702,11 @@ class AdminPosController extends Controller
     }
 
     /**
-     * Live sync of all active products to update client-side POS state without page refresh.
+     * Live sync of all products to update client-side POS state without page refresh.
      */
     public function syncProducts(): JsonResponse
     {
-        $products = Product::where('is_active', true)
-            ->with(['category:id,name,slug', 'brand:id,name'])
+        $products = Product::with(['category:id,name,slug', 'brand:id,name'])
             ->orderBy('name')
             ->get()
             ->map(function ($product) {

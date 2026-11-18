@@ -101,8 +101,7 @@ class AdminProductExpenseController extends Controller
         $staffList = ProductExpense::distinct()->whereNotNull('staff_name')->pluck('staff_name');
 
         // Products for Quick-Add Modal (with current stock & cost)
-        $products = Product::where('is_active', true)
-            ->orderBy('name', 'asc')
+        $products = Product::orderBy('name', 'asc')
             ->get(['id', 'name', 'sku', 'price', 'purchase_price', 'stock_quantity']);
 
         return view('admin.expenses.index', compact(
