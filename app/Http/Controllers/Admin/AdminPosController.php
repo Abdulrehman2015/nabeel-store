@@ -109,8 +109,8 @@ class AdminPosController extends Controller
             ? User::whereIn('role', ['admin', 'staff', 'cashier'])->select('id', 'name', 'role')->orderBy('name')->get()
             : collect();
 
-        // Active brands for quick product creation
-        $brands = \App\Models\Brand::where('is_active', true)->select('id', 'name')->orderBy('name')->get();
+        // Brands for quick product creation (all brands available in POS)
+        $brands = \App\Models\Brand::select('id', 'name')->orderBy('name')->get();
 
         // Staff members for Staff POS consumption mode
         \App\Models\ProductExpense::ensureTableExists();
