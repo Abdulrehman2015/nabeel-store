@@ -702,15 +702,15 @@
                                 <tr>
                                     <th class="py-2 px-2.5 text-center w-10">#</th>
                                     <th class="py-2 px-3">Product / SKU</th>
-                                    <th class="py-2 px-2.5 text-right w-36" x-text="posMode === 'staff' ? 'Cost Price' : 'Price (RM)'"></th>
+                                    <th class="py-2 px-2.5 text-right w-24" x-text="posMode === 'staff' ? 'Cost Price' : 'Price'"></th>
                                     <th class="py-2 px-2.5 text-center w-36">Quantity</th>
                                     <th class="py-2 px-2 text-center w-20">Discount</th>
                                     <th class="py-2 px-3 text-right w-28">Total</th>
-                                    <th class="py-2 px-2 text-center w-20">Action</th>
+                                    <th class="py-2 px-2 text-center w-12">Action</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-100">
-                                <template x-for="(item, index) in cart" :key="item.cart_item_id || (item.id + '_' + index)">
+                                <template x-for="(item, index) in cart" :key="item.id">
                                     <tr 
                                         :data-cart-item="index"
                                         @click="selectedCartIndex = index"
@@ -722,12 +722,7 @@
                                         
                                         {{-- Product Name & Barcode/SKU --}}
                                         <td class="py-2 px-3">
-                                            <div class="flex items-center justify-between gap-1">
-                                                <div class="font-extrabold text-slate-900 group-hover:text-sky-700 transition-colors" x-text="item.name"></div>
-                                                <template x-if="item.is_custom_price">
-                                                    <span class="text-[9px] font-black uppercase tracking-wider text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded shrink-0">Custom Price</span>
-                                                </template>
-                                            </div>
+                                            <div class="font-extrabold text-slate-900 group-hover:text-sky-700 transition-colors" x-text="item.name"></div>
                                             <div class="flex items-center gap-1.5 mt-0.5">
                                                 <span class="font-mono text-[10px] text-slate-500 bg-slate-100 px-1 py-0.5 rounded" x-text="item.sku || 'N/A'"></span>
                                                 <template x-if="item.barcode">
@@ -737,63 +732,19 @@
                                                     <span class="text-[10px] text-emerald-600 font-semibold" x-text="'Stock: ' + item.stock_quantity"></span>
                                                 </template>
                                             </div>
-                                            {{-- Quick Brand / Variant Note Input (ideal for specifying cigarette brand) --}}
-                                            <div class="mt-1" @click.stop>
-                                                <input 
-                                                    type="text" 
-                                                    x-model="item.custom_name" 
-                                                    placeholder="+ Brand / Stick Note (e.g. Marlboro, Dunhill)..." 
-                                                    class="w-full text-[10px] font-medium text-slate-700 placeholder:text-slate-400 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 focus:border-sky-400 rounded px-1.5 py-0.5 focus:outline-hidden transition-colors"
-                                                >
-                                            </div>
                                         </td>
 
-                                        {{-- Price with Direct Inline Update --}}
-                                        <td class="py-2 px-2.5 text-right" @click.stop>
-                                            <div class="inline-flex flex-col items-end gap-1">
-                                                <div 
-                                                    class="relative flex items-center border rounded-lg overflow-hidden bg-white shadow-2xs transition-all focus-within:ring-2 focus-within:ring-sky-500 focus-within:border-sky-500"
-                                                    :class="item.is_custom_price ? 'border-amber-400 bg-amber-50/20 ring-1 ring-amber-300' : 'border-slate-200 hover:border-slate-300'"
-                                                >
-                                                    <span class="pl-2 text-[10px] font-bold text-slate-400 select-none">RM</span>
-                                                    <input 
-                                                        type="number" 
-                                                        step="0.05" 
-                                                        min="0" 
-                                                        :value="Number(item.price).toFixed(2)" 
-                                                        @focus="$event.target.select()" 
-                                                        @change="updateItemPrice(index, $event.target.value)" 
-                                                        @keydown.enter.prevent="updateItemPrice(index, $event.target.value); $nextTick(() => focusBarcodeInput())" 
-                                                        class="w-16 py-1 pr-1.5 pl-1 text-right font-black text-xs text-slate-900 border-0 focus:ring-0 focus:outline-hidden bg-transparent [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" 
-                                                        title="Directly edit price for this item (Press Enter to apply)"
-                                                    >
-                                                    {{-- Save to Database Master Price Button --}}
-                                                    <button 
-                                                        type="button" 
-                                                        x-show="item.is_custom_price" 
-                                                        @click.stop="savePriceToDatabase(item, index)" 
-                                                        class="px-1.5 py-1 bg-amber-100 hover:bg-amber-200 text-amber-800 text-[10px] font-bold border-l border-amber-200 flex items-center transition cursor-pointer" 
-                                                        title="Save this new price permanently in database"
-                                                    >
-                                                        💾
-                                                    </button>
+                                        {{-- Price --}}
+                                        <td class="py-2 px-2.5 text-right">
+                                            <template x-if="item.discount_price !== null && Number(item.discount_price) < Number(item.original_price || item.price)">
+                                                <div>
+                                                    <span class="line-through text-slate-400 text-[10px] block">RM <span x-text="Number(item.original_price || item.price).toFixed(2)"></span></span>
+                                                    <span class="font-black text-rose-600 text-xs">RM <span x-text="Number(item.price).toFixed(2)"></span></span>
                                                 </div>
-
-                                                {{-- Status indicator: Original price & Reset button --}}
-                                                <template x-if="item.is_custom_price">
-                                                    <div class="flex items-center gap-1 text-[9px]">
-                                                        <span class="line-through text-slate-400 font-mono">RM <span x-text="Number(item.original_price).toFixed(2)"></span></span>
-                                                        <button 
-                                                            type="button" 
-                                                            @click.stop="resetItemPrice(index)" 
-                                                            class="text-sky-600 hover:text-sky-800 underline font-semibold cursor-pointer" 
-                                                            title="Reset back to catalog price"
-                                                        >
-                                                            Reset
-                                                        </button>
-                                                    </div>
-                                                </template>
-                                            </div>
+                                            </template>
+                                            <template x-if="item.discount_price === null || Number(item.discount_price) >= Number(item.original_price || item.price)">
+                                                <span class="font-bold text-slate-800 text-xs">RM <span x-text="Number(item.price).toFixed(2)"></span></span>
+                                            </template>
                                         </td>
 
                                         {{-- Quantity with - / + Stepper --}}
@@ -847,26 +798,16 @@
                                             </div>
                                         </td>
 
-                                        {{-- Action: Duplicate Line & Delete / Remove --}}
+                                        {{-- Delete / Remove --}}
                                         <td class="py-2 px-2 text-center" @click.stop>
-                                            <div class="inline-flex items-center justify-center gap-1">
-                                                <button 
-                                                    type="button" 
-                                                    @click="duplicateCartItem(index)" 
-                                                    class="w-7 h-7 rounded-lg text-sky-600 hover:text-sky-800 hover:bg-sky-50 flex items-center justify-center transition cursor-pointer"
-                                                    title="Add another separate line for this item (+ Line for different cigarette/price)"
-                                                >
-                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                                                </button>
-                                                <button 
-                                                    type="button" 
-                                                    @click="removeItem(index)" 
-                                                    class="w-7 h-7 rounded-lg text-rose-500 hover:text-rose-700 hover:bg-rose-50 flex items-center justify-center transition cursor-pointer"
-                                                    title="Remove Item from Cart"
-                                                >
-                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                                                </button>
-                                            </div>
+                                            <button 
+                                                type="button" 
+                                                @click="removeItem(index)" 
+                                                class="w-7 h-7 rounded-lg text-rose-500 hover:text-rose-700 hover:bg-rose-50 flex items-center justify-center transition cursor-pointer mx-auto"
+                                                title="Remove Item from Cart"
+                                            >
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                            </button>
                                         </td>
                                     </tr>
                                 </template>
@@ -1075,7 +1016,7 @@
 
             {{-- 3. Cart Items Scrollable List (Catalog View Only) --}}
             <div x-show="layoutView === 'catalog'" class="flex-1 min-h-0 overflow-y-auto divide-y divide-slate-100 p-2 text-xs">
-                <template x-for="(item, index) in cart" :key="item.cart_item_id || (item.id + '_' + index)">
+                <template x-for="(item, index) in cart" :key="item.id">
                     <div 
                         :data-cart-item="index"
                         @click="if (selectedCartIndex === index) { openItemDiscountModal(index); } else { selectedCartIndex = index; }"
@@ -1638,20 +1579,9 @@
                     @click="applyItemDiscount()"
                     class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-black shadow-md shadow-emerald-600/20 transition flex items-center justify-center gap-1.5 cursor-pointer"
                 >
-                    <span>Apply Price / Discount for this Sale</span>
+                    <span>Apply Discount</span>
                     <span class="text-[10px] text-emerald-200 font-mono font-bold">(Enter)</span>
                 </button>
-
-                <template x-if="discountModalItem && discountModalInput !== '' && !isNaN(parseFloat(discountModalInput)) && parseFloat(discountModalInput) >= 0">
-                    <button 
-                        type="button" 
-                        @click="applyItemDiscount(); savePriceToDatabase(discountModalItem, selectedCartIndex)"
-                        class="w-full py-2 bg-amber-500 hover:bg-amber-400 text-white rounded-xl text-xs font-black shadow-xs transition flex items-center justify-center gap-1.5 cursor-pointer"
-                        title="Update master price permanently in database"
-                    >
-                        <span>💾 Apply &amp; Save Master Price to Database</span>
-                    </button>
-                </template>
 
                 <div class="grid grid-cols-2 gap-2">
                     <button 
@@ -2911,9 +2841,8 @@ function posApp() {
         },
 
         getCartItemQty(productId) {
-            return this.cart
-                .filter(i => String(i.id) === String(productId))
-                .reduce((sum, i) => sum + Number(i.quantity || 0), 0);
+            const item = this.cart.find(i => i.id === productId);
+            return item ? item.quantity : 0;
         },
 
         // Barcode enter event
@@ -3184,9 +3113,8 @@ function posApp() {
         addToCart(product) {
             if (!product || product.stock_quantity <= 0) return;
 
-            // String-safe ID check: only merge with existing row if its price was NOT customized
-            // (Allows scanning 1 barcode multiple times for different cigarette variants/prices!)
-            const existingIndex = this.cart.findIndex(i => String(i.id) === String(product.id) && !i.is_custom_price);
+            // String-safe ID check to ensure existing cart item is matched every time
+            const existingIndex = this.cart.findIndex(i => String(i.id) === String(product.id));
 
             if (existingIndex > -1) {
                 // Same product scanned again -> Keep existing row, increment quantity
@@ -3206,17 +3134,12 @@ function posApp() {
                 // New product scanned -> Add new row with Qty 1 based on active POS mode
                 const basePrice = this.getItemPrice(product);
                 this.cart.push({
-                    cart_item_id: 'ci_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6),
                     id: product.id,
                     name: product.name,
-                    custom_name: '',
                     sku: product.sku,
-                    barcode: product.sku,
                     original_price: basePrice,
                     price: basePrice,
-                    unit_price: basePrice,
                     discount_price: null,
-                    is_custom_price: false,
                     quantity: 1,
                     max_stock: Number(product.stock_quantity || 9999),
                     image_url: product.image_url,
@@ -3237,113 +3160,6 @@ function posApp() {
                 this.scrollSelectedCartItemIntoView();
                 this.focusBarcodeInput();
             });
-        },
-
-        // Direct price update for cart item
-        updateItemPrice(index, val) {
-            const item = this.cart[index];
-            if (!item) return;
-            this.selectedCartIndex = index;
-            const newPrice = parseFloat(val);
-
-            if (!isNaN(newPrice) && newPrice >= 0) {
-                const rounded = Math.round(newPrice * 100) / 100;
-                item.price = rounded;
-                item.unit_price = rounded;
-                item.discount_price = null; // direct price overrides discount
-                item.is_custom_price = (Math.abs(item.price - Number(item.original_price)) > 0.001);
-                this.playBeep('success');
-                this.showToast(`Price set for ${item.name}: RM ${item.price.toFixed(2)}`, '💰', 'success');
-            } else {
-                item.price = Number(item.original_price || item.price);
-                item.unit_price = item.price;
-                item.is_custom_price = false;
-            }
-
-            if (this.paymentMethod === 'cash') {
-                this.amountTendered = this.grandTotal;
-            }
-        },
-
-        // Reset cart item price back to original catalog price
-        resetItemPrice(index) {
-            const item = this.cart[index];
-            if (!item) return;
-            this.selectedCartIndex = index;
-            item.price = Number(item.original_price || item.price);
-            item.unit_price = item.price;
-            item.discount_price = null;
-            item.is_custom_price = false;
-            if (this.paymentMethod === 'cash') {
-                this.amountTendered = this.grandTotal;
-            }
-            this.showToast(`Price reset for ${item.name}`, '🔄', 'info');
-        },
-
-        // Duplicate item into a new separate row (ideal for 1 barcode, multiple cigarette varieties)
-        duplicateCartItem(index) {
-            const source = this.cart[index];
-            if (!source) return;
-            const newItem = JSON.parse(JSON.stringify(source));
-            newItem.cart_item_id = 'ci_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
-            newItem.quantity = 1;
-            newItem.custom_name = '';
-            // Insert right after current item
-            this.cart.splice(index + 1, 0, newItem);
-            this.selectedCartIndex = index + 1;
-            this.amountTendered = this.grandTotal;
-            this.playBeep('success');
-            this.showToast(`New line added for ${source.name}`, '➕', 'success');
-            this.$nextTick(() => {
-                this.scrollSelectedCartItemIntoView();
-                this.focusBarcodeInput();
-            });
-        },
-
-        // Save price directly to Master Database
-        async savePriceToDatabase(item, index = null) {
-            if (!item || !item.id) return;
-            const targetPrice = Number(item.price);
-            if (isNaN(targetPrice) || targetPrice < 0) return;
-
-            if (!confirm(`Save RM ${targetPrice.toFixed(2)} permanently in database as master price for "${item.name}"?`)) {
-                return;
-            }
-
-            try {
-                const res = await fetch('{{ route("admin.pos.update-price") }}', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                        'Accept': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        product_id: item.id,
-                        price: targetPrice,
-                    }),
-                });
-
-                const data = await res.json();
-                if (data.success) {
-                    // Update master product in client catalog memory
-                    const catProd = this.products.find(p => String(p.id) === String(item.id));
-                    if (catProd) {
-                        catProd.price = targetPrice;
-                        catProd.sale_price = null;
-                        catProd.effective_price = targetPrice;
-                    }
-                    item.original_price = targetPrice;
-                    item.is_custom_price = false;
-                    this.playBeep('success');
-                    this.showToast(data.message || 'Price updated in database!', '💾', 'success');
-                } else {
-                    alert(data.message || 'Failed to update database price.');
-                }
-            } catch (err) {
-                console.error(err);
-                alert('Connection error while saving price to database.');
-            }
         },
 
         incrementQty(index) {
@@ -3496,7 +3312,6 @@ function posApp() {
                     staff_members: this.posMode === 'staff' ? this.selectedStaffMembers : [],
                     items: this.cart.map(i => ({ 
                         id: i.id, 
-                        name: i.custom_name && i.custom_name.trim() !== '' ? `${i.name} (${i.custom_name.trim()})` : i.name,
                         quantity: i.quantity,
                         unit_price: Number(i.price),
                         original_price: Number(i.original_price || i.price),

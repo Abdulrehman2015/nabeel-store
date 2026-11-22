@@ -155,7 +155,6 @@ class AdminPosController extends Controller
         $validated = $request->validate([
             'items' => 'required|array|min:1',
             'items.*.id' => 'required|integer|exists:products,id',
-            'items.*.name' => 'nullable|string|max:255',
             'items.*.quantity' => 'required|integer|min:1',
             'items.*.unit_price' => 'nullable|numeric|min:0',
             'items.*.original_price' => 'nullable|numeric|min:0',
@@ -255,7 +254,7 @@ class AdminPosController extends Controller
 
                 $orderItemsData[] = [
                     'product_id' => $product->id,
-                    'product_name' => !empty($item['name']) ? trim($item['name']) : $product->name,
+                    'product_name' => $product->name,
                     'sku' => $product->sku ?? null,
                     'pack_size' => $product->pack_size ?? null,
                     'unit_price' => $unitPrice,
@@ -620,53 +619,6 @@ class AdminPosController extends Controller
                 'stock_quantity' => (int) $product->stock_quantity,
                 'has_custom_image' => false,
                 'image_url' => asset('images/default-product.png'),
-            ],
-        ]);
-    }
-
-    /**
-     * Update product selling price directly from POS terminal.
-     * Can also update master price in database permanently.
-     */
-    public function updatePrice(Request $request): JsonResponse
-    {
-        $validated = $request->validate([
-            'product_id' => 'required|integer|exists:products,id',
-            'price' => 'required|numeric|min:0',
-        ]);
-
-        $product = Product::findOrFail($validated['product_id']);
-        $oldPrice = (float) $product->price;
-        $newPrice = round((float) $validated['price'], 2);
-
-        $product->update([
-            'price' => $newPrice,
-            'sale_price' => ($product->sale_price && $product->sale_price >= $newPrice) ? null : $product->sale_price,
-        ]);
-
-        ActivityLog::log('pos.product_price_updated', $product, [
-            'name' => $product->name,
-            'sku' => $product->sku,
-            'old_price' => $oldPrice,
-            'new_price' => $newPrice,
-            'updated_by' => auth()->user()->name,
-        ]);
-
-        try {
-            \App\Models\SyncQueue::queueProduct($product, 'updated');
-        } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::warning('POS Update Price Sync Queue Error: ' . $e->getMessage());
-        }
-
-        return response()->json([
-            'success' => true,
-            'message' => "Master price for '{$product->name}' updated to RM " . number_format($newPrice, 2) . " in database.",
-            'product' => [
-                'id' => $product->id,
-                'name' => $product->name,
-                'price' => (float) $product->price,
-                'sale_price' => $product->sale_price ? (float) $product->sale_price : null,
-                'effective_price' => (float) ($product->sale_price ?? $product->price),
             ],
         ]);
     }
