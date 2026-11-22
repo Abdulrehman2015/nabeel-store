@@ -114,6 +114,7 @@ class Order extends Model
             'out_for_delivery' => 'Out for Delivery',
             'delivered' => 'Delivered',
             'cancelled' => 'Cancelled',
+            'refunded' => 'Refunded / Returned',
             'payment_rejected' => 'Payment Rejected',
             default => ucfirst(str_replace('_', ' ', $this->order_status)),
         };
@@ -131,6 +132,7 @@ class Order extends Model
             'out_for_delivery' => 'bg-indigo-100 text-indigo-800 border-indigo-300',
             'delivered' => 'bg-emerald-100 text-emerald-800 border-emerald-300',
             'cancelled' => 'bg-gray-100 text-gray-800 border-gray-300',
+            'refunded' => 'bg-rose-100 text-rose-800 border-rose-300',
             'payment_rejected' => 'bg-rose-100 text-rose-800 border-rose-300',
             default => 'bg-slate-100 text-slate-800 border-slate-300',
         };

@@ -314,13 +314,25 @@ class OrderService
                 return $order;
             }
 
-            // If cancelling an order that was confirmed/processing, replenish stock
-            if ($newStatus === 'cancelled' && in_array($oldStatus, ['confirmed', 'processing', 'out_for_delivery'])) {
+            // If cancelling or refunding an order that was confirmed/processing/delivered, replenish stock
+            if (in_array($newStatus, ['cancelled', 'refunded', 'returned']) && in_array($oldStatus, ['confirmed', 'processing', 'out_for_delivery', 'delivered'])) {
                 foreach ($order->items as $item) {
                     if ($item->product_id) {
                         $product = Product::find($item->product_id);
                         if ($product) {
                             $product->increment('stock_quantity', $item->quantity);
+                        }
+                    }
+                }
+            }
+
+            // If reactivating a cancelled/refunded order back to active status, re-deduct stock
+            if (in_array($oldStatus, ['cancelled', 'refunded', 'returned']) && in_array($newStatus, ['confirmed', 'processing', 'out_for_delivery', 'delivered'])) {
+                foreach ($order->items as $item) {
+                    if ($item->product_id) {
+                        $product = Product::find($item->product_id);
+                        if ($product) {
+                            $product->decrement('stock_quantity', $item->quantity);
                         }
                     }
                 }

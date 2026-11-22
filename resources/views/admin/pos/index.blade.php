@@ -110,6 +110,18 @@
                 <span class="px-1.5 py-0.2 rounded-full bg-amber-500 text-white text-[9px] font-black" x-text="heldOrders.length"></span>
             </button>
 
+            {{-- Customer Product Return & Restock --}}
+            <button 
+                type="button" 
+                @click="openReturnModal()" 
+                class="px-2.5 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-200/90 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                title="Customer Product Return & Restock (F7)"
+            >
+                <svg class="w-3.5 h-3.5 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 15v-1a4 4 0 00-4-4H4m0 0l5 5m-5-5l5-5m11 4h2a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-2"/></svg>
+                <span class="hidden sm:inline text-[11px]">Return</span>
+                <span class="text-[9px] opacity-75 font-mono">(F7)</span>
+            </button>
+
             {{-- Fullscreen Workstation Toggle --}}
             <button 
                 type="button" 
@@ -1768,6 +1780,10 @@
                     </div>
                 </div>
                 <div class="flex justify-between items-center py-1 border-b border-slate-100">
+                    <span class="text-slate-600">Product Return & Restock</span>
+                    <kbd class="px-2 py-0.5 bg-rose-50 border border-rose-200 text-rose-800 rounded font-mono font-bold text-[11px]">F7</kbd>
+                </div>
+                <div class="flex justify-between items-center py-1 border-b border-slate-100">
                     <span class="text-slate-600">Print Receipt (On Completed Modal)</span>
                     <kbd class="px-2 py-0.5 bg-sky-50 border border-sky-200 text-sky-800 rounded font-mono font-bold">Enter</kbd>
                 </div>
@@ -2330,9 +2346,18 @@
                                             RM <span x-text="ord.total.toFixed(2)"></span>
                                         </td>
                                         <td class="py-2 px-3 text-right">
-                                            <a :href="ord.receipt_url" target="_blank" class="text-sky-600 hover:text-sky-700 font-bold text-[11px] underline">
-                                                Slip
-                                            </a>
+                                            <div class="flex items-center justify-end gap-2">
+                                                <a :href="ord.receipt_url" target="_blank" class="text-sky-600 hover:text-sky-700 font-bold text-[11px] underline">
+                                                    Slip
+                                                </a>
+                                                <button 
+                                                    type="button" 
+                                                    @click="showShiftModal = false; openReturnModalForOrder(ord.id)" 
+                                                    class="text-rose-600 hover:text-rose-800 font-bold text-[11px] underline cursor-pointer"
+                                                >
+                                                    Return
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                 </template>
@@ -2365,6 +2390,288 @@
                     class="px-5 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition"
                 >
                     Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    {{-- ======================================================== --}}
+    {{-- CUSTOMER PRODUCT RETURN & RESTOCK MODAL (F7)             --}}
+    {{-- ======================================================== --}}
+    <div 
+        x-show="showReturnModal" 
+        x-cloak 
+        class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs"
+        x-transition:enter="transition ease-out duration-200"
+        x-transition:enter-start="opacity-0"
+        x-transition:enter-end="opacity-100"
+        x-transition:leave="transition ease-in duration-150"
+        x-transition:leave-start="opacity-100"
+        x-transition:leave-end="opacity-0"
+    >
+        <div 
+            @click.outside="showReturnModal = false"
+            class="bg-white rounded-3xl max-w-2xl w-full p-5 sm:p-6 shadow-2xl border border-slate-100 flex flex-col max-h-[90vh] overflow-hidden"
+        >
+            {{-- Header --}}
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100 shrink-0">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-2xl bg-rose-50 border border-rose-200 flex items-center justify-center text-rose-600 font-bold">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 15v-1a4 4 0 00-4-4H4m0 0l5 5m-5-5l5-5m11 4h2a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-2"/></svg>
+                    </div>
+                    <div>
+                        <h3 class="text-sm sm:text-base font-extrabold text-slate-900 flex items-center gap-2">
+                            <span>Customer Return & Restock</span>
+                            <span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 font-bold">Wapsi / Restock</span>
+                        </h3>
+                        <p class="text-[11px] text-slate-500">Restock returned items to inventory & subtract from sales, profit & drawer</p>
+                    </div>
+                </div>
+                <button type="button" @click="showReturnModal = false" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">✕</button>
+            </div>
+
+            {{-- Modal Body --}}
+            <div class="py-4 space-y-4 overflow-y-auto flex-1 pr-1">
+                {{-- Search Bar --}}
+                <div>
+                    <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">
+                        Find Order / Receipt by Number, Customer, or Scan Barcode
+                    </label>
+                    <div class="flex gap-2">
+                        <div class="relative flex-1">
+                            <input 
+                                type="text" 
+                                x-model="returnSearchQuery" 
+                                @keydown.enter.prevent="searchOrdersForReturn()"
+                                placeholder="Scan receipt barcode or enter Receipt # (e.g. POS-2026-01005 or 1005)..."
+                                class="w-full pl-9 pr-3 py-2 text-xs font-semibold rounded-xl border border-slate-200 focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20 bg-slate-50"
+                            >
+                            <svg class="w-4 h-4 text-slate-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                        </div>
+                        <button 
+                            type="button" 
+                            @click="searchOrdersForReturn()" 
+                            class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl shadow-xs transition cursor-pointer"
+                            :disabled="returnLoading"
+                        >
+                            <span x-show="!returnLoading">Search</span>
+                            <span x-show="returnLoading">Searching...</span>
+                        </button>
+                    </div>
+                </div>
+
+                {{-- Step 1: Recent Orders List (if no order is selected) --}}
+                <div x-show="!selectedReturnOrder">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Recent Sales Eligible for Return</span>
+                        <span class="text-[10px] text-slate-400" x-text="returnOrdersList.length + ' receipts found'"></span>
+                    </div>
+
+                    <div class="border border-slate-200 rounded-2xl overflow-hidden max-h-60 overflow-y-auto">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-slate-50 text-[10px] uppercase font-bold text-slate-500 border-b border-slate-200 sticky top-0">
+                                <tr>
+                                    <th class="py-2 px-3">Receipt #</th>
+                                    <th class="py-2 px-3">Customer</th>
+                                    <th class="py-2 px-3">Time</th>
+                                    <th class="py-2 px-3 text-right">Total</th>
+                                    <th class="py-2 px-3 text-center">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100 text-slate-700">
+                                <template x-for="ord in returnOrdersList" :key="ord.id">
+                                    <tr class="hover:bg-rose-50/40 transition">
+                                        <td class="py-2 px-3 font-mono font-bold text-slate-900" x-text="ord.order_number"></td>
+                                        <td class="py-2 px-3 text-slate-600" x-text="ord.customer_name"></td>
+                                        <td class="py-2 px-3 text-slate-400 font-mono text-[11px]" x-text="ord.created_at_formatted"></td>
+                                        <td class="py-2 px-3 text-right font-extrabold text-slate-900">
+                                            RM <span x-text="ord.grand_total.toFixed(2)"></span>
+                                        </td>
+                                        <td class="py-2 px-3 text-center">
+                                            <button 
+                                                type="button" 
+                                                @click="selectOrderForReturn(ord)"
+                                                class="px-2.5 py-1 bg-rose-600 hover:bg-rose-700 text-white font-bold text-[10px] rounded-lg transition shadow-2xs cursor-pointer"
+                                            >
+                                                Select for Return
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </template>
+                                <tr x-show="returnOrdersList.length === 0">
+                                    <td colspan="5" class="py-6 text-center text-slate-400 text-xs">
+                                        No sales found. Try searching by receipt number above.
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                {{-- Step 2: Selected Order Return Form --}}
+                <div x-show="selectedReturnOrder" class="space-y-4">
+                    {{-- Selected Order Summary Banner --}}
+                    <div class="p-3 bg-slate-50 border border-slate-200 rounded-2xl flex items-center justify-between">
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="font-mono font-extrabold text-slate-900 text-sm" x-text="selectedReturnOrder?.order_number"></span>
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800" x-text="selectedReturnOrder?.payment_method"></span>
+                            </div>
+                            <div class="text-[11px] text-slate-500 mt-0.5">
+                                <span x-text="selectedReturnOrder?.customer_name"></span> • <span x-text="selectedReturnOrder?.created_at_formatted"></span>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <div class="text-right">
+                                <span class="text-[10px] text-slate-400 uppercase font-bold block">Original Total</span>
+                                <span class="font-black text-slate-900 text-sm">RM <span x-text="(selectedReturnOrder?.grand_total || 0).toFixed(2)"></span></span>
+                            </div>
+                            <button 
+                                type="button" 
+                                @click="selectedReturnOrder = null" 
+                                class="px-2 py-1 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg text-xs font-bold transition ml-2 cursor-pointer"
+                            >
+                                Change
+                            </button>
+                        </div>
+                    </div>
+
+                    {{-- Products in this Order --}}
+                    <div>
+                        <div class="flex items-center justify-between mb-1.5">
+                            <span class="text-[11px] font-bold uppercase tracking-wider text-slate-700">Choose Items to Return & Restock</span>
+                            <span class="text-[10px] text-slate-400">Specify return quantity per product</span>
+                        </div>
+
+                        <div class="border border-slate-200 rounded-2xl overflow-hidden">
+                            <table class="w-full text-left text-xs">
+                                <thead class="bg-slate-100/80 text-[10px] uppercase font-bold text-slate-500 border-b border-slate-200">
+                                    <tr>
+                                        <th class="py-2 px-3">Product / SKU</th>
+                                        <th class="py-2 px-3 text-center">Unit Price</th>
+                                        <th class="py-2 px-3 text-center">Purchased</th>
+                                        <th class="py-2 px-3 text-center">Return Qty</th>
+                                        <th class="py-2 px-3 text-right">Refund Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100 text-slate-800">
+                                    <template x-for="item in (selectedReturnOrder?.items || [])" :key="item.id">
+                                        <tr :class="item.return_quantity > 0 ? 'bg-rose-50/50' : ''">
+                                            <td class="py-2.5 px-3">
+                                                <div class="font-bold text-slate-900" x-text="item.product_name"></div>
+                                                <div class="text-[10px] text-slate-400 font-mono" x-text="item.sku || 'No SKU'"></div>
+                                                <div class="text-[10px] text-emerald-600 font-medium">
+                                                    Current Stock: <span x-text="item.current_stock"></span>
+                                                    <span x-show="item.return_quantity > 0" class="text-rose-600 font-bold">
+                                                        (+<span x-text="item.return_quantity"></span> after return)
+                                                    </span>
+                                                </div>
+                                            </td>
+                                            <td class="py-2.5 px-3 text-center font-mono font-semibold">
+                                                RM <span x-text="item.unit_price.toFixed(2)"></span>
+                                            </td>
+                                            <td class="py-2.5 px-3 text-center font-mono font-bold text-slate-600" x-text="item.original_quantity"></td>
+                                            <td class="py-2.5 px-3 text-center">
+                                                <div class="inline-flex items-center gap-1.5 border border-slate-200 rounded-xl bg-white px-1.5 py-0.5 shadow-2xs">
+                                                    <button 
+                                                        type="button" 
+                                                        @click="decrementReturnQty(item)" 
+                                                        class="w-6 h-6 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold flex items-center justify-center text-sm transition cursor-pointer"
+                                                        :disabled="item.return_quantity <= 0"
+                                                    >-</button>
+                                                    <span class="w-7 text-center font-bold text-xs font-mono" x-text="item.return_quantity || 0"></span>
+                                                    <button 
+                                                        type="button" 
+                                                        @click="incrementReturnQty(item)" 
+                                                        class="w-6 h-6 rounded-lg bg-rose-100 hover:bg-rose-200 text-rose-800 font-bold flex items-center justify-center text-sm transition cursor-pointer"
+                                                        :disabled="item.return_quantity >= item.original_quantity"
+                                                    >+</button>
+                                                </div>
+                                            </td>
+                                            <td class="py-2.5 px-3 text-right font-extrabold font-mono" :class="item.return_quantity > 0 ? 'text-rose-700' : 'text-slate-400'">
+                                                RM <span x-text="((item.return_quantity || 0) * item.unit_price).toFixed(2)"></span>
+                                            </td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    {{-- Refund Options & Summary --}}
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 bg-rose-50/60 border border-rose-200 rounded-2xl">
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase tracking-wider text-rose-900 mb-1">
+                                Refund Payment Method
+                            </label>
+                            <select 
+                                x-model="returnRefundMethod" 
+                                class="w-full text-xs font-semibold py-2 px-3 border border-rose-200 rounded-xl bg-white focus:ring-2 focus:ring-rose-500/20 text-slate-900"
+                            >
+                                <option value="cash">Cash (Give cash from drawer)</option>
+                                <option value="duitnow_qr">DuitNow QR Refund</option>
+                                <option value="card">Card / Bank Reversal</option>
+                                <option value="original">Original Payment Method</option>
+                            </select>
+                            <div class="mt-2">
+                                <label class="block text-[10px] font-bold uppercase tracking-wider text-rose-900 mb-1">
+                                    Return Reason (Optional)
+                                </label>
+                                <input 
+                                    type="text" 
+                                    x-model="returnReason" 
+                                    placeholder="e.g. Defective, Wrong item, Customer changed mind..."
+                                    class="w-full text-xs py-1.5 px-3 border border-rose-200 rounded-xl bg-white text-slate-900 placeholder-slate-400"
+                                >
+                            </div>
+                        </div>
+
+                        <div class="flex flex-col justify-between border-t sm:border-t-0 sm:border-l border-rose-200/80 pt-2 sm:pt-0 sm:pl-3">
+                            <div class="space-y-1">
+                                <div class="flex justify-between text-xs text-rose-950 font-semibold">
+                                    <span>Items to Restock:</span>
+                                    <span class="font-bold font-mono" x-text="calculateTotalReturnItems() + ' units'"></span>
+                                </div>
+                                <div class="flex justify-between text-xs text-rose-950 font-semibold">
+                                    <span>Total Refund Amount:</span>
+                                    <span class="font-mono font-black text-rose-700 text-sm sm:text-base">
+                                        RM <span x-text="calculateTotalRefund().toFixed(2)"></span>
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="text-[10px] text-slate-500 bg-white/70 p-2 rounded-xl mt-2 border border-rose-100">
+                                ℹ️ <strong class="text-slate-700">Financial Impact:</strong> Restocks inventory, deducts <strong class="text-rose-700">RM <span x-text="calculateTotalRefund().toFixed(2)"></span></strong> from today's drawer & sales, and adjusts gross profit automatically.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Footer --}}
+            <div class="flex items-center justify-between pt-3 border-t border-slate-100 shrink-0">
+                <button 
+                    type="button" 
+                    @click="showReturnModal = false" 
+                    class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition cursor-pointer"
+                >
+                    Cancel
+                </button>
+
+                <button 
+                    type="button" 
+                    @click="submitReturn()" 
+                    :disabled="!selectedReturnOrder || calculateTotalReturnItems() <= 0 || isProcessingReturn"
+                    class="px-5 py-2.5 bg-rose-600 hover:bg-rose-700 disabled:opacity-50 disabled:pointer-events-none text-white rounded-xl text-xs font-bold shadow-md transition flex items-center gap-2 cursor-pointer"
+                >
+                    <span x-show="!isProcessingReturn" class="flex items-center gap-1.5">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                        <span>Confirm Return & Restock (RM <span x-text="calculateTotalRefund().toFixed(2)"></span>)</span>
+                    </span>
+                    <span x-show="isProcessingReturn" class="flex items-center gap-1.5">
+                        <svg class="animate-spin h-3.5 w-3.5 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+                        <span>Processing Return...</span>
+                    </span>
                 </button>
             </div>
         </div>
@@ -2472,6 +2779,14 @@ function posApp() {
         showShortcutsModal: false,
         showPrinterConfigModal: false,
         showItemDiscountModal: false,
+        showReturnModal: false,
+        returnSearchQuery: '',
+        returnLoading: false,
+        returnOrdersList: [],
+        selectedReturnOrder: null,
+        returnRefundMethod: 'cash',
+        returnReason: '',
+        isProcessingReturn: false,
         discountModalItem: null,
         discountModalInput: '',
         completedOrder: {},
@@ -3418,6 +3733,7 @@ function posApp() {
                    this.showShortcutsModal ||
                    this.showQuickProductModal ||
                    this.showShiftModal ||
+                   this.showReturnModal ||
                    this.showItemDiscountModal ||
                    this.showPrinterConfigModal;
         },
@@ -3508,6 +3824,174 @@ function posApp() {
                 .finally(() => {
                     this.isLoadingShift = false;
                 });
+        },
+
+        refreshShiftData() {
+            fetch('{{ route('admin.pos.shift-summary') }}')
+                .then(res => res.json())
+                .then(data => {
+                    this.shiftSummaryData = data;
+                })
+                .catch(err => console.error(err));
+        },
+
+        async openReturnModal() {
+            this.showReturnModal = true;
+            this.selectedReturnOrder = null;
+            this.returnSearchQuery = '';
+            this.returnReason = '';
+            this.returnRefundMethod = 'cash';
+            await this.searchOrdersForReturn();
+        },
+
+        async openReturnModalForOrder(orderId) {
+            this.showReturnModal = true;
+            this.selectedReturnOrder = null;
+            this.returnSearchQuery = '';
+            this.returnReason = '';
+            this.returnRefundMethod = 'cash';
+            this.returnLoading = true;
+            try {
+                const res = await fetch(`{{ route('admin.pos.search-order-for-return') }}?order_id=${orderId}`, {
+                    headers: { 'Accept': 'application/json' }
+                });
+                const data = await res.json();
+                if (data.success && data.orders && data.orders.length > 0) {
+                    this.selectOrderForReturn(data.orders[0]);
+                }
+            } catch (err) {
+                console.error('Error fetching order for return:', err);
+            } finally {
+                this.returnLoading = false;
+            }
+        },
+
+        async searchOrdersForReturn() {
+            this.returnLoading = true;
+            try {
+                const q = encodeURIComponent(this.returnSearchQuery.trim());
+                const res = await fetch(`{{ route('admin.pos.search-order-for-return') }}?q=${q}`, {
+                    headers: { 'Accept': 'application/json' }
+                });
+                const data = await res.json();
+                if (data.success) {
+                    this.returnOrdersList = data.orders || [];
+                    if (this.returnSearchQuery.trim() && this.returnOrdersList.length === 1) {
+                        this.selectOrderForReturn(this.returnOrdersList[0]);
+                    }
+                }
+            } catch (err) {
+                console.error('Search return orders error:', err);
+                this.showToast('Failed to load orders for return', '⚠️', 'error');
+            } finally {
+                this.returnLoading = false;
+            }
+        },
+
+        selectOrderForReturn(order) {
+            this.selectedReturnOrder = JSON.parse(JSON.stringify(order));
+            if (this.selectedReturnOrder.items) {
+                this.selectedReturnOrder.items.forEach(item => {
+                    item.return_quantity = 0;
+                });
+            }
+            const method = (this.selectedReturnOrder.payment_method || '').toLowerCase();
+            this.returnRefundMethod = (method.includes('qr') ? 'duitnow_qr' : (method.includes('card') ? 'card' : 'cash'));
+        },
+
+        incrementReturnQty(item) {
+            if (item.return_quantity < item.original_quantity) {
+                item.return_quantity++;
+            }
+        },
+
+        decrementReturnQty(item) {
+            if (item.return_quantity > 0) {
+                item.return_quantity--;
+            }
+        },
+
+        calculateTotalReturnItems() {
+            if (!this.selectedReturnOrder || !this.selectedReturnOrder.items) return 0;
+            return this.selectedReturnOrder.items.reduce((sum, item) => sum + (Number(item.return_quantity) || 0), 0);
+        },
+
+        calculateTotalRefund() {
+            if (!this.selectedReturnOrder || !this.selectedReturnOrder.items) return 0;
+            const total = this.selectedReturnOrder.items.reduce((sum, item) => {
+                const qty = Number(item.return_quantity) || 0;
+                return sum + (qty * Number(item.unit_price || 0));
+            }, 0);
+            return Math.round(total * 100) / 100;
+        },
+
+        async submitReturn() {
+            if (!this.selectedReturnOrder) return;
+            const returnItems = (this.selectedReturnOrder.items || [])
+                .filter(i => (Number(i.return_quantity) || 0) > 0)
+                .map(i => ({
+                    item_id: i.id,
+                    return_quantity: Number(i.return_quantity)
+                }));
+
+            if (returnItems.length === 0) {
+                this.showToast('Please select at least 1 item to return', '⚠️', 'warning');
+                return;
+            }
+
+            const totalRefund = this.calculateTotalRefund();
+            if (!confirm(`Are you sure you want to process return of ${this.calculateTotalReturnItems()} item(s) and refund RM ${totalRefund.toFixed(2)} to customer? Products will be restocked.`)) {
+                return;
+            }
+
+            this.isProcessingReturn = true;
+
+            try {
+                const res = await fetch(`{{ route('admin.pos.process-return') }}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        order_id: this.selectedReturnOrder.id,
+                        returns: returnItems,
+                        refund_method: this.returnRefundMethod,
+                        reason: this.returnReason || 'Customer Return & Restock'
+                    })
+                });
+
+                const data = await res.json();
+
+                if (!res.ok || !data.success) {
+                    throw new Error(data.message || 'Failed to process return');
+                }
+
+                // Immediately update client-side product stock for all restocked items
+                if (data.restocked_products && Array.isArray(data.restocked_products)) {
+                    data.restocked_products.forEach(restocked => {
+                        const prod = this.products.find(p => String(p.id) === String(restocked.id));
+                        if (prod) {
+                            prod.stock_quantity = restocked.new_stock_quantity;
+                        }
+                    });
+                }
+
+                this.playBeep('success');
+                this.showToast(data.message || 'Return processed! Product restocked.', '↩️', 'success');
+                this.showReturnModal = false;
+                this.selectedReturnOrder = null;
+
+                // Refresh shift drawer summary
+                this.refreshShiftData();
+            } catch (err) {
+                console.error('Error submitting return:', err);
+                this.playBeep('warning');
+                this.showToast(err.message || 'Error processing return', '❌', 'error');
+            } finally {
+                this.isProcessingReturn = false;
+            }
         },
 
         async checkSyncStatus() {
@@ -3772,6 +4256,7 @@ function posApp() {
                     this.showShortcutsModal = false;
                     this.showQuickProductModal = false;
                     this.showShiftModal = false;
+                    this.showReturnModal = false;
                     this.showItemDiscountModal = false;
                     this.showPrinterConfigModal = false;
                     this.$nextTick(() => this.focusBarcodeInput());
@@ -3919,6 +4404,13 @@ function posApp() {
                     this.processCheckout();
                     return;
                 }
+            }
+
+            // F7 to open customer product return & restock modal
+            if (e.key === 'F7') {
+                e.preventDefault();
+                this.openReturnModal();
+                return;
             }
 
             // Esc to clear search or close dropdown

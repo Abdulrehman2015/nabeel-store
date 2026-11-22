@@ -135,7 +135,7 @@ class AdminOrderController extends Controller
     public function updateStatus(Request $request, Order $order)
     {
         $request->validate([
-            'status' => 'required|in:confirmed,processing,out_for_delivery,delivered,cancelled',
+            'status' => 'required|in:confirmed,processing,out_for_delivery,delivered,cancelled,refunded',
             'comment' => 'nullable|string|max:500',
         ]);
 

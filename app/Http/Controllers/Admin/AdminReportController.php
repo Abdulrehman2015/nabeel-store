@@ -215,7 +215,7 @@ class AdminReportController extends Controller
      */
     private function calculatePeriodKpis(Carbon $startDate, Carbon $endDate): array
     {
-        $ordersQuery = Order::where('order_status', '!=', 'cancelled')
+        $ordersQuery = Order::whereNotIn('order_status', ['cancelled', 'refunded', 'returned', 'payment_rejected'])
             ->whereBetween('created_at', [$startDate, $endDate]);
 
         $totalRevenue = (float) $ordersQuery->sum('grand_total');
@@ -230,7 +230,7 @@ class AdminReportController extends Controller
         $soldItems = DB::table('order_items')
             ->join('orders', 'order_items.order_id', '=', 'orders.id')
             ->leftJoin('products', 'order_items.product_id', '=', 'products.id')
-            ->where('orders.order_status', '!=', 'cancelled')
+            ->whereNotIn('orders.order_status', ['cancelled', 'refunded', 'returned', 'payment_rejected'])
             ->whereBetween('orders.created_at', [$startDate, $endDate])
             ->select(
                 DB::raw('COALESCE(SUM(order_items.quantity), 0) as total_units_sold'),
@@ -265,7 +265,7 @@ class AdminReportController extends Controller
         // Subquery for sales within the date range
         $periodSalesSubquery = DB::table('order_items')
             ->join('orders', 'order_items.order_id', '=', 'orders.id')
-            ->where('orders.order_status', '!=', 'cancelled')
+            ->whereNotIn('orders.order_status', ['cancelled', 'refunded', 'returned', 'payment_rejected'])
             ->whereBetween('orders.created_at', [$startDate, $endDate])
             ->select(
                 'order_items.product_id',
@@ -299,7 +299,7 @@ class AdminReportController extends Controller
         }
 
         $totalPeriodRevenue = (float) DB::table('orders')
-            ->where('order_status', '!=', 'cancelled')
+            ->whereNotIn('order_status', ['cancelled', 'refunded', 'returned', 'payment_rejected'])
             ->whereBetween('created_at', [$startDate, $endDate])
             ->sum('grand_total');
 
@@ -350,7 +350,7 @@ class AdminReportController extends Controller
             ->join('orders', 'order_items.order_id', '=', 'orders.id')
             ->join('products', 'order_items.product_id', '=', 'products.id')
             ->leftJoin('categories', 'products.category_id', '=', 'categories.id')
-            ->where('orders.order_status', '!=', 'cancelled')
+            ->whereNotIn('orders.order_status', ['cancelled', 'refunded', 'returned', 'payment_rejected'])
             ->whereBetween('orders.created_at', [$startDate, $endDate])
             ->select(
                 DB::raw("COALESCE(categories.name, 'Uncategorized') as category_name"),
@@ -368,7 +368,7 @@ class AdminReportController extends Controller
     private function getDailyTrend(Carbon $startDate, Carbon $endDate): array
     {
         $dailyData = DB::table('orders')
-            ->where('order_status', '!=', 'cancelled')
+            ->whereNotIn('order_status', ['cancelled', 'refunded', 'returned', 'payment_rejected'])
             ->whereBetween('created_at', [$startDate, $endDate])
             ->select(
                 DB::raw('DATE(created_at) as order_date'),
@@ -399,7 +399,7 @@ class AdminReportController extends Controller
         } else {
             // Group by Month if > 31 days
             $monthlyData = DB::table('orders')
-                ->where('order_status', '!=', 'cancelled')
+                ->whereNotIn('order_status', ['cancelled', 'refunded', 'returned', 'payment_rejected'])
                 ->whereBetween('created_at', [$startDate, $endDate])
                 ->select(
                     DB::raw("DATE_FORMAT(created_at, '%Y-%m') as order_month"),
@@ -429,7 +429,7 @@ class AdminReportController extends Controller
      */
     private function getChannelStats(Carbon $startDate, Carbon $endDate): array
     {
-        $orders = Order::where('order_status', '!=', 'cancelled')
+        $orders = Order::whereNotIn('order_status', ['cancelled', 'refunded', 'returned', 'payment_rejected'])
             ->whereBetween('created_at', [$startDate, $endDate])
             ->get();
 

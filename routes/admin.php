@@ -76,6 +76,8 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('pos/sync-products', [AdminPosController::class, 'syncProducts'])->name('pos.sync-products');
     Route::post('pos/checkout', [AdminPosController::class, 'checkout'])->name('pos.checkout');
     Route::post('pos/void-order', [AdminPosController::class, 'voidOrder'])->name('pos.void-order');
+    Route::get('pos/search-order-for-return', [AdminPosController::class, 'searchOrderForReturn'])->name('pos.search-order-for-return');
+    Route::post('pos/process-return', [AdminPosController::class, 'processReturn'])->name('pos.process-return');
     Route::get('pos/receipt-test', [AdminPosController::class, 'testReceipt'])->name('pos.receipt.test');
     Route::get('pos/receipt/{order}', [AdminPosController::class, 'receipt'])->name('pos.receipt');
     Route::post('pos/customer', [AdminPosController::class, 'quickCustomer'])->name('pos.customer');

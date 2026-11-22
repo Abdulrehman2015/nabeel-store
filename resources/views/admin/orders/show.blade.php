@@ -222,7 +222,8 @@
                             <option value="processing" {{ $order->order_status === 'processing' ? 'selected' : '' }}>Processing (Packing Cartons)</option>
                             <option value="out_for_delivery" {{ $order->order_status === 'out_for_delivery' ? 'selected' : '' }}>Out for Delivery</option>
                             <option value="delivered" {{ $order->order_status === 'delivered' ? 'selected' : '' }}>Delivered (Completed)</option>
-                            <option value="cancelled" {{ $order->order_status === 'cancelled' ? 'selected' : '' }}>Cancelled</option>
+                            <option value="cancelled" {{ $order->order_status === 'cancelled' ? 'selected' : '' }}>Cancelled (Restock Items)</option>
+                            <option value="refunded" {{ $order->order_status === 'refunded' ? 'selected' : '' }}>Refunded / Returned (Restock Items)</option>
                         </select>
                     </div>
                     <div>

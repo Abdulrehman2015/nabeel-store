@@ -445,6 +445,211 @@ class AdminPosController extends Controller
     }
 
     /**
+     * Search orders eligible for POS customer return & refund.
+     */
+    public function searchOrderForReturn(Request $request): JsonResponse
+    {
+        $q = trim((string) $request->input('q', ''));
+        $orderId = $request->input('order_id');
+
+        $query = Order::with(['items.product'])->latest('id');
+
+        if ($orderId) {
+            $query->where('id', $orderId);
+        } elseif ($q !== '') {
+            $query->where(function ($queryBuilder) use ($q) {
+                $queryBuilder->where('order_number', 'LIKE', "%{$q}%")
+                    ->orWhere('customer_name', 'LIKE', "%{$q}%")
+                    ->orWhere('customer_phone', 'LIKE', "%{$q}%")
+                    ->orWhereHas('items', function ($itemQ) use ($q) {
+                        $itemQ->where('product_name', 'LIKE', "%{$q}%")
+                              ->orWhere('sku', 'LIKE', "%{$q}%");
+                    });
+            });
+        } else {
+            // Default: show today's / recent delivered POS orders
+            $query->where('order_status', 'delivered')
+                  ->where('delivery_zone', 'pos_counter')
+                  ->whereDate('created_at', '>=', now()->subDays(7));
+        }
+
+        // Limit results to 15
+        $orders = $query->limit(15)->get();
+
+        $formatted = $orders->map(function ($order) {
+            return [
+                'id' => $order->id,
+                'order_number' => $order->order_number,
+                'customer_name' => $order->customer_name ?: 'Walk-in Customer',
+                'customer_phone' => $order->customer_phone ?: '-',
+                'order_status' => $order->order_status,
+                'status_label' => $order->status_label,
+                'created_at_formatted' => $order->created_at->format('d M Y, h:i A'),
+                'payment_method' => strtoupper($order->payment_method),
+                'grand_total' => (float) $order->grand_total,
+                'subtotal' => (float) $order->subtotal,
+                'is_eligible' => in_array($order->order_status, ['delivered', 'confirmed']),
+                'items' => $order->items->map(function ($item) {
+                    return [
+                        'id' => $item->id,
+                        'product_id' => $item->product_id,
+                        'product_name' => $item->product_name,
+                        'sku' => $item->sku ?: ($item->product?->sku ?? ''),
+                        'unit_price' => (float) $item->unit_price,
+                        'original_quantity' => (int) $item->quantity,
+                        'line_total' => (float) $item->line_total,
+                        'current_stock' => $item->product ? (int) $item->product->stock_quantity : 0,
+                        'return_quantity' => 0,
+                    ];
+                }),
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+            'orders' => $formatted,
+        ]);
+    }
+
+    /**
+     * Process POS customer product return, restock inventory, and update sales/drawer.
+     */
+    public function processReturn(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'order_id' => 'required|integer|exists:orders,id',
+            'returns' => 'required|array|min:1',
+            'returns.*.item_id' => 'required|integer|exists:order_items,id',
+            'returns.*.return_quantity' => 'required|integer|min:1',
+            'refund_method' => 'nullable|string|in:cash,duitnow_qr,card,original',
+            'reason' => 'nullable|string|max:255',
+        ]);
+
+        return DB::transaction(function () use ($validated) {
+            $order = Order::with(['items.product'])->lockForUpdate()->findOrFail($validated['order_id']);
+
+            if (in_array($order->order_status, ['cancelled', 'refunded'])) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'This order has already been marked as ' . $order->order_status . '.',
+                ], 422);
+            }
+
+            $totalRefundAmount = 0.00;
+            $restockedProducts = [];
+            $returnedItemsLog = [];
+
+            foreach ($validated['returns'] as $ret) {
+                $item = $order->items->firstWhere('id', $ret['item_id']);
+                if (!$item) {
+                    continue;
+                }
+
+                $returnQty = min((int) $ret['return_quantity'], (int) $item->quantity);
+                if ($returnQty <= 0) {
+                    continue;
+                }
+
+                $unitPrice = (float) $item->unit_price;
+                $lineRefund = round($unitPrice * $returnQty, 2);
+                $totalRefundAmount += $lineRefund;
+
+                // 1. Restock product in inventory
+                if ($item->product_id) {
+                    $product = Product::lockForUpdate()->find($item->product_id);
+                    if ($product) {
+                        $product->increment('stock_quantity', $returnQty);
+                        $restockedProducts[] = [
+                            'id' => $product->id,
+                            'name' => $product->name,
+                            'restocked_quantity' => $returnQty,
+                            'new_stock_quantity' => (int) $product->fresh()->stock_quantity,
+                        ];
+                    }
+                }
+
+                $returnedItemsLog[] = "{$returnQty}x {$item->product_name} (RM " . number_format($lineRefund, 2) . ")";
+
+                // 2. Adjust or remove order item
+                $remainingQty = (int) $item->quantity - $returnQty;
+                if ($remainingQty > 0) {
+                    $item->update([
+                        'quantity' => $remainingQty,
+                        'line_total' => round($unitPrice * $remainingQty, 2),
+                    ]);
+                } else {
+                    $item->delete();
+                }
+            }
+
+            if ($totalRefundAmount <= 0) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No valid items selected for return.',
+                ], 422);
+            }
+
+            // 3. Recalculate order subtotal and grand total
+            $remainingItems = $order->items()->get();
+            $newSubtotal = round($remainingItems->sum('line_total'), 2);
+            $isFullReturn = ($remainingItems->isEmpty() || $newSubtotal <= 0);
+
+            $refundMethod = $validated['refund_method'] ?? 'cash';
+            $reason = trim($validated['reason'] ?? '') ?: 'Customer Product Return';
+
+            if ($isFullReturn) {
+                $order->update([
+                    'subtotal' => 0.00,
+                    'grand_total' => 0.00,
+                    'balance_amount' => 0.00,
+                    'order_status' => 'refunded',
+                    'payment_status' => 'refunded',
+                ]);
+            } else {
+                $newGrandTotal = max(0, round($order->grand_total - $totalRefundAmount, 2));
+                $order->update([
+                    'subtotal' => $newSubtotal,
+                    'grand_total' => $newGrandTotal,
+                ]);
+            }
+
+            // 4. Audit History & Activity Log
+            $logSummary = implode(', ', $returnedItemsLog);
+            OrderHistory::create([
+                'order_id' => $order->id,
+                'status_from' => $order->order_status,
+                'status_to' => $isFullReturn ? 'refunded' : $order->order_status,
+                'comment' => "CUSTOMER RETURN PROCESSED: [{$logSummary}]. Total Refund: RM " . number_format($totalRefundAmount, 2) . " via " . strtoupper($refundMethod) . ". Products restocked to inventory. Reason: {$reason}. Cashier: " . auth()->user()->name,
+                'changed_by' => auth()->id(),
+            ]);
+
+            ActivityLog::log('pos.order_returned', $order, [
+                'order_number' => $order->order_number,
+                'refund_amount' => $totalRefundAmount,
+                'refund_method' => $refundMethod,
+                'restocked_products' => $restockedProducts,
+                'is_full_return' => $isFullReturn,
+                'cashier' => auth()->user()->name,
+            ]);
+
+            // 5. Offline sync outbox
+            try {
+                \App\Models\SyncQueue::queueOrder($order);
+            } catch (\Throwable $e) {}
+
+            return response()->json([
+                'success' => true,
+                'message' => "Return processed successfully! RM " . number_format($totalRefundAmount, 2) . " refunded and product(s) restocked to inventory.",
+                'total_refund' => $totalRefundAmount,
+                'is_full_return' => $isFullReturn,
+                'order_number' => $order->order_number,
+                'restocked_products' => $restockedProducts,
+                'refund_method' => strtoupper($refundMethod),
+            ]);
+        });
+    }
+
+    /**
      * Display printable thermal POS receipt.
      */
     public function receipt($order): View
