@@ -3,7 +3,49 @@
 @section('title', 'Products Management')
 
 @section('content')
-<div class="space-y-6" x-data="{ importModal: false, deleteAllModal: false, confirmInput: '' }">
+<div class="space-y-6" x-data="{
+    importModal: false,
+    searchQuery: '{{ addslashes(request('search', '')) }}',
+    suggestions: [],
+    showSuggestions: false,
+    isSearching: false,
+    selectedIndex: -1,
+    searchTimeout: null,
+    fetchSuggestions() {
+        clearTimeout(this.searchTimeout);
+        const q = this.searchQuery.trim();
+        if (q.length < 1) {
+            this.suggestions = [];
+            this.showSuggestions = false;
+            return;
+        }
+        this.searchTimeout = setTimeout(async () => {
+            this.isSearching = true;
+            try {
+                const res = await fetch(`{{ route('admin.products.suggestions') }}?q=${encodeURIComponent(q)}`, {
+                    headers: { 'Accept': 'application/json' }
+                });
+                const data = await res.json();
+                if (data.success) {
+                    this.suggestions = data.products || [];
+                    this.showSuggestions = this.suggestions.length > 0;
+                    this.selectedIndex = -1;
+                }
+            } catch (e) {
+                console.error(e);
+            } finally {
+                this.isSearching = false;
+            }
+        }, 150);
+    },
+    selectSuggestion(item) {
+        this.searchQuery = item.name;
+        this.showSuggestions = false;
+        this.$nextTick(() => {
+            this.$refs.searchForm.submit();
+        });
+    }
+}">
 
     {{-- 1. Top Header with Breadcrumbs & Action Bar --}}
     <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-2 border-b border-slate-200">
@@ -44,31 +86,6 @@
                 <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                 <span>Export CSV</span>
             </a>
-
-            <form action="{{ route('admin.products.seed-dummy') }}" method="POST" class="inline">
-                @csrf
-                <button 
-                    type="submit" 
-                    onclick="return confirm('Add 5 realistic test products (Beverages, Groceries, Snacks) to the store catalog?')"
-                    class="px-3.5 py-2 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-xl text-xs font-bold text-emerald-700 shadow-2xs hover:border-emerald-400 transition flex items-center gap-1.5 cursor-pointer"
-                    title="Seed 5 realistic dummy products into catalog"
-                >
-                    <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
-                    <span>Seed 5 Products</span>
-                </button>
-            </form>
-
-            @if(auth()->user()->isAdmin())
-            <button 
-                type="button" 
-                @click="deleteAllModal = true; confirmInput = ''" 
-                class="px-3.5 py-2 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-xl text-xs font-bold text-rose-700 shadow-2xs hover:border-rose-400 transition flex items-center gap-1.5 cursor-pointer"
-                title="Delete all products from store catalog"
-            >
-                <svg class="w-4 h-4 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                <span>Delete All</span>
-            </button>
-            @endif
 
             <a 
                 href="{{ route('admin.products.create') }}" 
@@ -147,21 +164,83 @@
 
     {{-- 3. Comprehensive Filter & Search Bar --}}
     <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-2xs">
-        <form action="{{ route('admin.products.index') }}" method="GET" class="space-y-3">
+        <form x-ref="searchForm" action="{{ route('admin.products.index') }}" method="GET" class="space-y-3">
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 items-center">
                 
-                {{-- Search Input --}}
-                <div class="lg:col-span-4 relative">
+                {{-- Search Input with Live Suggestions Dropdown --}}
+                <div class="lg:col-span-4 relative" @click.outside="showSuggestions = false">
                     <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                     </div>
                     <input 
                         type="text" 
                         name="search" 
+                        x-model="searchQuery"
+                        @input="fetchSuggestions()"
+                        @focus="if(searchQuery.trim().length > 0 && suggestions.length > 0) showSuggestions = true"
+                        @keydown.arrow-down.prevent="if(suggestions.length > 0) { showSuggestions = true; selectedIndex = (selectedIndex + 1) % suggestions.length; }"
+                        @keydown.arrow-up.prevent="if(suggestions.length > 0) { showSuggestions = true; selectedIndex = (selectedIndex - 1 + suggestions.length) % suggestions.length; }"
+                        @keydown.enter="if(showSuggestions && selectedIndex >= 0) { $event.preventDefault(); selectSuggestion(suggestions[selectedIndex]); }"
+                        @keydown.escape="showSuggestions = false"
                         value="{{ request('search') }}" 
                         placeholder="Search product title, SKU, packaging..." 
-                        class="w-full text-xs pl-10 pr-4 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 bg-slate-50/50"
+                        class="w-full text-xs pl-10 pr-9 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 bg-slate-50/50"
+                        autocomplete="off"
                     >
+                    <div class="absolute inset-y-0 right-0 pr-2.5 flex items-center">
+                        <span x-show="isSearching" class="text-slate-400 animate-spin">
+                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+                        </span>
+                        <button 
+                            type="button" 
+                            x-show="!isSearching && searchQuery.length > 0" 
+                            @click="searchQuery = ''; showSuggestions = false; $refs.searchForm.submit()"
+                            class="text-slate-400 hover:text-slate-600 p-1 cursor-pointer"
+                            title="Clear search"
+                        >
+                            ✕
+                        </button>
+                    </div>
+
+                    {{-- Autocomplete Dropdown List --}}
+                    <div 
+                        x-show="showSuggestions && suggestions.length > 0" 
+                        x-cloak
+                        class="absolute left-0 right-0 top-full mt-1.5 bg-white border border-slate-200 rounded-2xl shadow-xl z-50 overflow-hidden divide-y divide-slate-100 max-h-80 overflow-y-auto"
+                    >
+                        <div class="px-3 py-1.5 bg-slate-50 text-[10px] uppercase font-bold text-slate-400 tracking-wider flex items-center justify-between">
+                            <span>Product Suggestions</span>
+                            <span class="text-sky-600 font-bold" x-text="suggestions.length + ' found'"></span>
+                        </div>
+                        <template x-for="(item, idx) in suggestions" :key="item.id">
+                            <div 
+                                @click="selectSuggestion(item)"
+                                @mouseenter="selectedIndex = idx"
+                                :class="selectedIndex === idx ? 'bg-sky-50/80 text-sky-950 ring-1 ring-inset ring-sky-300' : 'hover:bg-slate-50 text-slate-800'"
+                                class="p-2.5 flex items-center justify-between gap-3 cursor-pointer transition select-none"
+                            >
+                                <div class="flex items-center gap-2.5 min-w-0">
+                                    <img :src="item.image_url" :alt="item.name" class="w-8 h-8 rounded-lg object-contain bg-slate-50 border border-slate-200/80 shrink-0">
+                                    <div class="min-w-0">
+                                        <div class="font-bold text-xs truncate" x-text="item.name"></div>
+                                        <div class="text-[10px] text-slate-400 flex items-center gap-1.5 font-mono">
+                                            <span x-text="item.sku"></span>
+                                            <span>•</span>
+                                            <span class="text-slate-500 font-sans" x-text="item.category"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="text-right shrink-0">
+                                    <div class="font-mono font-extrabold text-xs text-slate-900">
+                                        RM <span x-text="item.price.toFixed(2)"></span>
+                                    </div>
+                                    <div class="text-[10px]" :class="item.stock_quantity > 0 ? 'text-emerald-600 font-semibold' : 'text-rose-500 font-bold'">
+                                        <span x-text="item.stock_quantity"></span> units
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
                 </div>
 
                 {{-- Category Filter --}}
@@ -484,68 +563,6 @@
             </form>
         </div>
     </div>
-
-    {{-- Delete All Products Confirmation Modal --}}
-    @if(auth()->user()->isAdmin())
-    <div 
-        x-show="deleteAllModal" 
-        x-cloak 
-        class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4"
-    >
-        <div 
-            @click.away="deleteAllModal = false"
-            x-show="deleteAllModal"
-            x-transition:enter="transition ease-out duration-200"
-            x-transition:enter-start="opacity-0 scale-95"
-            x-transition:enter-end="opacity-100 scale-100"
-            class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-rose-200 relative"
-        >
-            <div class="w-12 h-12 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center mx-auto mb-4">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-            </div>
-            
-            <h3 class="text-lg font-black text-slate-900 text-center mb-1">Delete All Products?</h3>
-            <p class="text-xs text-slate-500 text-center leading-relaxed mb-4">
-                This will permanently delete <strong class="text-rose-600">ALL {{ number_format($stats['total'] ?? 0) }} products</strong> from your catalog. This action cannot be reversed.
-            </p>
-
-            <form method="POST" action="{{ route('admin.products.delete-all') }}" class="space-y-4">
-                @csrf
-                @method('DELETE')
-
-                <div>
-                    <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
-                        Type <span class="text-rose-600 font-mono">DELETE</span> to confirm:
-                    </label>
-                    <input 
-                        type="text" 
-                        x-model="confirmInput" 
-                        placeholder="Type DELETE" 
-                        class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-mono font-bold text-slate-900 focus:bg-white focus:border-rose-500 focus:ring-1 focus:ring-rose-500"
-                        required
-                    >
-                </div>
-
-                <div class="flex items-center justify-end gap-2 pt-2">
-                    <button 
-                        type="button" 
-                        @click="deleteAllModal = false" 
-                        class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition"
-                    >
-                        Cancel
-                    </button>
-                    <button 
-                        type="submit" 
-                        :disabled="confirmInput.trim().toUpperCase() !== 'DELETE'"
-                        class="px-4 py-2 bg-rose-600 hover:bg-rose-500 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-bold rounded-xl shadow-md shadow-rose-600/30 transition cursor-pointer"
-                    >
-                        Permanently Delete All
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-    @endif
 
 </div>
 @endsection

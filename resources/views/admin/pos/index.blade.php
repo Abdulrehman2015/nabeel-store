@@ -244,8 +244,8 @@
             <div class="shrink-0 bg-white p-3 rounded-2xl border border-slate-200/90 shadow-2xs space-y-2.5">
                 <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                     
-                    {{-- Barcode Scanner & Search Input --}}
-                    <div class="relative flex-1 group">
+                    {{-- Barcode Scanner & Search Input with Autocomplete Suggestions Dropdown --}}
+                    <div class="relative flex-1 group" @click.outside="showPosSuggestions = false">
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 group-focus-within:text-sky-600 transition">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
                         </div>
@@ -253,22 +253,70 @@
                             type="text" 
                             x-ref="barcodeInput"
                             x-model="searchQuery" 
+                            @input="showPosSuggestions = true; posSuggestionIndex = -1"
+                            @focus="if(searchQuery.trim().length > 0 && posSearchSuggestions.length > 0) showPosSuggestions = true"
+                            @keydown.arrow-down.prevent="if(posSearchSuggestions.length > 0) { showPosSuggestions = true; posSuggestionIndex = (posSuggestionIndex + 1) % posSearchSuggestions.length; }"
+                            @keydown.arrow-up.prevent="if(posSearchSuggestions.length > 0) { showPosSuggestions = true; posSuggestionIndex = (posSuggestionIndex - 1 + posSearchSuggestions.length) % posSearchSuggestions.length; }"
                             @keydown.enter="handleBarcodeEnter($event)"
+                            @keydown.escape="showPosSuggestions = false"
                             placeholder="Scan barcode, SKU or search item (F2 or /)..."
                             class="w-full pl-9 pr-14 py-2 bg-slate-50/80 hover:bg-slate-50 focus:bg-white text-xs sm:text-sm font-semibold rounded-xl border border-slate-200 focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 text-slate-900 placeholder-slate-400 transition"
                             autofocus
+                            autocomplete="off"
                         >
                         <div class="absolute inset-y-0 right-0 pr-2 flex items-center gap-1">
                             <button 
                                 type="button" 
                                 x-show="searchQuery.length > 0" 
-                                @click="searchQuery = ''; $refs.barcodeInput.focus()"
+                                @click="searchQuery = ''; showPosSuggestions = false; $refs.barcodeInput.focus()"
                                 class="text-slate-400 hover:text-slate-600 p-1 cursor-pointer"
                                 title="Clear Search"
                             >
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                             </button>
                             <kbd class="hidden sm:inline-flex items-center px-1.5 py-0.5 text-[9px] font-mono text-slate-400 bg-white border border-slate-200 rounded shadow-2xs">F2</kbd>
+                        </div>
+
+                        {{-- POS Search Autocomplete Suggestions Dropdown --}}
+                        <div 
+                            x-show="showPosSuggestions && searchQuery.trim().length > 0 && posSearchSuggestions.length > 0" 
+                            x-cloak
+                            class="absolute left-0 right-0 top-full mt-1.5 bg-white border border-slate-200 rounded-2xl shadow-2xl z-50 overflow-hidden divide-y divide-slate-100 max-h-80 overflow-y-auto"
+                        >
+                            <div class="px-3 py-1.5 bg-slate-50 text-[10px] uppercase font-bold text-slate-500 tracking-wider flex items-center justify-between">
+                                <span>Matching Products (Click or &uarr;&darr; + Enter to Add)</span>
+                                <span class="font-mono text-sky-600 font-extrabold" x-text="posSearchSuggestions.length + ' found'"></span>
+                            </div>
+                            <template x-for="(prod, idx) in posSearchSuggestions" :key="prod.id">
+                                <div 
+                                    @click="addSuggestionToCart(prod)"
+                                    @mouseenter="posSuggestionIndex = idx"
+                                    :class="posSuggestionIndex === idx ? 'bg-sky-50 text-sky-950 ring-1 ring-inset ring-sky-300' : 'hover:bg-slate-50 text-slate-800'"
+                                    class="p-2.5 flex items-center justify-between gap-3 cursor-pointer transition select-none"
+                                >
+                                    <div class="flex items-center gap-2.5 min-w-0">
+                                        <div class="w-8 h-8 rounded-lg bg-slate-100 border border-slate-200/80 p-0.5 shrink-0 flex items-center justify-center overflow-hidden">
+                                            <img :src="prod.image_url" :alt="prod.name" class="w-full h-full object-contain">
+                                        </div>
+                                        <div class="min-w-0">
+                                            <div class="font-bold text-xs sm:text-sm text-slate-900 truncate" x-text="prod.name"></div>
+                                            <div class="text-[10px] text-slate-400 flex items-center gap-1.5 font-mono">
+                                                <span x-text="prod.sku || 'No SKU'"></span>
+                                                <span>•</span>
+                                                <span class="text-slate-500 font-sans" x-text="prod.category_name"></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="text-right shrink-0">
+                                        <div class="font-mono font-extrabold text-xs sm:text-sm text-slate-900">
+                                            RM <span x-text="(posMode === 'staff' ? prod.purchase_price : prod.effective_price).toFixed(2)"></span>
+                                        </div>
+                                        <div class="text-[10px]" :class="prod.stock_quantity > 0 ? 'text-emerald-600 font-bold' : 'text-rose-500 font-bold'">
+                                            <span x-text="prod.stock_quantity"></span> in stock
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
                         </div>
                     </div>
 
@@ -2735,6 +2783,8 @@ function posApp() {
 
         // Search & Filter
         searchQuery: '',
+        showPosSuggestions: false,
+        posSuggestionIndex: -1,
         selectedCategory: 'all',
         categoryDropdownOpen: false,
         categoryFilterSearch: '',
@@ -3007,6 +3057,21 @@ function posApp() {
             });
         },
 
+        // Autocomplete suggestions for POS search
+        get posSearchSuggestions() {
+            const q = this.searchQuery.trim().toLowerCase();
+            if (!q) return [];
+            const cleanQ = q.replace(/[^a-z0-9]/g, '');
+            return this.products.filter(p => {
+                const name = (p.name || '').toLowerCase();
+                const sku = (p.sku || '').toLowerCase();
+                const cleanSku = sku.replace(/[^a-z0-9]/g, '');
+                const cat = (p.category_name || '').toLowerCase();
+                const brand = (p.brand_name || '').toLowerCase();
+                return name.includes(q) || sku.includes(q) || (cleanQ.length >= 2 && cleanSku.includes(cleanQ)) || cat.includes(q) || brand.includes(q);
+            }).slice(0, 8);
+        },
+
         // Computed filtered products list
         get filteredProducts() {
             return this.products.filter(p => {
@@ -3115,6 +3180,17 @@ function posApp() {
             return item ? item.quantity : 0;
         },
 
+        addSuggestionToCart(product) {
+            if (!product) return;
+            this.addToCart(product);
+            this.searchQuery = '';
+            this.showPosSuggestions = false;
+            this.posSuggestionIndex = -1;
+            this.$nextTick(() => {
+                this.focusBarcodeInput();
+            });
+        },
+
         // Barcode enter event
         handleBarcodeEnter(e) {
             if (e && e.preventDefault) e.preventDefault();
@@ -3125,9 +3201,24 @@ function posApp() {
                 return;
             }
             if (this.scanAutoProcessTimeout) clearTimeout(this.scanAutoProcessTimeout);
+
+            // 1. If a suggestion is highlighted via arrow keys:
+            if (this.showPosSuggestions && this.posSuggestionIndex >= 0 && this.posSearchSuggestions[this.posSuggestionIndex]) {
+                this.addSuggestionToCart(this.posSearchSuggestions[this.posSuggestionIndex]);
+                return;
+            }
+
             const code = this.barcodeScanBuffer.trim() || this.searchQuery.trim();
+
+            // 2. If user typed search text that matches exactly 1 suggestion:
+            if (this.showPosSuggestions && this.posSearchSuggestions.length === 1 && !this.findProductByCode(code)) {
+                this.addSuggestionToCart(this.posSearchSuggestions[0]);
+                return;
+            }
+
             if (code) {
                 this.barcodeScanBuffer = '';
+                this.showPosSuggestions = false;
                 this.processBarcodeScan(code);
             }
         },

@@ -8,6 +8,7 @@ use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\ProductImage;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -321,45 +322,53 @@ class AdminProductController extends Controller
         return redirect()->route('admin.products.index')->with('success', 'Product deleted.');
     }
 
-    public function deleteAll(Request $request)
+    /**
+     * Live search suggestions for products catalog.
+     */
+    public function suggestions(Request $request): JsonResponse
     {
-        if (!auth()->user()->isAdmin()) {
-            abort(403, 'Unauthorized action: Cashiers and staff do not have permission to delete products.');
+        $q = trim((string) $request->input('q', ''));
+        if ($q === '') {
+            return response()->json(['success' => true, 'products' => []]);
         }
 
-        $count = Product::count();
+        $products = Product::with(['category:id,name', 'brand:id,name'])
+            ->where(function ($query) use ($q) {
+                $query->where('name', 'LIKE', "%{$q}%")
+                    ->orWhere('sku', 'LIKE', "%{$q}%")
+                    ->orWhere('pack_size', 'LIKE', "%{$q}%")
+                    ->orWhere('unit_description', 'LIKE', "%{$q}%")
+                    ->orWhereHas('category', function ($catQ) use ($q) {
+                        $catQ->where('name', 'LIKE', "%{$q}%");
+                    })
+                    ->orWhereHas('brand', function ($brandQ) use ($q) {
+                        $brandQ->where('name', 'LIKE', "%{$q}%");
+                    });
+            })
+            ->orderByRaw("CASE WHEN sku = ? THEN 0 WHEN name LIKE ? THEN 1 ELSE 2 END", [$q, "{$q}%"])
+            ->limit(10)
+            ->get()
+            ->map(function ($p) {
+                return [
+                    'id' => $p->id,
+                    'name' => $p->name,
+                    'sku' => $p->sku ?: '-',
+                    'category' => $p->category?->name ?? 'Uncategorized',
+                    'brand' => $p->brand?->name ?? '',
+                    'price' => (float) ($p->sale_price ?? $p->price),
+                    'stock_quantity' => (int) $p->stock_quantity,
+                    'is_active' => (bool) $p->is_active,
+                    'image_url' => $p->featured_image
+                        ? (str_starts_with($p->featured_image, 'http') ? $p->featured_image : asset('storage/' . $p->featured_image))
+                        : asset('images/default-product.png'),
+                    'edit_url' => route('admin.products.edit', $p->id),
+                ];
+            });
 
-        Product::query()->each(function ($product) {
-            if ($product->featured_image && !str_starts_with($product->featured_image, 'http')) {
-                @Storage::disk('public')->delete($product->featured_image);
-            }
-            $product->delete();
-        });
-
-        DB::table('products')->delete();
-
-        ActivityLog::log('products.deleted_all', null, ['count' => $count]);
-
-        return redirect()->route('admin.products.index')
-            ->with('success', "All {$count} products have been permanently deleted.");
-    }
-
-    public function seedDummy(Request $request)
-    {
-        try {
-            if (!class_exists(\Database\Seeders\DummyProductSeeder::class) && file_exists(database_path('seeders/DummyProductSeeder.php'))) {
-                require_once database_path('seeders/DummyProductSeeder.php');
-            }
-            (new \Database\Seeders\DummyProductSeeder())->run();
-
-            ActivityLog::log('products.seeded_dummy', null, ['count' => 5]);
-
-            return redirect()->route('admin.products.index')
-                ->with('success', '5 Realistic test products (Beverages, Groceries, Snacks) have been added to the catalog!');
-        } catch (\Throwable $e) {
-            return redirect()->route('admin.products.index')
-                ->with('error', 'Failed to seed test products: ' . $e->getMessage());
-        }
+        return response()->json([
+            'success' => true,
+            'products' => $products,
+        ]);
     }
 }
 
