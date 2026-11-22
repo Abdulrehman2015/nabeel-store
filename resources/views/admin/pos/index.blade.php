@@ -1296,7 +1296,7 @@
                         <template x-if="!isProcessing">
                             <span class="flex items-center gap-1.5">
                                 <span x-text="posMode === 'staff' ? 'Record Staff Expense & Print Slip' : 'Complete Sale & Print Receipt'"></span>
-                                <span class="text-[10px] opacity-75 font-mono">(F4)</span>
+                                <span class="text-[10px] opacity-75 font-mono">(Space)</span>
                             </span>
                         </template>
                         <template x-if="isProcessing">
@@ -1762,7 +1762,10 @@
                 </div>
                 <div class="flex justify-between items-center py-1 border-b border-slate-100">
                     <span class="text-slate-600">Complete Sale / Checkout</span>
-                    <kbd class="px-2 py-0.5 bg-slate-100 border border-slate-200 rounded text-slate-700 font-mono font-bold">F4</kbd>
+                    <div class="flex items-center gap-1">
+                        <kbd class="px-2 py-0.5 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded font-mono font-bold text-[11px]">Space</kbd>
+                        <kbd class="px-1.5 py-0.5 bg-slate-100 border border-slate-200 rounded text-slate-500 font-mono text-[10px]">F4</kbd>
+                    </div>
                 </div>
                 <div class="flex justify-between items-center py-1 border-b border-slate-100">
                     <span class="text-slate-600">Print Receipt (On Completed Modal)</span>
@@ -3827,6 +3830,19 @@ function posApp() {
                 }
             }
 
+            // 0. Space or F4 to Complete Checkout / Sale
+            const isTypingSearchQuery = (document.activeElement === this.$refs.barcodeInput && this.searchQuery && this.searchQuery.trim().length > 0);
+            const isOtherTextInput = document.activeElement && 
+                document.activeElement !== this.$refs.barcodeInput && 
+                (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA');
+
+            if (e.key === 'F4' || ((e.code === 'Space' || e.key === ' ') && !isTypingSearchQuery && !isOtherTextInput && this.cart.length > 0)) {
+                e.preventDefault();
+                e.stopPropagation();
+                this.processCheckout();
+                return;
+            }
+
             // 1. Universal Automatic Barcode Scanner Enter / Tab Interceptor
             // Detects barcode scan ending with Enter or scanner Tab delimiter
             if (e.key === 'Enter' || (e.key === 'Tab' && this.barcodeScanBuffer.trim().length >= 2 && (Date.now() - this.lastScanTime < 80))) {
@@ -3895,13 +3911,6 @@ function posApp() {
                 e.preventDefault();
                 this.$refs.barcodeInput?.focus();
                 this.$refs.barcodeInput?.select();
-                return;
-            }
-
-            // F4 to complete checkout
-            if (e.key === 'F4') {
-                e.preventDefault();
-                this.processCheckout();
                 return;
             }
 
