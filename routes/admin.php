@@ -80,6 +80,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('pos/receipt/{order}', [AdminPosController::class, 'receipt'])->name('pos.receipt');
     Route::post('pos/customer', [AdminPosController::class, 'quickCustomer'])->name('pos.customer');
     Route::post('pos/quick-product', [AdminPosController::class, 'quickProduct'])->name('pos.quick-product');
+    Route::post('pos/update-price', [AdminPosController::class, 'updatePrice'])->name('pos.update-price');
     Route::get('pos/shift-summary', [AdminPosController::class, 'shiftSummary'])->name('pos.shift-summary');
 
     // Offline / Live Database Sync Center
