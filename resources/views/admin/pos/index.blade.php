@@ -1296,7 +1296,7 @@
                         <template x-if="!isProcessing">
                             <span class="flex items-center gap-1.5">
                                 <span x-text="posMode === 'staff' ? 'Record Staff Expense & Print Slip' : 'Complete Sale & Print Receipt'"></span>
-                                <span class="text-[10px] opacity-75 font-mono">(Enter)</span>
+                                <span class="text-[10px] opacity-75 font-mono">(Ctrl + Space)</span>
                             </span>
                         </template>
                         <template x-if="isProcessing">
@@ -1763,7 +1763,7 @@
                 <div class="flex justify-between items-center py-1 border-b border-slate-100">
                     <span class="text-slate-600">Complete Sale / Checkout</span>
                     <div class="flex items-center gap-1">
-                        <kbd class="px-2 py-0.5 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded font-mono font-bold text-[11px]">Enter</kbd>
+                        <kbd class="px-2 py-0.5 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded font-mono font-bold text-[11px]">Ctrl + Space</kbd>
                         <kbd class="px-1.5 py-0.5 bg-slate-100 border border-slate-200 rounded text-slate-500 font-mono text-[10px]">F4</kbd>
                     </div>
                 </div>
@@ -2814,9 +2814,6 @@ function posApp() {
             if (code) {
                 this.barcodeScanBuffer = '';
                 this.processBarcodeScan(code);
-            } else if (this.cart.length > 0) {
-                // When Enter is pressed in empty barcode search input, complete sale & checkout!
-                this.processCheckout();
             }
         },
 
@@ -3798,6 +3795,16 @@ function posApp() {
 
             // Ctrl/Cmd shortcuts for Item Discount and Quantity manipulation
             if (e.ctrlKey || e.metaKey) {
+                // Ctrl + Space: Complete sale & print receipt
+                if (e.code === 'Space' || e.key === ' ' || e.key === 'Spacebar') {
+                    if (this.cart.length > 0) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        this.processCheckout();
+                        return;
+                    }
+                }
+
                 // Ctrl + Enter: Open Item Discount Modal for selected item
                 if (e.key === 'Enter' || e.code === 'Enter' || e.code === 'NumpadEnter') {
                     e.preventDefault();
@@ -3842,12 +3849,6 @@ function posApp() {
                     e.stopPropagation();
                     this.barcodeScanBuffer = '';
                     this.processBarcodeScan(code);
-                    return;
-                } else if (e.key === 'Enter' && this.cart.length > 0) {
-                    // Enter pressed with empty barcode input: complete sale checkout
-                    e.preventDefault();
-                    e.stopPropagation();
-                    this.processCheckout();
                     return;
                 }
             }
@@ -3910,11 +3911,14 @@ function posApp() {
                 return;
             }
 
-            // Enter or F4 to complete checkout
-            if (e.key === 'F4' || (e.key === 'Enter' && this.cart.length > 0)) {
-                e.preventDefault();
-                this.processCheckout();
-                return;
+            // Ctrl + Space or F4 to complete checkout
+            if (e.key === 'F4' || ((e.ctrlKey || e.metaKey) && (e.code === 'Space' || e.key === ' ' || e.key === 'Spacebar'))) {
+                if (this.cart.length > 0) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    this.processCheckout();
+                    return;
+                }
             }
 
             // Esc to clear search or close dropdown
