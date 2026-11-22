@@ -78,6 +78,10 @@ class AdminProductController extends Controller
             'promo' => Product::where('is_promo', true)->count(),
         ];
 
+        if ($request->ajax() || $request->has('table_only')) {
+            return view('admin.products._table', compact('products'));
+        }
+
         return view('admin.products.index', compact('products', 'categories', 'brands', 'stats'));
     }
 
