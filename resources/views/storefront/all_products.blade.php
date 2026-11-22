@@ -41,38 +41,115 @@
         </div>
 
         {{-- Filters & Sort --}}
-        <div class="flex flex-wrap items-center gap-3">
-            {{-- Category Filter --}}
-            <div class="flex items-center gap-2">
-                <label for="category_filter" class="text-xs text-[#7E7E7E] font-bold font-['Quicksand']">Category:</label>
-                <select 
-                    id="category_filter" 
-                    onchange="location.href = this.value"
-                    class="text-xs py-2 pl-3 pr-8 border border-[#ececec] rounded-xl focus:ring-[#3BB77E] focus:border-[#3BB77E] bg-white font-bold text-[#253D4E] font-['Quicksand'] cursor-pointer shadow-xs"
+        <div class="flex flex-wrap items-center gap-3" x-data="{ catOpen: false, sortOpen: false }">
+            
+            {{-- Category Filter Dropdown --}}
+            <div class="relative" @click.outside="catOpen = false">
+                <button 
+                    type="button" 
+                    @click="catOpen = !catOpen; sortOpen = false"
+                    class="flex items-center gap-2.5 px-4 py-2.5 bg-white border border-[#ececec] hover:border-[#3BB77E] rounded-2xl text-xs font-bold text-[#253D4E] font-['Quicksand'] shadow-2xs hover:shadow-sm transition-all cursor-pointer group"
                 >
-                    <option value="{{ route('products.index', ['sort' => request('sort')]) }}" {{ !request('category') ? 'selected' : '' }}>All Categories</option>
+                    <div class="w-5 h-5 rounded-md bg-[#DEF9EC] text-[#3BB77E] flex items-center justify-center shrink-0">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"/></svg>
+                    </div>
+                    <span class="text-[#7E7E7E] font-medium">Category:</span>
+                    <span class="font-extrabold text-[#253D4E] max-w-[150px] truncate">
+                        {{ $categories->firstWhere('slug', request('category'))?->name ?? 'All Categories' }}
+                    </span>
+                    <svg class="w-3.5 h-3.5 text-[#7E7E7E] group-hover:text-[#3BB77E] transition-transform duration-200 shrink-0" :class="catOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
+                </button>
+
+                {{-- Dropdown Menu --}}
+                <div 
+                    x-show="catOpen" 
+                    x-transition:enter="transition ease-out duration-150"
+                    x-transition:enter-start="opacity-0 scale-95 -translate-y-1"
+                    x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                    x-transition:leave="transition ease-in duration-100"
+                    x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+                    x-transition:leave-end="opacity-0 scale-95 -translate-y-1"
+                    class="absolute right-0 sm:left-0 top-full mt-2 w-64 bg-white rounded-2xl shadow-xl border border-[#ececec] p-2 z-50 max-h-72 overflow-y-auto divide-y divide-slate-50"
+                    style="display: none;"
+                >
+                    <a 
+                        href="{{ route('products.index', ['sort' => request('sort')]) }}" 
+                        class="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold transition {{ !request('category') ? 'bg-[#DEF9EC] text-[#3BB77E]' : 'text-[#253D4E] hover:bg-slate-50' }}"
+                    >
+                        <span>All Categories</span>
+                        @if(!request('category'))
+                            <svg class="w-4 h-4 text-[#3BB77E]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                        @endif
+                    </a>
                     @foreach($categories as $cat)
-                        <option value="{{ route('products.index', ['category' => $cat->slug, 'sort' => request('sort')]) }}" {{ request('category') === $cat->slug ? 'selected' : '' }}>
-                            {{ $cat->name }}
-                        </option>
+                        <a 
+                            href="{{ route('products.index', ['category' => $cat->slug, 'sort' => request('sort')]) }}" 
+                            class="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition {{ request('category') === $cat->slug ? 'bg-[#DEF9EC] text-[#3BB77E] font-bold' : 'text-[#253D4E] hover:bg-slate-50' }}"
+                        >
+                            <span class="truncate">{{ $cat->name }}</span>
+                            @if(request('category') === $cat->slug)
+                                <svg class="w-4 h-4 text-[#3BB77E]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                            @endif
+                        </a>
                     @endforeach
-                </select>
+                </div>
             </div>
 
-            {{-- Sort Dropdown --}}
-            <div class="flex items-center gap-2">
-                <label for="sort" class="text-xs text-[#7E7E7E] font-bold font-['Quicksand']">Sort by:</label>
-                <select 
-                    id="sort" 
-                    onchange="location.href = this.value"
-                    class="text-xs py-2 pl-3 pr-8 border border-[#ececec] rounded-xl focus:ring-[#3BB77E] focus:border-[#3BB77E] bg-white font-bold text-[#253D4E] font-['Quicksand'] cursor-pointer shadow-xs"
+            {{-- Sort By Dropdown --}}
+            <div class="relative" @click.outside="sortOpen = false">
+                <button 
+                    type="button" 
+                    @click="sortOpen = !sortOpen; catOpen = false"
+                    class="flex items-center gap-2.5 px-4 py-2.5 bg-white border border-[#ececec] hover:border-[#3BB77E] rounded-2xl text-xs font-bold text-[#253D4E] font-['Quicksand'] shadow-2xs hover:shadow-sm transition-all cursor-pointer group"
                 >
-                    <option value="{{ request()->fullUrlWithQuery(['sort' => 'newest']) }}" {{ $sort === 'newest' ? 'selected' : '' }}>Newest</option>
-                    <option value="{{ request()->fullUrlWithQuery(['sort' => 'price_asc']) }}" {{ $sort === 'price_asc' ? 'selected' : '' }}>Price: Low to High</option>
-                    <option value="{{ request()->fullUrlWithQuery(['sort' => 'price_desc']) }}" {{ $sort === 'price_desc' ? 'selected' : '' }}>Price: High to Low</option>
-                    <option value="{{ request()->fullUrlWithQuery(['sort' => 'name_asc']) }}" {{ $sort === 'name_asc' ? 'selected' : '' }}>Name: A to Z</option>
-                </select>
+                    <div class="w-5 h-5 rounded-md bg-[#F2FCE4] text-[#3BB77E] flex items-center justify-center shrink-0">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12"/></svg>
+                    </div>
+                    <span class="text-[#7E7E7E] font-medium">Sort by:</span>
+                    <span class="font-extrabold text-[#253D4E]">
+                        @if($sort === 'price_asc') Price: Low to High
+                        @elseif($sort === 'price_desc') Price: High to Low
+                        @elseif($sort === 'name_asc') Name: A to Z
+                        @else Newest
+                        @endif
+                    </span>
+                    <svg class="w-3.5 h-3.5 text-[#7E7E7E] group-hover:text-[#3BB77E] transition-transform duration-200 shrink-0" :class="sortOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
+                </button>
+
+                {{-- Dropdown Menu --}}
+                <div 
+                    x-show="sortOpen" 
+                    x-transition:enter="transition ease-out duration-150"
+                    x-transition:enter-start="opacity-0 scale-95 -translate-y-1"
+                    x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                    x-transition:leave="transition ease-in duration-100"
+                    x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+                    x-transition:leave-end="opacity-0 scale-95 -translate-y-1"
+                    class="absolute right-0 top-full mt-2 w-56 bg-white rounded-2xl shadow-xl border border-[#ececec] p-2 z-50 divide-y divide-slate-50"
+                    style="display: none;"
+                >
+                    @php
+                        $sortOptions = [
+                            'newest' => 'Newest',
+                            'price_asc' => 'Price: Low to High',
+                            'price_desc' => 'Price: High to Low',
+                            'name_asc' => 'Name: A to Z',
+                        ];
+                    @endphp
+                    @foreach($sortOptions as $key => $label)
+                        <a 
+                            href="{{ request()->fullUrlWithQuery(['sort' => $key]) }}" 
+                            class="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition {{ $sort === $key ? 'bg-[#DEF9EC] text-[#3BB77E] font-bold' : 'text-[#253D4E] hover:bg-slate-50' }}"
+                        >
+                            <span>{{ $label }}</span>
+                            @if($sort === $key)
+                                <svg class="w-4 h-4 text-[#3BB77E]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                            @endif
+                        </a>
+                    @endforeach
+                </div>
             </div>
+
         </div>
     </div>
 
@@ -85,7 +162,7 @@
         </div>
 
         <div class="pt-8">
-            {{ $products->links() }}
+            {{ $products->links('vendor.pagination.storefront') }}
         </div>
     @else
         <div class="bg-white rounded-3xl p-12 text-center border border-[#ececec] max-w-lg mx-auto shadow-xs">

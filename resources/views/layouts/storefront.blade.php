@@ -483,10 +483,6 @@
 
                 {{-- Center: Navigation Links --}}
                 <nav class="flex items-center gap-7 text-sm font-bold text-[#253D4E] font-['Quicksand']">
-                    <a href="{{ route('home') }}" class="hover:text-[#3BB77E] transition flex items-center gap-1.5 {{ request()->routeIs('home') ? 'text-[#3BB77E]' : '' }}">
-                        <svg class="w-4 h-4 text-[#f74b81]" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M12.395 2.553a1 1 0 00-1.45-.385c-.345.23-.614.558-.822.88-.316.492-.533 1.05-.694 1.62-.316 1.116-.407 2.29-.356 3.44.02.433.06.866.12 1.294a6.5 6.5 0 01-1.393-.85c-.343-.284-.66-.605-.935-.96a1 1 0 00-1.637.382c-.378.96-.547 2.01-.482 3.064.12 1.956 1.05 3.79 2.535 5.034 1.485 1.244 3.425 1.906 5.39 1.83 1.965-.075 3.84-.87 5.184-2.203 1.344-1.332 2.073-3.155 2.015-5.048-.057-1.854-.84-3.606-2.18-4.887a1 1 0 00-1.564.183c-.328.47-.73.882-1.18 1.218a5.5 5.5 0 01-.194-2.825c.196-.948.55-1.86 1.04-2.69a1 1 0 00-.47-1.405z" clip-rule="evenodd"/></svg>
-                        <span>Hot Deals</span>
-                    </a>
                     <a href="{{ route('home') }}" class="hover:text-[#3BB77E] transition {{ request()->routeIs('home') ? 'text-[#3BB77E]' : '' }}">
                         <span>Home</span>
                     </a>
