@@ -150,6 +150,60 @@ class ProductController extends Controller
     }
 
     /**
+     * All Products catalog page for customers.
+     */
+    public function index(Request $request)
+    {
+        $query = Product::where('is_active', true)->with(['category', 'brand']);
+
+        // Optional search query
+        if ($request->filled('q')) {
+            $search = trim($request->query('q'));
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'LIKE', "%{$search}%")
+                    ->orWhere('sku', 'LIKE', "%{$search}%")
+                    ->orWhere('pack_size', 'LIKE', "%{$search}%");
+            });
+        }
+
+        // Optional Category filter
+        if ($request->filled('category')) {
+            $cat = Category::where('slug', $request->query('category'))->first();
+            if ($cat) {
+                $query->where('category_id', $cat->id);
+            }
+        }
+
+        // Sorting
+        $sort = $request->query('sort', 'newest');
+        switch ($sort) {
+            case 'price_asc':
+                $query->orderBy('price', 'asc');
+                break;
+            case 'price_desc':
+                $query->orderBy('price', 'desc');
+                break;
+            case 'name_asc':
+                $query->orderBy('name', 'asc');
+                break;
+            case 'newest':
+            default:
+                $query->latest('id');
+                break;
+        }
+
+        $products = $query->paginate(20)->withQueryString();
+        $categories = Category::active()->get();
+
+        $seo = $this->seoService->resolveMetadata(null, 'all_products', [
+            'title' => 'All Products - ' . setting('site_name', 'N&J Mini Mart'),
+            'description' => 'Browse our complete catalog of groceries, daily essentials, snacks, and beverages at N&J Mini Mart.',
+        ]);
+
+        return view('storefront.all_products', compact('products', 'categories', 'sort', 'seo'));
+    }
+
+    /**
      * All Featured Products page.
      */
     public function featured(Request $request)

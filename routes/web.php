@@ -89,6 +89,9 @@ Route::get('/categories', [CategoryController::class, 'index'])->name('category.
 Route::get('/category/{slug}', [CategoryController::class, 'show'])->name('category.show');
 
 // Products
+Route::get('/products', [ProductController::class, 'index'])->name('products.index');
+Route::get('/all-products', fn() => redirect()->route('products.index'));
+Route::get('/shop', fn() => redirect()->route('products.index'));
 Route::get('/featured-products', [ProductController::class, 'featured'])->name('products.featured');
 Route::get('/product/{slug}', [ProductController::class, 'show'])->name('product.show');
 
