@@ -208,13 +208,9 @@ class ProductController extends Controller
      */
     public function featured(Request $request)
     {
-        $featuredCount = Product::where('is_active', true)->where('is_featured', true)->count();
-
-        $query = Product::where('is_active', true)->with(['category', 'brand']);
-
-        if ($featuredCount >= 4) {
-            $query->where('is_featured', true);
-        }
+        $query = Product::where('is_active', true)
+            ->where('is_featured', true)
+            ->with(['category', 'brand', 'images']);
 
         // Optional Category filter
         if ($request->filled('category')) {
@@ -232,6 +228,9 @@ class ProductController extends Controller
                 break;
             case 'price_desc':
                 $query->orderBy('price', 'desc');
+                break;
+            case 'name_asc':
+                $query->orderBy('name', 'asc');
                 break;
             case 'newest':
             default:
