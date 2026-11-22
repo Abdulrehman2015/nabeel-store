@@ -44,6 +44,22 @@
         this.$nextTick(() => {
             this.$refs.searchForm.submit();
         });
+    },
+    clearSearch() {
+        this.searchQuery = '';
+        this.suggestions = [];
+        this.showSuggestions = false;
+        const input = document.querySelector('input[name="search"]');
+        if (input) {
+            input.value = '';
+            input.focus();
+        }
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('search')) {
+            urlParams.delete('search');
+            const newQuery = urlParams.toString();
+            window.location.href = window.location.pathname + (newQuery ? '?' + newQuery : '');
+        }
     }
 }">
 
@@ -187,18 +203,18 @@
                         class="w-full text-xs pl-10 pr-9 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 bg-slate-50/50"
                         autocomplete="off"
                     >
-                    <div class="absolute inset-y-0 right-0 pr-2.5 flex items-center">
+                    <div class="absolute inset-y-0 right-0 pr-2.5 flex items-center gap-1">
                         <span x-show="isSearching" class="text-slate-400 animate-spin">
                             <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
                         </span>
                         <button 
                             type="button" 
-                            x-show="!isSearching && searchQuery.length > 0" 
-                            @click="searchQuery = ''; showSuggestions = false; $refs.searchForm.submit()"
-                            class="text-slate-400 hover:text-slate-600 p-1 cursor-pointer"
+                            x-show="!isSearching && searchQuery && searchQuery.length > 0" 
+                            @click="clearSearch()"
+                            class="text-slate-400 hover:text-rose-600 p-1 cursor-pointer transition flex items-center justify-center rounded-lg hover:bg-slate-100"
                             title="Clear search"
                         >
-                            ✕
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                         </button>
                     </div>
 
