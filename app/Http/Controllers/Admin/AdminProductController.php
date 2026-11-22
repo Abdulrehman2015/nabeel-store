@@ -332,43 +332,45 @@ class AdminProductController extends Controller
             return response()->json(['success' => true, 'products' => []]);
         }
 
-        $products = Product::with(['category:id,name', 'brand:id,name'])
-            ->where(function ($query) use ($q) {
-                $query->where('name', 'LIKE', "%{$q}%")
-                    ->orWhere('sku', 'LIKE', "%{$q}%")
-                    ->orWhere('pack_size', 'LIKE', "%{$q}%")
-                    ->orWhere('unit_description', 'LIKE', "%{$q}%")
-                    ->orWhereHas('category', function ($catQ) use ($q) {
-                        $catQ->where('name', 'LIKE', "%{$q}%");
-                    })
-                    ->orWhereHas('brand', function ($brandQ) use ($q) {
-                        $brandQ->where('name', 'LIKE', "%{$q}%");
-                    });
-            })
-            ->orderByRaw("CASE WHEN sku = ? THEN 0 WHEN name LIKE ? THEN 1 ELSE 2 END", [$q, "{$q}%"])
-            ->limit(10)
-            ->get()
-            ->map(function ($p) {
-                return [
-                    'id' => $p->id,
-                    'name' => $p->name,
-                    'sku' => $p->sku ?: '-',
-                    'category' => $p->category?->name ?? 'Uncategorized',
-                    'brand' => $p->brand?->name ?? '',
-                    'price' => (float) ($p->sale_price ?? $p->price),
-                    'stock_quantity' => (int) $p->stock_quantity,
-                    'is_active' => (bool) $p->is_active,
-                    'image_url' => $p->featured_image
-                        ? (str_starts_with($p->featured_image, 'http') ? $p->featured_image : asset('storage/' . $p->featured_image))
-                        : asset('images/default-product.png'),
-                    'edit_url' => route('admin.products.edit', $p->id),
-                ];
-            });
+        try {
+            $products = Product::with(['category', 'brand'])
+                ->where(function ($query) use ($q) {
+                    $query->where('name', 'LIKE', "%{$q}%")
+                        ->orWhere('sku', 'LIKE', "%{$q}%")
+                        ->orWhere('pack_size', 'LIKE', "%{$q}%");
+                })
+                ->orderBy('name', 'asc')
+                ->limit(10)
+                ->get()
+                ->map(function ($p) {
+                    return [
+                        'id' => $p->id,
+                        'name' => $p->name,
+                        'sku' => $p->sku ?: '-',
+                        'category' => $p->category?->name ?? 'Uncategorized',
+                        'brand' => $p->brand?->name ?? '',
+                        'price' => (float) ($p->sale_price ?? $p->price),
+                        'stock_quantity' => (int) $p->stock_quantity,
+                        'is_active' => (bool) $p->is_active,
+                        'image_url' => $p->featured_image
+                            ? (str_starts_with($p->featured_image, 'http') ? $p->featured_image : asset('storage/' . $p->featured_image))
+                            : asset('images/default-product.png'),
+                        'edit_url' => route('admin.products.edit', $p->id),
+                    ];
+                });
 
-        return response()->json([
-            'success' => true,
-            'products' => $products,
-        ]);
+            return response()->json([
+                'success' => true,
+                'products' => $products,
+            ]);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Product suggestions error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage(),
+                'products' => [],
+            ], 200);
+        }
     }
 }
 
