@@ -373,9 +373,9 @@
                         </div>
                     </div>
 
-                    {{-- Customer Account Menu --}}
+                    {{-- Customer Account Menu (Desktop Header - moved to Bottom Bar on Mobile) --}}
                     @auth
-                        <div class="relative" x-data="{ userMenuOpen: false }">
+                        <div class="relative hidden lg:block" x-data="{ userMenuOpen: false }">
                             <button @click="userMenuOpen = !userMenuOpen" @click.away="userMenuOpen = false" class="flex items-center gap-2 p-2 rounded-xl text-slate-700 hover:bg-slate-100 transition">
                                 <div class="w-8 h-8 rounded-full bg-slate-800 text-white flex items-center justify-center text-xs font-bold">
                                     {{ substr(auth()->user()->name, 0, 1) }}
@@ -812,37 +812,119 @@
     </footer>
 
     {{-- Mobile App-Style Sticky Bottom Navigation Bar --}}
-    <nav class="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 shadow-[0_-4px_20px_rgba(0,0,0,0.06)] px-2 py-1.5" aria-label="Mobile Navigation">
-        <div class="grid grid-cols-5 items-center text-center">
-            <a href="{{ route('home') }}" class="flex flex-col items-center justify-center py-1 rounded-xl transition {{ request()->routeIs('home') ? 'text-[#3BB77E] font-bold' : 'text-slate-500 hover:text-[#3BB77E]' }}">
-                <svg class="w-5 h-5 mb-0.5" fill="{{ request()->routeIs('home') ? 'currentColor' : 'none' }}" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
-                <span class="text-[10px] leading-none font-['Quicksand']">Home</span>
-            </a>
-
-            <a href="{{ route('category.index') }}" class="flex flex-col items-center justify-center py-1 rounded-xl transition {{ request()->routeIs('category.*') ? 'text-[#3BB77E] font-bold' : 'text-slate-500 hover:text-[#3BB77E]' }}">
-                <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
-                <span class="text-[10px] leading-none font-['Quicksand']">Categories</span>
-            </a>
-
-            <a href="{{ route('products.index') }}" class="flex flex-col items-center justify-center py-1 rounded-xl transition {{ request()->routeIs('products.*') ? 'text-[#3BB77E] font-bold' : 'text-slate-500 hover:text-[#3BB77E]' }}">
-                <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
-                <span class="text-[10px] leading-none font-['Quicksand']">Shop</span>
-            </a>
-
-            <button type="button" @click="cartOpen = true" class="relative flex flex-col items-center justify-center py-1 rounded-xl text-slate-500 hover:text-[#3BB77E] transition cursor-pointer">
-                <div class="relative">
-                    <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-                    <span x-show="cartCount > 0" x-text="cartCount" x-cloak class="absolute -top-1.5 -right-2.5 min-w-[16px] h-4 px-1 bg-[#3BB77E] text-white text-[9px] font-black rounded-full flex items-center justify-center shadow-xs"></span>
+    <div x-data="{ mobileAccountOpen: false }" class="lg:hidden">
+        {{-- Mobile Account Menu Sheet (Opens when tapping Account in bottom bar) --}}
+        <div 
+            x-show="mobileAccountOpen" 
+            x-transition:enter="transition ease-out duration-200"
+            x-transition:enter-start="opacity-0 translate-y-4"
+            x-transition:enter-end="opacity-100 translate-y-0"
+            x-transition:leave="transition ease-in duration-150"
+            x-transition:leave-start="opacity-100 translate-y-0"
+            x-transition:leave-end="opacity-0 translate-y-4"
+            @click.away="mobileAccountOpen = false"
+            x-cloak
+            class="fixed bottom-16 right-3 left-3 sm:left-auto sm:w-72 z-50 bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden"
+        >
+            @auth
+                <div class="px-4 py-3 bg-slate-900 text-white flex items-center justify-between">
+                    <div class="flex items-center gap-2.5 min-w-0">
+                        <div class="w-9 h-9 rounded-full bg-[#3BB77E] text-white flex items-center justify-center text-sm font-black shrink-0">
+                            {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
+                        </div>
+                        <div class="truncate">
+                            <p class="text-sm font-bold truncate">{{ auth()->user()->name }}</p>
+                            <p class="text-[11px] text-slate-300 truncate">{{ auth()->user()->email }}</p>
+                        </div>
+                    </div>
+                    <button type="button" @click="mobileAccountOpen = false" class="p-1 text-slate-400 hover:text-white">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
                 </div>
-                <span class="text-[10px] leading-none font-['Quicksand']">Cart</span>
-            </button>
-
-            <a href="{{ auth()->check() ? (auth()->user()->isStaff() ? route('admin.dashboard') : route('account.orders')) : route('login') }}" class="flex flex-col items-center justify-center py-1 rounded-xl transition {{ request()->routeIs('account.*') ? 'text-[#3BB77E] font-bold' : 'text-slate-500 hover:text-[#3BB77E]' }}">
-                <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-                <span class="text-[10px] leading-none font-['Quicksand']">{{ auth()->check() ? 'Account' : 'Sign In' }}</span>
-            </a>
+                <div class="py-1.5 text-sm divide-y divide-slate-100">
+                    @if(auth()->user()->isStaff())
+                        <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-3 px-4 py-2.5 font-bold text-sky-600 hover:bg-sky-50">
+                            <span>⚙️</span>
+                            <span>Admin Panel</span>
+                        </a>
+                    @endif
+                    <a href="{{ route('account.orders') }}" class="flex items-center gap-3 px-4 py-2.5 text-slate-700 hover:bg-slate-50 font-medium">
+                        <span>📦</span>
+                        <span>My Orders</span>
+                    </a>
+                    <a href="{{ route('account.addresses') }}" class="flex items-center gap-3 px-4 py-2.5 text-slate-700 hover:bg-slate-50 font-medium">
+                        <span>📍</span>
+                        <span>Saved Addresses</span>
+                    </a>
+                    <a href="{{ route('account.export-data') }}" class="flex items-center gap-3 px-4 py-2.5 text-slate-700 hover:bg-slate-50 font-medium">
+                        <span>📥</span>
+                        <span>Download My Data</span>
+                    </a>
+                    <form method="POST" action="{{ route('logout') }}">
+                        @csrf
+                        <button type="submit" class="w-full flex items-center gap-3 text-left px-4 py-2.5 text-rose-600 hover:bg-rose-50 font-semibold">
+                            <span>🚪</span>
+                            <span>Log Out</span>
+                        </button>
+                    </form>
+                </div>
+            @else
+                <div class="p-4 space-y-2.5">
+                    <div class="flex items-center justify-between mb-1">
+                        <p class="text-sm font-bold text-slate-800">Welcome to {{ store_name() }}</p>
+                        <button type="button" @click="mobileAccountOpen = false" class="p-1 text-slate-400 hover:text-slate-700">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                    </div>
+                    <a href="{{ route('login') }}" class="block w-full text-center py-2.5 rounded-xl bg-[#3BB77E] hover:bg-[#29A56C] text-white font-bold text-sm transition">
+                        Sign In
+                    </a>
+                    <a href="{{ route('register') }}" class="block w-full text-center py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold text-sm transition">
+                        Create Account (Sign Up)
+                    </a>
+                </div>
+            @endauth
         </div>
-    </nav>
+
+        <nav class="fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 shadow-[0_-4px_20px_rgba(0,0,0,0.06)] px-2 py-1.5" aria-label="Mobile Navigation">
+            <div class="grid grid-cols-5 items-center text-center">
+                <a href="{{ route('home') }}" class="flex flex-col items-center justify-center py-1 rounded-xl transition {{ request()->routeIs('home') ? 'text-[#3BB77E] font-bold' : 'text-slate-500 hover:text-[#3BB77E]' }}">
+                    <svg class="w-5 h-5 mb-0.5" fill="{{ request()->routeIs('home') ? 'currentColor' : 'none' }}" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                    <span class="text-[10px] leading-none font-['Quicksand']">Home</span>
+                </a>
+
+                <a href="{{ route('category.index') }}" class="flex flex-col items-center justify-center py-1 rounded-xl transition {{ request()->routeIs('category.*') ? 'text-[#3BB77E] font-bold' : 'text-slate-500 hover:text-[#3BB77E]' }}">
+                    <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+                    <span class="text-[10px] leading-none font-['Quicksand']">Categories</span>
+                </a>
+
+                <a href="{{ route('products.index') }}" class="flex flex-col items-center justify-center py-1 rounded-xl transition {{ request()->routeIs('products.*') ? 'text-[#3BB77E] font-bold' : 'text-slate-500 hover:text-[#3BB77E]' }}">
+                    <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+                    <span class="text-[10px] leading-none font-['Quicksand']">Shop</span>
+                </a>
+
+                <button type="button" @click="cartOpen = true; mobileAccountOpen = false" class="relative flex flex-col items-center justify-center py-1 rounded-xl text-slate-500 hover:text-[#3BB77E] transition cursor-pointer">
+                    <div class="relative">
+                        <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                        <span x-show="cartCount > 0" x-text="cartCount" x-cloak class="absolute -top-1.5 -right-2.5 min-w-[16px] h-4 px-1 bg-[#3BB77E] text-white text-[9px] font-black rounded-full flex items-center justify-center shadow-xs"></span>
+                    </div>
+                    <span class="text-[10px] leading-none font-['Quicksand']">Cart</span>
+                </button>
+
+                <button type="button" @click="mobileAccountOpen = !mobileAccountOpen" class="flex flex-col items-center justify-center py-1 rounded-xl transition cursor-pointer" :class="mobileAccountOpen || {{ request()->routeIs('account.*') ? 'true' : 'false' }} ? 'text-[#3BB77E] font-bold' : 'text-slate-500 hover:text-[#3BB77E]'">
+                    @auth
+                        <div class="w-5 h-5 mb-0.5 rounded-full bg-slate-800 text-white text-[10px] font-bold flex items-center justify-center">
+                            {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
+                        </div>
+                        <span class="text-[10px] leading-none font-['Quicksand']">Account</span>
+                    @else
+                        <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                        <span class="text-[10px] leading-none font-['Quicksand']">Account</span>
+                    @endauth
+                </button>
+            </div>
+        </nav>
+    </div>
 
     {{-- Phase 5.2: Custom Footer Scripts --}}
     {!! setting('custom_footer_scripts') !!}
