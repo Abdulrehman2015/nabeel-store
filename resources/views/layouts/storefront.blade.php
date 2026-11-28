@@ -925,7 +925,7 @@
 
     {{-- Floating WhatsApp Chat Button --}}
     @php
-        $waRawPhone = setting('store_whatsapp') ?: (setting('admin_phone') ?: setting('store_phone', '+60128899900'));
+        $waRawPhone = '+60 11-2147 3137';
         $waNumber = preg_replace('/[^0-9]/', '', $waRawPhone);
         $waText = rawurlencode('Hello ' . store_name() . ', I have an inquiry regarding your products.');
     @endphp
