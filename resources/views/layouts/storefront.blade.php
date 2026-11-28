@@ -148,18 +148,27 @@
         document.addEventListener('DOMContentLoaded', checkAndLoadAnalytics);
     </script>
 </head>
+@php
+    $cartSummary = app(\App\Services\CartService::class)->getSummary();
+    $cachedNavCategories = \Illuminate\Support\Facades\Cache::remember('storefront_nav_categories', 300, function () {
+        return \App\Models\Category::active()->withCount('products')->orderBy('sort_order')->take(12)->get();
+    });
+    $cachedFooterPages = \Illuminate\Support\Facades\Cache::remember('storefront_footer_pages', 300, function () {
+        return \App\Models\Page::footer()->get();
+    });
+@endphp
 <body class="flex flex-col min-h-screen" x-data="{
     mobileMenuOpen: false,
     cartOpen: false,
     liveSearchQuery: '',
     liveSearchResults: [],
     searchLoading: false,
-    cartCount: {{ app(\App\Services\CartService::class)->getItemCount() }},
-    cartSubtotal: '{{ format_currency(app(\App\Services\CartService::class)->getSubtotal()) }}',
-    cartItems: [],
-    minOrderValue: '{{ format_currency(app(\App\Services\CartService::class)->getMinimumOrderValue()) }}',
-    isMinMet: {{ app(\App\Services\CartService::class)->isMinimumMet() ? 'true' : 'false' }},
-    deficitFormatted: '{{ format_currency(app(\App\Services\CartService::class)->getSummary()['deficit']) }}',
+    cartCount: {{ (int) ($cartSummary['item_count'] ?? 0) }},
+    cartSubtotal: '{{ $cartSummary['subtotal_formatted'] ?? format_currency(0) }}',
+    cartItems: @js($cartSummary['items'] ?? []),
+    minOrderValue: '{{ $cartSummary['minimum_order_formatted'] ?? format_currency(0) }}',
+    isMinMet: {{ !empty($cartSummary['is_minimum_met']) ? 'true' : 'false' }},
+    deficitFormatted: '{{ $cartSummary['deficit_formatted'] ?? format_currency(0) }}',
     async fetchLiveSearch() {
         if (this.liveSearchQuery.length < 2) {
             this.liveSearchResults = [];
@@ -234,7 +243,7 @@
             }
         } catch(e) {}
     }
-}" x-init="refreshMiniCart()">
+}">
 
     {{-- Top Announcement Bar (Compact single-line on mobile) --}}
     <div class="bg-slate-900 text-slate-200 text-[11px] sm:text-xs py-1.5 sm:py-2 px-3 sm:px-4 border-b border-slate-800">
@@ -351,11 +360,8 @@
                             class="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-2xl border border-slate-200 p-2 z-50 divide-y divide-slate-100"
                             style="display: none;"
                         >
-                            @php
-                                $headerCategories = \App\Models\Category::active()->orderBy('sort_order')->take(10)->get();
-                            @endphp
                             <div class="py-1">
-                                @foreach($headerCategories as $cat)
+                                @foreach($cachedNavCategories->take(10) as $cat)
                                     <a href="{{ route('category.show', $cat->slug) }}" class="flex items-center justify-between px-3 py-2 rounded-xl text-sm text-slate-700 hover:bg-sky-50 hover:text-sky-700 transition">
                                         <div class="flex items-center gap-2.5">
                                             <div class="w-7 h-7 rounded-lg overflow-hidden flex items-center justify-center p-0.5 shrink-0 border border-slate-200 bg-slate-100 shadow-2xs">
@@ -363,7 +369,7 @@
                                             </div>
                                             <span class="font-medium text-xs">{{ $cat->name }}</span>
                                         </div>
-                                        <span class="text-[10px] text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">{{ $cat->products()->count() }}</span>
+                                        <span class="text-[10px] text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">{{ $cat->products_count }}</span>
                                     </a>
                                 @endforeach
                             </div>
@@ -466,14 +472,11 @@
                         class="absolute left-0 top-full mt-0 w-72 bg-white rounded-b-xl shadow-2xl border border-[#ececec] border-t-0 p-3 z-50 divide-y divide-[#ececec]/60"
                         style="display: none;"
                     >
-                        @php
-                            $allNavCategories = \App\Models\Category::active()->orderBy('sort_order')->take(12)->get();
-                        @endphp
                         <div class="py-1">
-                            @foreach($allNavCategories as $navCat)
+                            @foreach($cachedNavCategories as $navCat)
                                 <a href="{{ route('category.show', $navCat->slug) }}" class="flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold text-[#253D4E] hover:bg-[#DEF9EC] hover:text-[#3BB77E] transition">
                                     <span class="truncate">{{ $navCat->name }}</span>
-                                    <span class="text-[10px] text-[#253D4E] bg-[#DEF9EC] font-bold px-2 py-0.5 rounded-full">{{ $navCat->products()->count() }}</span>
+                                    <span class="text-[10px] text-[#253D4E] bg-[#DEF9EC] font-bold px-2 py-0.5 rounded-full">{{ $navCat->products_count }}</span>
                                 </a>
                             @endforeach
                         </div>
@@ -754,10 +757,7 @@
                 <div>
                     <h3 class="text-xs font-bold text-white uppercase tracking-wider mb-4">Bulk Categories</h3>
                     <ul class="space-y-2 text-xs">
-                        @php
-                            $footerCats = \App\Models\Category::active()->orderBy('sort_order')->take(6)->get();
-                        @endphp
-                        @foreach($footerCats as $cat)
+                        @foreach($cachedNavCategories->take(6) as $cat)
                             <li>
                                 <a href="{{ route('category.show', $cat->slug) }}" class="hover:text-white transition">{{ $cat->name }}</a>
                             </li>
@@ -785,10 +785,7 @@
                 <div>
                     <h3 class="text-xs font-bold text-white uppercase tracking-wider mb-4">Legal & Privacy</h3>
                     <ul class="space-y-2 text-xs">
-                        @php
-                            $footerPages = \App\Models\Page::footer()->get();
-                        @endphp
-                        @foreach($footerPages as $p)
+                        @foreach($cachedFooterPages as $p)
                             <li>
                                 <a href="{{ route('page.show', $p->slug) }}" class="hover:text-white transition">{{ $p->title }}</a>
                             </li>
