@@ -1,7 +1,7 @@
 @extends('layouts.storefront')
 
 @section('content')
-<div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6" x-data="{ mobileFiltersOpen: false }">
+<div class="max-w-[1600px] mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8 space-y-4 sm:space-y-6 overflow-x-hidden" x-data="{ mobileFiltersOpen: false }">
 
     {{-- Breadcrumbs Navigation --}}
     <nav class="flex text-xs text-slate-500 font-medium overflow-x-auto no-scrollbar py-1" aria-label="Breadcrumb">
@@ -53,7 +53,7 @@
     </div>
 
     {{-- Main Content Grid: Desktop Sidebar + Products Grid --}}
-    <div class="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start">
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 lg:gap-8 items-start">
         
         {{-- ========================================================
              LEFT SIDEBAR: Categories with Icons + Refined Filters + 3D Delivery Trust Card
@@ -346,34 +346,48 @@
         {{-- ========================================================
              RIGHT MAIN AREA: Mobile Filter Bar + Sorting + Products
              ======================================================== --}}
-        <div class="lg:col-span-3 space-y-6">
+        <div class="lg:col-span-3 space-y-4 sm:space-y-6 min-w-0">
+
+            {{-- Mobile Horizontal Category Switcher Pills (<lg) --}}
+            <div class="lg:hidden flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 -mx-3 px-3">
+                @foreach($allCategories as $cat)
+                    @php $isActive = $cat->id === $category->id; @endphp
+                    <a 
+                        href="{{ route('category.show', $cat->slug) }}" 
+                        class="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border transition font-['Quicksand'] {{ $isActive ? 'bg-[#3BB77E] text-white border-[#3BB77E] shadow-xs' : 'bg-white text-[#253D4E] border-[#ececec] hover:border-[#3BB77E]' }}"
+                    >
+                        <span class="truncate max-w-[140px]">{{ $cat->name }}</span>
+                        <span class="text-[10px] px-1.5 py-0.2 rounded-full {{ $isActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500' }}">{{ $cat->products_count }}</span>
+                    </a>
+                @endforeach
+            </div>
             
             {{-- Mobile & Tablet Filter & Sort Bar (<lg screens) --}}
-            <div class="lg:hidden bg-white p-3.5 rounded-2xl border border-slate-200/90 shadow-sm flex items-center justify-between gap-3">
+            <div class="lg:hidden bg-white p-3 rounded-2xl border border-slate-200/90 shadow-2xs flex items-center justify-between gap-2.5">
                 {{-- Filter Drawer Trigger Button --}}
                 <button 
                     type="button" 
                     @click="mobileFiltersOpen = true" 
-                    class="flex items-center gap-2 px-3.5 py-2 bg-slate-900 text-white rounded-xl text-xs font-bold shadow-sm hover:bg-slate-800 transition active:scale-95"
+                    class="shrink-0 flex items-center gap-1.5 px-3.5 py-2 bg-slate-900 text-white rounded-xl text-xs font-bold shadow-2xs hover:bg-slate-800 transition active:scale-95 cursor-pointer"
                 >
-                    <svg class="w-4 h-4 text-lime-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-4 h-4 text-lime-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path>
                     </svg>
                     <span>Filters</span>
                     @if($activeFiltersCount > 0)
-                        <span class="w-5 h-5 rounded-full bg-rose-500 text-white text-[10px] font-black flex items-center justify-center">
+                        <span class="w-4 h-4 rounded-full bg-rose-500 text-white text-[10px] font-black flex items-center justify-center">
                             {{ $activeFiltersCount }}
                         </span>
                     @endif
                 </button>
 
                 {{-- Mobile Sort Dropdown --}}
-                <div class="flex items-center gap-1.5 flex-1 justify-end">
-                    <label for="mobile_sort" class="text-xs text-slate-500 font-semibold hidden sm:inline">Sort:</label>
+                <div class="flex items-center gap-1.5 min-w-0 flex-1 justify-end">
+                    <label for="mobile_sort" class="text-xs text-slate-500 font-semibold hidden sm:inline shrink-0">Sort:</label>
                     <select 
                         id="mobile_sort" 
                         onchange="location.href = this.value" 
-                        class="text-xs py-2 pl-3 pr-8 border border-slate-300 rounded-xl focus:ring-sky-500 focus:border-sky-500 bg-slate-50 font-medium"
+                        class="w-full max-w-[185px] min-w-0 text-xs py-2 pl-2.5 pr-7 border border-slate-300 rounded-xl focus:ring-[#3BB77E] focus:border-[#3BB77E] bg-slate-50 font-semibold text-[#253D4E] truncate"
                     >
                         <option value="{{ request()->fullUrlWithQuery(['sort' => 'newest']) }}" {{ $sort === 'newest' ? 'selected' : '' }}>Newest Arrivals</option>
                         <option value="{{ request()->fullUrlWithQuery(['sort' => 'price_asc']) }}" {{ $sort === 'price_asc' ? 'selected' : '' }}>Price: Low to High</option>
@@ -411,7 +425,7 @@
 
             {{-- Products Grid: Mobile (2-col), Tablet (2-col), Desktop (3-col) --}}
             @if($products->count() > 0)
-                <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
+                <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-6">
                     @foreach($products as $product)
                         @include('storefront.partials.product_card', ['product' => $product])
                     @endforeach
@@ -468,7 +482,7 @@
             class="fixed inset-0 bg-slate-950/70 backdrop-blur-xs"
         ></div>
 
-        <div class="fixed inset-y-0 right-0 max-w-full flex pl-10">
+        <div class="fixed inset-y-0 right-0 max-w-full flex pl-6">
             <div 
                 x-show="mobileFiltersOpen" 
                 x-transition:enter="transition ease-in-out duration-300 transform" 
@@ -477,7 +491,7 @@
                 x-transition:leave="transition ease-in-out duration-300 transform" 
                 x-transition:leave-start="translate-x-0" 
                 x-transition:leave-end="translate-x-full" 
-                class="w-screen max-w-md bg-white shadow-2xl flex flex-col justify-between"
+                class="w-[calc(100vw-2.5rem)] max-w-sm bg-white shadow-2xl flex flex-col justify-between"
             >
                 {{-- Drawer Header --}}
                 <div class="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/60">
