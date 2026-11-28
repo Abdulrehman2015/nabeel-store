@@ -7,23 +7,23 @@
     ];
     $badgeBg = $badgeColors[$product->id % count($badgeColors)];
 @endphp
-<div class="bg-white rounded-[15px] border border-[#ececec] hover:border-[#BCE3C9] hover:shadow-[5px_5px_15px_rgba(0,0,0,0.05)] hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between overflow-hidden group p-4 relative">
+<div class="bg-white rounded-2xl sm:rounded-[15px] border border-[#ececec] hover:border-[#BCE3C9] hover:shadow-[5px_5px_15px_rgba(0,0,0,0.05)] hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between overflow-hidden group p-2.5 sm:p-4 relative">
     
     {{-- Floating Discount / Status Badge (Matching Screenshot) --}}
-    <div class="absolute top-3 left-3 z-10 pointer-events-none">
+    <div class="absolute top-2 left-2 sm:top-3 sm:left-3 z-10 pointer-events-none">
         @if($product->is_on_sale)
-            <span class="inline-flex items-center px-3 py-1 {{ $badgeBg }} text-white text-[11px] font-bold rounded-tl-[15px] rounded-br-[15px] tracking-wide shadow-2xs font-['Quicksand']">
+            <span class="inline-flex items-center px-2 py-0.5 sm:px-3 sm:py-1 {{ $badgeBg }} text-white text-[10px] sm:text-[11px] font-bold rounded-tl-xl sm:rounded-tl-[15px] rounded-br-xl sm:rounded-br-[15px] tracking-wide shadow-2xs font-['Quicksand']">
                 Save {{ $product->discount_percent }}%
             </span>
         @elseif($product->is_new)
-            <span class="inline-flex items-center px-3 py-1 bg-[#3BB77E] text-white text-[11px] font-bold rounded-tl-[15px] rounded-br-[15px] tracking-wide shadow-2xs font-['Quicksand']">
+            <span class="inline-flex items-center px-2 py-0.5 sm:px-3 sm:py-1 bg-[#3BB77E] text-white text-[10px] sm:text-[11px] font-bold rounded-tl-xl sm:rounded-tl-[15px] rounded-br-xl sm:rounded-br-[15px] tracking-wide shadow-2xs font-['Quicksand']">
                 New
             </span>
         @endif
     </div>
 
     {{-- Product Thumbnail (Prominent and Crisp) --}}
-    <div class="relative w-full aspect-square flex items-center justify-center p-2 mb-3 bg-white rounded-xl group/img overflow-hidden">
+    <div class="relative w-full aspect-square flex items-center justify-center p-1.5 sm:p-2 mb-2 sm:mb-3 bg-white rounded-xl group/img overflow-hidden">
         <a href="{{ route('product.show', $product->slug) }}" class="w-full h-full flex items-center justify-center">
             <img 
                 src="{{ $product->image_url }}" 

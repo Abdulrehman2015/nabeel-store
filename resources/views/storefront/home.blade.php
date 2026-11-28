@@ -1,15 +1,41 @@
 @extends('layouts.storefront')
 
 @section('content')
-<div class="space-y-10 sm:space-y-14 pb-16 font-['Lato']">
+<div class="space-y-6 sm:space-y-14 pb-10 sm:pb-16 font-['Lato']">
 
-    {{-- 1. Nest Theme Home-3 Split Hero Layout (Wide Container Matching Screenshot) --}}
-    <section class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+    {{-- 1. Nest Theme Home-3 Split Hero Layout (App-style Horizontal Categories on Mobile, Sidebar on Desktop) --}}
+    <section class="max-w-[1600px] mx-auto px-3 sm:px-6 lg:px-8 pt-3 sm:pt-4">
+
+        {{-- Mobile App-Style Horizontal Category Strip (Visible on Mobile/Tablet only) --}}
+        @if($categories->count() > 0)
+            <div class="lg:hidden mb-4">
+                <div class="flex items-center justify-between mb-2 px-0.5">
+                    <h2 class="text-sm font-bold text-[#253D4E] font-['Quicksand']">Shop by Category</h2>
+                    <a href="{{ route('category.index') }}" class="text-xs font-bold text-[#3BB77E] font-['Quicksand']">See All &rarr;</a>
+                </div>
+                <div class="flex items-stretch gap-2.5 overflow-x-auto no-scrollbar pb-1 -mx-3 px-3">
+                    @foreach($categories as $cat)
+                        <a 
+                            href="{{ route('category.show', $cat->slug) }}" 
+                            class="w-[74px] shrink-0 flex flex-col items-center text-center bg-white rounded-2xl border border-[#ececec] p-2 shadow-2xs active:scale-95 transition"
+                        >
+                            <div class="w-10 h-10 rounded-xl bg-[#DEF9EC]/60 flex items-center justify-center mb-1.5 overflow-hidden">
+                                {!! $cat->renderIcon('w-7 h-7 object-contain') !!}
+                            </div>
+                            <span class="text-[11px] font-bold text-[#253D4E] leading-tight line-clamp-2 font-['Quicksand']">
+                                {{ $cat->name }}
+                            </span>
+                        </a>
+                    @endforeach
+                </div>
+            </div>
+        @endif
+
         <div class="flex flex-col lg:flex-row gap-6 items-stretch">
             
-            {{-- Left Column: Category Sidebar (Matching Banner Height with Full Scrollable List) --}}
+            {{-- Left Column: Desktop Category Sidebar (Hidden on Mobile so Hero & Products appear immediately) --}}
             @if($categories->count() > 0)
-                <div class="w-full lg:w-[260px] xl:w-[280px] shrink-0 flex flex-col">
+                <div class="hidden lg:flex w-full lg:w-[260px] xl:w-[280px] shrink-0 flex-col">
                     <div class="bg-white rounded-[15px] border border-[#ececec] p-4 sm:p-5 shadow-2xs h-full flex flex-col justify-between">
                         <div class="flex-1 flex flex-col min-h-0">
                             <div class="pb-2.5 mb-2 border-b border-[#ececec] flex items-center justify-between shrink-0">
@@ -70,7 +96,7 @@
                         x-init="start()" 
                         @mouseenter="stop()" 
                         @mouseleave="start()"
-                        class="relative rounded-[25px] overflow-hidden bg-[#C5EAD9] min-h-[400px] sm:min-h-[470px] lg:min-h-[500px] h-full flex items-center select-none shadow-sm"
+                        class="relative rounded-2xl sm:rounded-[25px] overflow-hidden bg-[#C5EAD9] min-h-[215px] sm:min-h-[380px] lg:min-h-[500px] h-full flex items-center select-none shadow-sm"
                     >
                         @foreach($banners as $index => $banner)
                             @php
@@ -123,46 +149,46 @@
                                 </div>
 
                                 {{-- Hero Content (Left-aligned as in the screenshot) --}}
-                                <div class="relative z-10 p-6 sm:p-12 lg:p-16 max-w-xl">
+                                <div class="relative z-10 p-5 sm:p-12 lg:p-16 max-w-xl">
                                     {{-- Badge / Tag --}}
                                     @if($banner->badge)
-                                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-[#DEF9EC] text-[#3BB77E] border border-[#bcebd3] font-['Quicksand'] mb-3">
+                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full text-[10px] sm:text-xs font-bold uppercase tracking-wider bg-[#DEF9EC] text-[#3BB77E] border border-[#bcebd3] font-['Quicksand'] mb-2 sm:mb-3">
                                             <span class="w-1.5 h-1.5 rounded-full bg-[#3BB77E]"></span>
                                             {{ $banner->badge }}
                                         </span>
                                     @endif
 
                                     {{-- Main Title (Quicksand Bold Big Font) --}}
-                                    <h1 class="text-2xl sm:text-4xl lg:text-[46px] font-black text-[#253D4E] leading-[1.15] tracking-tight font-['Quicksand']">
+                                    <h1 class="text-xl sm:text-4xl lg:text-[46px] font-black text-[#253D4E] leading-[1.15] tracking-tight font-['Quicksand']">
                                         {{ $banner->title }}
                                     </h1>
 
                                     {{-- Subtitle (Lato Font) --}}
                                     @if($banner->subtitle)
-                                        <p class="text-sm sm:text-base lg:text-lg text-[#7E7E7E] mt-3 mb-6 font-normal max-w-md leading-relaxed font-['Lato']">
+                                        <p class="text-xs sm:text-base lg:text-lg text-[#7E7E7E] mt-2 sm:mt-3 mb-4 sm:mb-6 font-normal max-w-md leading-relaxed font-['Lato'] line-clamp-2 sm:line-clamp-none">
                                             {{ $banner->subtitle }}
                                         </p>
                                     @else
-                                        <p class="text-sm sm:text-base text-[#7E7E7E] mt-3 mb-6 font-normal font-['Lato']">
-                                            Save up to 50% off on your first grocery & household order.
+                                        <p class="text-xs sm:text-base text-[#7E7E7E] mt-2 sm:mt-3 mb-4 sm:mb-6 font-normal font-['Lato']">
+                                            Save up to 50% off on your first grocery &amp; household order.
                                         </p>
                                     @endif
 
                                     {{-- Pill Search / CTA Bar (Matching Screenshot) --}}
                                     <form action="{{ route('search') }}" method="GET" class="relative max-w-md">
-                                        <div class="bg-white rounded-full p-1.5 pl-5 sm:pl-6 flex items-center shadow-md">
+                                        <div class="bg-white rounded-full p-1 sm:p-1.5 pl-4 sm:pl-6 flex items-center shadow-md">
                                             <svg class="w-4 h-4 text-[#7E7E7E] mr-2 shrink-0 hidden sm:block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                                             <input 
                                                 type="text" 
                                                 name="q" 
-                                                placeholder="Your email address or search products..." 
+                                                placeholder="Search groceries..." 
                                                 class="w-full bg-transparent border-0 focus:ring-0 text-xs sm:text-sm text-[#253D4E] placeholder-[#7E7E7E] font-['Lato'] p-0"
                                             >
                                             <button 
                                                 type="submit" 
-                                                class="bg-[#3BB77E] hover:bg-[#29A56C] active:scale-95 text-white font-bold text-xs sm:text-sm px-6 sm:px-7 py-3 rounded-full transition-all font-['Quicksand'] shrink-0 cursor-pointer shadow-xs"
+                                                class="bg-[#3BB77E] hover:bg-[#29A56C] active:scale-95 text-white font-bold text-xs sm:text-sm px-4 sm:px-7 py-2 sm:py-3 rounded-full transition-all font-['Quicksand'] shrink-0 cursor-pointer shadow-xs"
                                             >
-                                                {{ $banner->button_text ?: 'Subscribe' }}
+                                                {{ $banner->button_text ?: 'Shop' }}
                                             </button>
                                         </div>
                                     </form>
@@ -188,7 +214,7 @@
                     </div>
                 @else
                     {{-- Default Mint Welcome Banner if no banners exist --}}
-                    <div class="rounded-[25px] overflow-hidden bg-[#C5EAD9] p-8 sm:p-14 min-h-[440px] flex items-center relative shadow-sm">
+                    <div class="rounded-2xl sm:rounded-[25px] overflow-hidden bg-[#C5EAD9] p-6 sm:p-14 min-h-[220px] sm:min-h-[440px] flex items-center relative shadow-sm">
                         <div class="max-w-xl">
                             <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-[#DEF9EC] text-[#3BB77E] border border-[#bcebd3] font-['Quicksand'] mb-3">
                                 Fresh & Fast

@@ -236,37 +236,38 @@
     }
 }" x-init="refreshMiniCart()">
 
-    {{-- Top Announcement Bar --}}
-    <div class="bg-slate-900 text-slate-200 text-xs py-2 px-4 border-b border-slate-800">
-        <div class="max-w-[1600px] mx-auto flex flex-col sm:flex-row justify-between items-center gap-2">
-            <div class="flex items-center gap-3">
-                <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-medium">
+    {{-- Top Announcement Bar (Compact single-line on mobile) --}}
+    <div class="bg-slate-900 text-slate-200 text-[11px] sm:text-xs py-1.5 sm:py-2 px-3 sm:px-4 border-b border-slate-800">
+        <div class="max-w-[1600px] mx-auto flex justify-between items-center gap-2">
+            <div class="flex items-center gap-1.5 sm:gap-3 truncate">
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-semibold shrink-0">
                     ⚡ Free Delivery
                 </span>
-                <span>Within {{ setting('free_delivery_radius', 5) }} km radius & Free up to 1st Floor!</span>
+                <span class="truncate">Within {{ setting('free_delivery_radius', 5) }} km &amp; 1st Floor!</span>
             </div>
-            <div class="flex items-center gap-4 text-slate-300 text-xs">
+            <div class="hidden sm:flex items-center gap-4 text-slate-300 text-xs shrink-0">
                 <span>📞 Hotline: {{ setting('store_phone', '+60 12-889 9900') }}</span>
                 <span class="hidden md:inline">🕒 {{ setting('working_hours', 'Mon-Sat 8am-7pm') }}</span>
             </div>
+            <a href="tel:{{ preg_replace('/[^0-9+]/', '', setting('store_phone', '+60 12-889 9900')) }}" class="sm:hidden text-emerald-300 font-semibold shrink-0">📞 Call</a>
         </div>
     </div>
 
     {{-- Main Header --}}
-    <header class="sticky top-0 z-40 bg-white border-b border-slate-200 shadow-sm">
-        <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center justify-between h-20 gap-4">
+    <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-2xs">
+        <div class="max-w-[1600px] mx-auto px-3 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16 sm:h-20 gap-3 sm:gap-4">
                 
                 {{-- Mobile menu button --}}
-                <button type="button" @click="mobileMenuOpen = !mobileMenuOpen" class="lg:hidden p-2 rounded-lg text-slate-700 hover:bg-slate-100">
+                <button type="button" @click="mobileMenuOpen = !mobileMenuOpen" class="lg:hidden p-2 rounded-xl text-slate-700 hover:bg-slate-100 active:scale-95 transition">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
                 </button>
 
                 {{-- Brand Logo --}}
                 <div class="flex items-center">
                     <a href="{{ url('/') }}" class="flex items-center gap-3 group">
-                        <div class="bg-black p-2 sm:px-3 sm:py-2 rounded-2xl shadow-md border border-neutral-800 flex items-center transition-all group-hover:border-lime-500/50">
-                            <img src="{{ setting('site_logo') ? asset('storage/' . setting('site_logo')) : asset('images/logo.png') }}" alt="{{ store_name() }}" class="h-9 sm:h-11 w-auto object-contain" onerror="this.onerror=null; this.src='{{ asset('images/logo.png') }}';">
+                        <div class="bg-black p-1.5 sm:px-3 sm:py-2 rounded-xl sm:rounded-2xl shadow-md border border-neutral-800 flex items-center transition-all group-hover:border-lime-500/50">
+                            <img src="{{ setting('site_logo') ? asset('storage/' . setting('site_logo')) : asset('images/logo.png') }}" alt="{{ store_name() }}" class="h-8 sm:h-11 w-auto object-contain" onerror="this.onerror=null; this.src='{{ asset('images/logo.png') }}';">
                         </div>
                     </a>
                 </div>
@@ -798,9 +799,9 @@
             </div>
 
             {{-- Bottom Credit & Payment Badges --}}
-            <div class="mt-12 pt-8 border-t border-slate-800 flex flex-col md:flex-row items-center justify-between gap-4 text-xs">
+            <div class="mt-10 sm:mt-12 pt-6 sm:pt-8 border-t border-slate-800 flex flex-col md:flex-row items-center justify-between gap-4 text-xs pb-20 lg:pb-0">
                 <p>&copy; {{ date('Y') }} {{ store_name() }}. All rights reserved.</p>
-                <div class="flex items-center gap-2">
+                <div class="flex flex-wrap items-center justify-center gap-2">
                     <span class="text-slate-500 text-[11px] uppercase tracking-wider font-semibold">Payment Methods:</span>
                     <span class="bg-slate-800 text-slate-300 px-2.5 py-1 rounded border border-slate-700 font-bold">DuitNow QR</span>
                     <span class="bg-slate-800 text-slate-300 px-2.5 py-1 rounded border border-slate-700 font-bold">Maybank / Instant Transfer</span>
@@ -809,6 +810,39 @@
             </div>
         </div>
     </footer>
+
+    {{-- Mobile App-Style Sticky Bottom Navigation Bar --}}
+    <nav class="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 shadow-[0_-4px_20px_rgba(0,0,0,0.06)] px-2 py-1.5" aria-label="Mobile Navigation">
+        <div class="grid grid-cols-5 items-center text-center">
+            <a href="{{ route('home') }}" class="flex flex-col items-center justify-center py-1 rounded-xl transition {{ request()->routeIs('home') ? 'text-[#3BB77E] font-bold' : 'text-slate-500 hover:text-[#3BB77E]' }}">
+                <svg class="w-5 h-5 mb-0.5" fill="{{ request()->routeIs('home') ? 'currentColor' : 'none' }}" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                <span class="text-[10px] leading-none font-['Quicksand']">Home</span>
+            </a>
+
+            <a href="{{ route('category.index') }}" class="flex flex-col items-center justify-center py-1 rounded-xl transition {{ request()->routeIs('category.*') ? 'text-[#3BB77E] font-bold' : 'text-slate-500 hover:text-[#3BB77E]' }}">
+                <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+                <span class="text-[10px] leading-none font-['Quicksand']">Categories</span>
+            </a>
+
+            <a href="{{ route('products.index') }}" class="flex flex-col items-center justify-center py-1 rounded-xl transition {{ request()->routeIs('products.*') ? 'text-[#3BB77E] font-bold' : 'text-slate-500 hover:text-[#3BB77E]' }}">
+                <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+                <span class="text-[10px] leading-none font-['Quicksand']">Shop</span>
+            </a>
+
+            <button type="button" @click="cartOpen = true" class="relative flex flex-col items-center justify-center py-1 rounded-xl text-slate-500 hover:text-[#3BB77E] transition cursor-pointer">
+                <div class="relative">
+                    <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                    <span x-show="cartCount > 0" x-text="cartCount" x-cloak class="absolute -top-1.5 -right-2.5 min-w-[16px] h-4 px-1 bg-[#3BB77E] text-white text-[9px] font-black rounded-full flex items-center justify-center shadow-xs"></span>
+                </div>
+                <span class="text-[10px] leading-none font-['Quicksand']">Cart</span>
+            </button>
+
+            <a href="{{ auth()->check() ? (auth()->user()->isStaff() ? route('admin.dashboard') : route('account.orders')) : route('login') }}" class="flex flex-col items-center justify-center py-1 rounded-xl transition {{ request()->routeIs('account.*') ? 'text-[#3BB77E] font-bold' : 'text-slate-500 hover:text-[#3BB77E]' }}">
+                <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                <span class="text-[10px] leading-none font-['Quicksand']">{{ auth()->check() ? 'Account' : 'Sign In' }}</span>
+            </a>
+        </div>
+    </nav>
 
     {{-- Phase 5.2: Custom Footer Scripts --}}
     {!! setting('custom_footer_scripts') !!}
