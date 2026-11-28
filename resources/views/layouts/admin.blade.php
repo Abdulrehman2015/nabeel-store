@@ -14,13 +14,6 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-    {{-- Leaflet for Store Location Picker --}}
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
-    {{-- Chart.js for Sales Trends --}}
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
     @stack('styles')
