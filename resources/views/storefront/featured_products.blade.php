@@ -69,7 +69,7 @@
                     x-transition:leave="transition ease-in duration-100"
                     x-transition:leave-start="opacity-100 scale-100 translate-y-0"
                     x-transition:leave-end="opacity-0 scale-95 -translate-y-1"
-                    class="absolute right-0 sm:left-0 top-full mt-2 w-64 bg-white rounded-2xl shadow-xl border border-[#ececec] p-2 z-50 max-h-72 overflow-y-auto divide-y divide-slate-50"
+                    class="absolute left-0 top-full mt-2 w-64 bg-white rounded-2xl shadow-xl border border-[#ececec] p-2 z-50 max-h-72 overflow-y-auto divide-y divide-slate-50"
                     style="display: none;"
                 >
                     <a 

@@ -302,7 +302,7 @@
                             x-transition:leave="transition ease-in duration-100"
                             x-transition:leave-start="opacity-100 scale-100"
                             x-transition:leave-end="opacity-0 scale-95"
-                            class="absolute right-0 mt-2 w-64 max-h-72 overflow-y-auto rounded-xl bg-white shadow-xl ring-1 ring-black/10 z-50 p-1.5 focus:outline-none divide-y divide-gray-50"
+                            class="absolute left-0 sm:left-auto sm:right-0 mt-2 w-64 max-h-72 overflow-y-auto rounded-xl bg-white shadow-xl ring-1 ring-black/10 z-50 p-1.5 focus:outline-none divide-y divide-gray-50"
                             style="display: none;"
                         >
                             {{-- All Products Option --}}
