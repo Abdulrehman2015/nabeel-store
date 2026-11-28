@@ -9,7 +9,7 @@
     @click="handlePosClick($event)"
     @keydown.window="handleGlobalKeydown($event)"
     @keyup.window="handleGlobalKeyup($event)"
-    :class="isFullscreen ? 'fixed inset-0 z-50 bg-[#f1f5f9] p-3 flex flex-col h-screen overflow-hidden' : 'flex-1 flex flex-col min-h-0 h-full space-y-2.5 overflow-hidden'"
+    :class="isFullscreen ? 'fixed inset-0 z-50 bg-[#f1f5f9] p-2 sm:p-3 flex flex-col h-screen overflow-y-auto lg:overflow-hidden space-y-2' : 'flex-1 flex flex-col min-h-0 h-full space-y-2.5 overflow-y-auto lg:overflow-hidden'"
 >
 
     {{-- POS Terminal Master Top Command Bar (Compact Single-Row) --}}
@@ -33,7 +33,7 @@
         </div>
 
         {{-- Right: Today's Shift Stats & Control Buttons --}}
-        <div class="flex items-center gap-2">
+        <div class="flex flex-wrap items-center gap-1.5 sm:gap-2">
             @if(!$isCashier && $allCashiers->count() > 1)
                 {{-- Admin Cashier Switcher Filter --}}
                 <div class="hidden lg:flex items-center gap-1.5 bg-slate-50 border border-slate-200/80 rounded-xl px-2 py-0.5">
@@ -195,14 +195,14 @@
     </div>
 
     {{-- Main POS Dual-Column Workstation (Flex 100% Viewport-Fitted) --}}
-    <div class="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-12 gap-3 items-stretch overflow-hidden">
+    <div class="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-12 gap-3 items-stretch lg:overflow-hidden">
         
         {{-- ======================================================== --}}
         {{-- LEFT COLUMN: FAST CATALOG & BARCODE SCANNER (7-8 Cols)   --}}
         {{-- ======================================================== --}}
         <div 
             :class="layoutView === 'scanner_table' ? 'lg:col-span-8 xl:col-span-8' : 'lg:col-span-7 xl:col-span-8'"
-            class="lg:col-span-8 xl:col-span-8 flex flex-col min-h-0 h-full overflow-hidden space-y-2.5"
+            class="lg:col-span-8 xl:col-span-8 flex flex-col min-h-0 lg:h-full lg:overflow-hidden space-y-2.5"
         >
             {{-- Staff Mode Alert Banner (Visible only in Staff POS Mode) --}}
             <div x-show="posMode === 'staff'" class="shrink-0 px-3 py-2 bg-linear-to-r from-amber-500 via-amber-600 to-orange-500 text-slate-950 font-bold text-xs flex items-center justify-between gap-2 rounded-2xl shadow-sm border border-amber-400">
