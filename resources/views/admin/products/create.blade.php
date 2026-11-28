@@ -682,8 +682,31 @@
                 } catch(e) {}
             },
 
+            isQrCodePayload(code) {
+                if (!code) return false;
+                const s = String(code).trim();
+                return (
+                    /^\]Q/i.test(s) ||
+                    /(https?:\/\/|www\.|:\/\/|\.(com|net|org|my|site|io|co)\b|[?=&@{}@\s\/\\:])/i.test(s) ||
+                    s.length > 24 ||
+                    !/^[A-Za-z0-9\-_]+$/.test(s)
+                );
+            },
+
             applyScannedBarcode(code) {
                 if (!code) return;
+                if (this.isQrCodePayload(code)) {
+                    if (this.preScanFocusTarget) {
+                        if (this.preScanFocusTarget.name === 'name') {
+                            this.title = this.preScanValue;
+                        } else if (this.preScanFocusTarget.value !== undefined) {
+                            this.preScanFocusTarget.value = this.preScanValue;
+                        }
+                        this.preScanFocusTarget = null;
+                    }
+                    alert('QR Code detected and ignored! Please scan the 1D Barcode instead.');
+                    return;
+                }
                 this.sku = code;
                 this.lastScannedBarcode = code;
                 this.scanSuccessFlash = true;

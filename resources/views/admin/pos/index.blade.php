@@ -3246,7 +3246,21 @@ function posApp() {
         async processBarcodeScan(rawCode) {
             if (this.scanAutoProcessTimeout) clearTimeout(this.scanAutoProcessTimeout);
             if (!rawCode) return;
-            let code = String(rawCode).replace(/[\r\n\t]/g, '').trim();
+            const rawStr = String(rawCode).trim();
+            // Reject QR codes (AIM ]Q prefix, URLs, links, JSON, or long >24 char payloads)
+            if (
+                /^\]Q/i.test(rawStr) ||
+                /(https?:\/\/|www\.|:\/\/|\.(com|net|org|my|site|io|co)\b|[?=&@{}])/i.test(rawStr) ||
+                (rawStr.includes('/') && !/^[A-Za-z0-9\-_]{3,24}$/.test(rawStr)) ||
+                rawStr.length > 24
+            ) {
+                this.playBeep('warning');
+                this.showToast('QR Code ignored — please scan the 1D Barcode!', '🚫', 'warning');
+                this.searchQuery = '';
+                this.barcodeScanBuffer = '';
+                return;
+            }
+            let code = rawStr.replace(/[\r\n\t]/g, '').trim();
             if (!code) return;
             code = code.replace(/^\][a-zA-Z0-9]{2}/, '');
 
