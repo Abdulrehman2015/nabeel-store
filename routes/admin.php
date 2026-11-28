@@ -30,6 +30,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     // Dashboard & Notifications
     Route::get('/', [AdminDashboardController::class, 'index'])->name('dashboard');
     Route::get('/notifications/poll', [AdminDashboardController::class, 'pollNotifications'])->name('notifications.poll');
+    Route::get('/csrf-refresh', fn() => response()->json(['token' => csrf_token()]))->name('csrf-refresh');
 
     // Daily Notifications & Alert Feed Module (30-day auto retention)
     Route::prefix('notifications')->name('notifications.')->group(function () {

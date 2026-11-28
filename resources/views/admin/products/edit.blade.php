@@ -929,9 +929,40 @@
 
         const hiddenTextarea = document.getElementById('hiddenDescription');
         const form = document.getElementById('productForm');
+        let isSubmitting = false;
 
-        form.addEventListener('submit', function () {
+        form.addEventListener('submit', async function (e) {
             hiddenTextarea.value = quill.root.innerHTML;
+            if (isSubmitting) return;
+
+            e.preventDefault();
+            isSubmitting = true;
+
+            const submitBtns = form.querySelectorAll('button[type="submit"]');
+            submitBtns.forEach(btn => {
+                btn.disabled = true;
+                btn.dataset.originalText = btn.innerHTML;
+                btn.innerHTML = 'Updating...';
+            });
+
+            try {
+                const controller = new AbortController();
+                const timer = setTimeout(() => controller.abort(), 2500);
+                const res = await fetch('{{ route("admin.csrf-refresh") }}', {
+                    headers: { 'Accept': 'application/json' },
+                    signal: controller.signal
+                });
+                clearTimeout(timer);
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.token) {
+                        const tokenInput = form.querySelector('input[name="_token"]');
+                        if (tokenInput) tokenInput.value = data.token;
+                    }
+                }
+            } catch (err) {}
+
+            form.submit();
         });
     });
 </script>

@@ -838,8 +838,12 @@
                         this.desktopNotifPermission = Notification.permission;
                     }
 
-                    // High-frequency polling (every 6 seconds for instantaneous background alerts)
-                    setInterval(() => this.pollNotifications(), 6000);
+                    // Lightweight polling every 45s (prevents shared-hosting 502 rate-limit)
+                    setInterval(() => {
+                        if (!document.hidden) {
+                            this.pollNotifications();
+                        }
+                    }, 45000);
                     // Initial silent sync
                     this.pollNotifications();
                 },
@@ -1113,6 +1117,12 @@
                         let res = await fetch(url, { headers: { 'Accept': 'application/json' } });
                         if (!res.ok) return;
                         let data = await res.json();
+
+                        if (data.csrf_token) {
+                            document.querySelectorAll('input[name="_token"]').forEach(el => el.value = data.csrf_token);
+                            const meta = document.querySelector('meta[name="csrf-token"]');
+                            if (meta) meta.setAttribute('content', data.csrf_token);
+                        }
 
                         this.pendingPaymentsCount = data.pending_payments || 0;
                         this.lowStockCount = data.low_stock_count || 0;

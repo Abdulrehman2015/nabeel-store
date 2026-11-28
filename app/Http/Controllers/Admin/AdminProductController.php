@@ -144,16 +144,8 @@ class AdminProductController extends Controller
         $validated['meta_description'] = $validated['meta_description'] ?? '';
         $validated['meta_keywords'] = $validated['meta_keywords'] ?? '';
         $validated['focus_keyword'] = $validated['focus_keyword'] ?? '';
-        if (\Illuminate\Support\Facades\Schema::hasColumn('products', 'low_stock_threshold')) {
-            $validated['low_stock_threshold'] = $request->filled('low_stock_threshold') ? max(0, (int) $request->input('low_stock_threshold')) : 10;
-        } else {
-            unset($validated['low_stock_threshold']);
-        }
-        if (\Illuminate\Support\Facades\Schema::hasColumn('products', 'purchase_price')) {
-            $validated['purchase_price'] = $request->filled('purchase_price') ? (float) $request->input('purchase_price') : 0.00;
-        } else {
-            unset($validated['purchase_price']);
-        }
+        $validated['low_stock_threshold'] = $request->filled('low_stock_threshold') ? max(0, (int) $request->input('low_stock_threshold')) : 10;
+        $validated['purchase_price'] = $request->filled('purchase_price') ? (float) $request->input('purchase_price') : 0.00;
         $validated['is_active'] = $request->boolean('is_active');
         $validated['is_featured'] = $request->boolean('is_featured');
         $validated['is_new'] = $request->boolean('is_new');
@@ -252,16 +244,8 @@ class AdminProductController extends Controller
         $validated['meta_description'] = $validated['meta_description'] ?? '';
         $validated['meta_keywords'] = $validated['meta_keywords'] ?? '';
         $validated['focus_keyword'] = $validated['focus_keyword'] ?? '';
-        if (\Illuminate\Support\Facades\Schema::hasColumn('products', 'low_stock_threshold')) {
-            $validated['low_stock_threshold'] = $request->filled('low_stock_threshold') ? max(0, (int) $request->input('low_stock_threshold')) : 10;
-        } else {
-            unset($validated['low_stock_threshold']);
-        }
-        if (\Illuminate\Support\Facades\Schema::hasColumn('products', 'purchase_price')) {
-            $validated['purchase_price'] = $request->filled('purchase_price') ? (float) $request->input('purchase_price') : 0.00;
-        } else {
-            unset($validated['purchase_price']);
-        }
+        $validated['low_stock_threshold'] = $request->filled('low_stock_threshold') ? max(0, (int) $request->input('low_stock_threshold')) : 10;
+        $validated['purchase_price'] = $request->filled('purchase_price') ? (float) $request->input('purchase_price') : 0.00;
         $validated['is_active'] = $request->boolean('is_active');
         $validated['is_featured'] = $request->boolean('is_featured');
         $validated['is_new'] = $request->boolean('is_new');

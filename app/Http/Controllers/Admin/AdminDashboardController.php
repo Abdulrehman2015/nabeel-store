@@ -230,8 +230,7 @@ class AdminDashboardController extends Controller
         }
 
         // Track low stock products based on individual low_stock_threshold
-        $hasThreshold = \Illuminate\Support\Facades\Schema::hasColumn('products', 'low_stock_threshold');
-        $rawCondition = $hasThreshold ? 'stock_quantity <= COALESCE(low_stock_threshold, 10)' : 'stock_quantity <= 10';
+        $rawCondition = 'stock_quantity <= COALESCE(low_stock_threshold, 10)';
 
         $lowStockProducts = Product::where('is_active', true)
             ->whereRaw($rawCondition)
@@ -262,6 +261,7 @@ class AdminDashboardController extends Controller
             'latest_order_time' => $latestOnlineOrder?->created_at?->diffForHumans(),
             'has_new_orders' => count($newOrders) > 0,
             'new_orders' => $newOrders,
+            'csrf_token' => csrf_token(),
         ]);
     }
 }
