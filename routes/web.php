@@ -122,6 +122,11 @@ Route::get('/order/scan/{orderNumber}', function ($orderNumber) {
     return redirect()->route('checkout.success', $orderNumber);
 })->name('order.scan');
 
+// Store-Only AI Shopping Assistant
+Route::post('/ai-assistant/chat', [App\Http\Controllers\AiAssistantController::class, 'chat'])
+    ->middleware('throttle:30,1')
+    ->name('ai.chat');
+
 // CMS, Legal & Policy Pages (Phase 8)
 Route::get('/about', [PageController::class, 'show'])->defaults('slug', 'about')->name('page.about');
 Route::get('/contact', [PageController::class, 'contact'])->name('page.contact');

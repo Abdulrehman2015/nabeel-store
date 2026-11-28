@@ -943,6 +943,159 @@
         <span class="hidden sm:inline text-xs font-bold font-['Quicksand'] tracking-wide pr-0.5">WhatsApp</span>
     </a>
 
+    {{-- Floating Store-Only AI Assistant Chat Widget --}}
+    <div 
+        x-data="{
+            aiOpen: false,
+            aiInput: '',
+            aiLoading: false,
+            aiMessages: [
+                {
+                    role: 'bot',
+                    text: 'Hi! I am the {{ addslashes(store_name()) }} AI Assistant. Ask me anything about our products, prices, categories, delivery, or orders!',
+                    links: []
+                }
+            ],
+            async sendAiMessage(customText = null) {
+                const msg = (customText ?? this.aiInput).trim();
+                if (!msg || this.aiLoading) return;
+                if (!customText) this.aiInput = '';
+
+                this.aiMessages.push({ role: 'user', text: msg, links: [] });
+                this.aiLoading = true;
+                this.$nextTick(() => {
+                    const box = this.$refs.aiScroll;
+                    if (box) box.scrollTop = box.scrollHeight;
+                });
+
+                try {
+                    const res = await fetch('{{ route("ai.chat") }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        },
+                        body: JSON.stringify({ message: msg })
+                    });
+                    const data = await res.json();
+                    this.aiMessages.push({
+                        role: 'bot',
+                        text: data.reply || 'Sorry, I could not process that request. Please ask about our store products or orders.',
+                        links: data.links || []
+                    });
+                } catch (e) {
+                    this.aiMessages.push({
+                        role: 'bot',
+                        text: 'Connection error. Please try again in a moment.',
+                        links: []
+                    });
+                } finally {
+                    this.aiLoading = false;
+                    this.$nextTick(() => {
+                        const box = this.$refs.aiScroll;
+                        if (box) box.scrollTop = box.scrollHeight;
+                    });
+                }
+            }
+        }"
+        class="fixed bottom-20 left-4 lg:bottom-6 lg:left-6 z-40"
+    >
+        {{-- Chat Window --}}
+        <div 
+            x-show="aiOpen"
+            x-transition:enter="transition ease-out duration-200"
+            x-transition:enter-start="opacity-0 translate-y-4 scale-95"
+            x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+            x-transition:leave="transition ease-in duration-150"
+            x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+            x-transition:leave-end="opacity-0 translate-y-4 scale-95"
+            x-cloak
+            class="mb-3 w-[calc(100vw-2rem)] sm:w-96 bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[70vh]"
+        >
+            {{-- Header --}}
+            <div class="bg-slate-900 text-white px-4 py-3.5 flex items-center justify-between shrink-0">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-2xl bg-[#3BB77E] flex items-center justify-center text-lg shadow-sm">
+                        🤖
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold leading-tight font-['Quicksand']">{{ store_name() }} AI</h3>
+                        <p class="text-[10px] text-emerald-300 font-medium">Store &amp; Products Assistant Only</p>
+                    </div>
+                </div>
+                <button type="button" @click="aiOpen = false" class="p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer" aria-label="Close AI Chat">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+
+            {{-- Messages Feed --}}
+            <div x-ref="aiScroll" class="flex-1 overflow-y-auto p-3.5 space-y-3 bg-slate-50/70">
+                <template x-for="(m, idx) in aiMessages" :key="idx">
+                    <div :class="m.role === 'user' ? 'flex justify-end' : 'flex justify-start'">
+                        <div 
+                            :class="m.role === 'user' ? 'bg-[#3BB77E] text-white rounded-2xl rounded-br-xs' : 'bg-white text-slate-800 border border-slate-200 rounded-2xl rounded-bl-xs shadow-2xs'"
+                            class="max-w-[85%] px-3.5 py-2.5 text-xs leading-relaxed"
+                        >
+                            <p x-text="m.text" class="whitespace-pre-line"></p>
+                            <template x-if="m.links && m.links.length > 0">
+                                <div class="mt-2 pt-2 border-t border-slate-100 space-y-1.5">
+                                    <template x-for="(lnk, lIdx) in m.links" :key="lIdx">
+                                        <a :href="lnk.url" class="block px-2.5 py-1.5 rounded-xl bg-[#DEF9EC]/60 hover:bg-[#DEF9EC] text-[#253D4E] font-bold text-[11px] transition truncate" x-text="lnk.label"></a>
+                                    </template>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </template>
+
+                <div x-show="aiLoading" class="flex justify-start">
+                    <div class="bg-white border border-slate-200 rounded-2xl rounded-bl-xs px-3.5 py-2 text-xs text-slate-400 font-medium">
+                        Thinking...
+                    </div>
+                </div>
+            </div>
+
+            {{-- Quick Starter Chips --}}
+            <div class="px-3 py-2 bg-white border-t border-slate-100 flex items-center gap-1.5 overflow-x-auto no-scrollbar shrink-0">
+                <button type="button" @click="sendAiMessage('Popular products')" class="px-2.5 py-1 rounded-full bg-slate-100 hover:bg-[#DEF9EC] text-[11px] font-semibold text-slate-700 whitespace-nowrap transition cursor-pointer">🛍️ Popular Products</button>
+                <button type="button" @click="sendAiMessage('Delivery charges & radius')" class="px-2.5 py-1 rounded-full bg-slate-100 hover:bg-[#DEF9EC] text-[11px] font-semibold text-slate-700 whitespace-nowrap transition cursor-pointer">🚚 Delivery Info</button>
+                <button type="button" @click="sendAiMessage('Track my order')" class="px-2.5 py-1 rounded-full bg-slate-100 hover:bg-[#DEF9EC] text-[11px] font-semibold text-slate-700 whitespace-nowrap transition cursor-pointer">📦 Track Order</button>
+                <button type="button" @click="sendAiMessage('Contact & store hours')" class="px-2.5 py-1 rounded-full bg-slate-100 hover:bg-[#DEF9EC] text-[11px] font-semibold text-slate-700 whitespace-nowrap transition cursor-pointer">📞 Contact</button>
+            </div>
+
+            {{-- Input Form --}}
+            <form @submit.prevent="sendAiMessage()" class="p-2.5 bg-white border-t border-slate-200 flex items-center gap-2 shrink-0">
+                <input 
+                    type="text" 
+                    x-model="aiInput" 
+                    placeholder="Ask about products, prices, delivery..." 
+                    maxlength="400"
+                    class="flex-1 text-xs px-3.5 py-2.5 rounded-xl bg-slate-100 border-0 focus:ring-2 focus:ring-[#3BB77E] text-slate-800"
+                >
+                <button 
+                    type="submit" 
+                    :disabled="aiLoading || !aiInput.trim()"
+                    class="px-3.5 py-2.5 rounded-xl bg-[#3BB77E] hover:bg-[#29A56C] disabled:opacity-50 text-white text-xs font-bold transition cursor-pointer shrink-0"
+                >
+                    Send
+                </button>
+            </form>
+        </div>
+
+        {{-- Floating Toggle Button --}}
+        <button 
+            type="button" 
+            @click="aiOpen = !aiOpen"
+            aria-label="Open Store AI Assistant"
+            title="Ask {{ store_name() }} AI Assistant"
+            class="flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white p-3.5 sm:px-4 sm:py-3.5 rounded-full shadow-lg hover:shadow-xl active:scale-95 transition-all duration-200 border border-slate-700 cursor-pointer"
+        >
+            <span class="text-lg leading-none">🤖</span>
+            <span class="hidden sm:inline text-xs font-bold font-['Quicksand'] tracking-wide pr-0.5">AI Help</span>
+        </button>
+    </div>
+
     {{-- Phase 5.2: Custom Footer Scripts --}}
     {!! setting('custom_footer_scripts') !!}
 </body>
