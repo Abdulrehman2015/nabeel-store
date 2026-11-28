@@ -1,22 +1,45 @@
 @extends('layouts.storefront')
 
 @section('content')
-<div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-8">
+<div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
 
-    {{-- Universal Hero Section --}}
-    <x-storefront-hero 
-        title="Live Order Tracking"
-        description="Enter your unique Order Number and telephone number to view live verification, packing, doorstep dispatch progress, and delivery floor status."
-        badge="Order Transparency"
-        subBadge="📍 Real-time Dispatch"
-        :breadcrumbs="['Track Order' => null]"
-    >
-        <x-slot:icon>
-            <svg class="w-10 h-10 text-lime-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
-            </svg>
-        </x-slot:icon>
-    </x-storefront-hero>
+    {{-- Breadcrumbs Navigation --}}
+    <nav class="flex text-xs text-slate-500 font-medium overflow-x-auto no-scrollbar py-1" aria-label="Breadcrumb">
+        <ol class="flex items-center gap-2 flex-nowrap font-['Quicksand'] font-semibold">
+            <li>
+                <a href="{{ url('/') }}" class="hover:text-[#3BB77E] transition flex items-center gap-1 text-[#7E7E7E]">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                    </svg>
+                    <span>Home</span>
+                </a>
+            </li>
+            <li class="text-slate-300">/</li>
+            <li class="text-[#253D4E] font-bold" aria-current="page">
+                Track Order
+            </li>
+        </ol>
+    </nav>
+
+    {{-- Header Banner (Matching Products & Categories Style) --}}
+    <div class="bg-gradient-to-r from-[#DEF9EC]/60 via-[#F2FCE4]/40 to-white rounded-3xl p-5 sm:p-8 border border-[#BCE3C9]/40 shadow-xs flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+            <div class="flex items-center gap-2 mb-1">
+                <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#3BB77E] text-white font-['Quicksand']">
+                    📍 Real-time Dispatch
+                </span>
+                <span class="text-xs text-[#7E7E7E] font-['Quicksand']">
+                    Order Transparency
+                </span>
+            </div>
+            <h1 class="text-2xl sm:text-3xl lg:text-4xl font-bold text-[#253D4E] tracking-tight font-['Quicksand']">
+                Live Order Tracking
+            </h1>
+            <p class="text-xs sm:text-sm text-[#7E7E7E] mt-1 font-['Lato']">
+                Enter your unique Order Number and telephone number to view live verification, packing, doorstep dispatch progress, and delivery floor status.
+            </p>
+        </div>
+    </div>
 
     {{-- Tracking Lookup Form --}}
     <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm max-w-2xl mx-auto">
