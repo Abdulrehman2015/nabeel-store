@@ -374,7 +374,7 @@
     @endif
 
     {{-- 3. Promo Deals Showcase (100% Dynamic from Admin Specials) --}}
-    @if((!isset($sections['promo']) || $sections['promo']->is_active) && $promoProducts->count() > 0)
+    @if($promoProducts->count() > 0)
         <section class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex flex-col sm:flex-row sm:items-end justify-between mb-6 pb-2 border-b border-[#ececec] gap-2">
                 <div>
@@ -384,11 +384,8 @@
                         </span>
                     </div>
                     <h2 class="text-xl sm:text-2xl lg:text-[28px] font-bold text-[#253D4E] tracking-tight font-['Quicksand']">
-                        {{ $sections['promo']->title ?? 'Deals of the Day' }}
+                        Deals of the Day
                     </h2>
-                    @if(isset($sections['promo']->subtitle) && $sections['promo']->subtitle)
-                        <p class="text-xs sm:text-sm text-[#7E7E7E] mt-0.5">{{ $sections['promo']->subtitle }}</p>
-                    @endif
                 </div>
 
                 <a 
@@ -409,7 +406,7 @@
     @endif
 
     {{-- 4. Dynamic Store Benefits / Trust Badges (100% Dynamic from Admin Benefit Model) --}}
-    @if((!isset($sections['benefits']) || $sections['benefits']->is_active) && $benefits->count() > 0)
+    @if($benefits->count() > 0)
         @php
             $benefitColors = [
                 ['bg' => 'bg-[#F2FCE4]', 'icon_bg' => 'bg-[#DEF9EC]', 'icon_text' => 'text-[#3BB77E]'],
@@ -455,20 +452,15 @@
     @endif
 
     {{-- 5. How Online Ordering Works (100% Dynamic from Admin HowItWorksStep Model) --}}
-    @if((!isset($sections['how_it_works']) || $sections['how_it_works']->is_active) && $steps->count() > 0)
+    @if($steps->count() > 0)
         <section class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
             <div class="bg-white rounded-[20px] p-6 sm:p-10 border border-[#ececec] shadow-2xs">
                 
                 <div class="text-center max-w-xl mx-auto mb-8 sm:mb-10">
                     <span class="text-xs font-bold text-[#3BB77E] uppercase tracking-wider font-['Quicksand']">Easy Process</span>
                     <h2 class="text-xl sm:text-3xl font-bold text-[#253D4E] tracking-tight mt-1 font-['Quicksand']">
-                        {{ $sections['how_it_works']->title ?? 'How Online Ordering Works' }}
+                        How Online Ordering Works
                     </h2>
-                    @if(isset($sections['how_it_works']->subtitle) && $sections['how_it_works']->subtitle)
-                        <p class="text-[#7E7E7E] text-xs sm:text-sm mt-1">
-                            {{ $sections['how_it_works']->subtitle }}
-                        </p>
-                    @endif
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 relative">
@@ -490,18 +482,13 @@
     @endif
 
     {{-- 6. Frequently Asked Questions (100% Dynamic from Admin Faq Model) --}}
-    @if((!isset($sections['faqs']) || $sections['faqs']->is_active) && $faqs->count() > 0)
+    @if($faqs->count() > 0)
         <section class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-8">
                 <span class="text-xs font-bold text-[#3BB77E] uppercase tracking-wider font-['Quicksand']">Help & FAQ</span>
                 <h2 class="text-xl sm:text-3xl font-bold text-[#253D4E] tracking-tight mt-1 font-['Quicksand']">
-                    {{ $sections['faqs']->title ?? 'Frequently Asked Questions' }}
+                    Frequently Asked Questions
                 </h2>
-                @if(isset($sections['faqs']->subtitle) && $sections['faqs']->subtitle)
-                    <p class="text-[#7E7E7E] text-xs sm:text-sm mt-1">
-                        {{ $sections['faqs']->subtitle }}
-                    </p>
-                @endif
             </div>
 
             <div class="space-y-3" x-data="{ activeFaq: 0 }">

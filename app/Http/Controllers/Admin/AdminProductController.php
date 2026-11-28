@@ -190,11 +190,6 @@ class AdminProductController extends Controller
 
             ActivityLog::log('product.created', $product, ['name' => $product->name, 'sku' => $product->sku]);
 
-            // Queue product to offline sync outbox
-            try {
-                \App\Models\SyncQueue::queueProduct($product, 'created');
-            } catch (\Throwable $e) {}
-
             return redirect()->route('admin.products.index')->with('success', 'Product created successfully.');
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::error('Product creation failed: ' . $e->getMessage());
@@ -301,11 +296,6 @@ class AdminProductController extends Controller
             }
 
             ActivityLog::log('product.updated', $product, ['name' => $product->name, 'sku' => $product->sku]);
-
-            // Queue product update to offline sync outbox
-            try {
-                \App\Models\SyncQueue::queueProduct($product, 'updated');
-            } catch (\Throwable $e) {}
 
             return redirect()->route('admin.products.index')->with('success', 'Product updated successfully.');
         } catch (\Throwable $e) {

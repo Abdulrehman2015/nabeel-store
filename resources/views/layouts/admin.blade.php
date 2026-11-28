@@ -165,18 +165,6 @@
                         <span>Homepage Settings</span>
                     </a>
 
-                    {{-- Banners / Slider --}}
-                    <a href="{{ route('admin.banners.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-xl transition {{ request()->routeIs('admin.banners.*') ? 'bg-sky-600 text-white font-bold shadow-sm shadow-sky-600/30' : 'hover:bg-slate-900 text-slate-300' }}">
-                        <svg class="w-4 h-4 {{ request()->routeIs('admin.banners.*') ? 'text-white' : 'text-slate-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                        <span>Hero Banners</span>
-                    </a>
-
-                    {{-- Home Sections Manager --}}
-                    <a href="{{ route('admin.home-sections.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-xl transition {{ request()->routeIs('admin.home-sections.*') ? 'bg-sky-600 text-white font-bold shadow-sm shadow-sky-600/30' : 'hover:bg-slate-900 text-slate-300' }}">
-                        <svg class="w-4 h-4 {{ request()->routeIs('admin.home-sections.*') ? 'text-white' : 'text-slate-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
-                        <span>Homepage Sections</span>
-                    </a>
-
                     {{-- Legal & Policy Pages --}}
                     <a href="{{ route('admin.policies.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-xl transition {{ request()->routeIs('admin.policies.*') ? 'bg-sky-600 text-white font-bold shadow-sm shadow-sky-600/30' : 'hover:bg-slate-900 text-slate-300' }}">
                         <svg class="w-4 h-4 {{ request()->routeIs('admin.policies.*') ? 'text-white' : 'text-slate-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
@@ -256,53 +244,6 @@
                         <span>Store Data Reset</span>
                     </a>
                 @endif
-
-                {{-- Offline & Cloud Sync Center --}}
-                <div class="pt-2">
-                    <a 
-                        href="{{ route('admin.sync.index') }}" 
-                        class="flex items-center justify-between px-3 py-2 rounded-xl transition {{ request()->routeIs('admin.sync*') ? 'bg-emerald-600 text-white font-bold shadow-sm shadow-emerald-600/30' : 'hover:bg-slate-900 text-slate-300 hover:text-white' }}"
-                    >
-                        <div class="flex items-center gap-3">
-                            <svg class="w-4 h-4 {{ request()->routeIs('admin.sync*') ? 'text-white' : 'text-emerald-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                            <span>Cloud Sync</span>
-                        </div>
-                        @php
-                            $pendingQueueCount = 0;
-                            try {
-                                if (\Illuminate\Support\Facades\Schema::hasTable('sync_queues')) {
-                                    $pendingQueueCount = \App\Models\SyncQueue::whereIn('status', ['pending', 'failed'])->count();
-                                }
-                            } catch (\Throwable $e) {
-                                $pendingQueueCount = 0;
-                            }
-                        @endphp
-                        @if($pendingQueueCount > 0)
-                            <span class="px-1.5 py-0.5 rounded-full bg-amber-500 text-white text-[10px] font-black animate-pulse">
-                                {{ $pendingQueueCount }}
-                            </span>
-                        @else
-                            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                        @endif
-                    </a>
-                </div>
-
-                {{-- Windows Desktop POS App Download Card --}}
-                <div class="pt-3 pb-1">
-                    <a 
-                        href="{{ route('pos.download-app') }}" 
-                        class="flex items-center justify-between px-3 py-2 rounded-xl bg-gradient-to-r from-sky-600/20 to-blue-600/20 hover:from-sky-600/30 hover:to-blue-600/30 border border-sky-500/30 text-sky-300 hover:text-white transition group"
-                        title="Download Standalone Windows Desktop POS App (.exe)"
-                    >
-                        <div class="flex items-center gap-2.5">
-                            <svg class="w-4 h-4 text-sky-400 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-                            <span class="text-[11px] font-bold">Windows POS App</span>
-                        </div>
-                        <span class="text-[9px] font-black uppercase px-1.5 py-0.5 rounded bg-sky-500 text-white shadow-2xs">
-                            .EXE
-                        </span>
-                    </a>
-                </div>
 
             </nav>
         </div>
@@ -429,24 +370,6 @@
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                     <span>Add Product</span>
                 </a>
-
-                {{-- Live Cloud Sync Status Pill (Navbar) --}}
-                <div x-data="topbarSyncWidget()" x-init="init()" class="hidden md:flex items-center">
-                    <button 
-                        type="button" 
-                        @click="triggerSync()" 
-                        :disabled="isSyncing"
-                        class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-bold border transition cursor-pointer shadow-2xs"
-                        :class="isOnline ? (pendingCount > 0 ? 'bg-amber-50 text-amber-800 border-amber-300 hover:bg-amber-100' : 'bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100') : 'bg-rose-50 text-rose-800 border-rose-300 hover:bg-rose-100'"
-                        :title="isOnline ? (pendingCount > 0 ? pendingCount + ' item(s) waiting to sync' : 'Cloud sync active & up to date') : 'Host unreachable (Offline mode)'"
-                    >
-                        <span class="w-2 h-2 rounded-full shrink-0" :class="isOnline ? (pendingCount > 0 ? 'bg-amber-500 animate-ping' : 'bg-emerald-500') : 'bg-rose-500'"></span>
-                        <svg :class="isSyncing ? 'animate-spin' : ''" class="w-3.5 h-3.5 text-current shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                        </svg>
-                        <span x-text="isSyncing ? 'Syncing...' : (isOnline ? (pendingCount > 0 ? pendingCount + ' Pending' : 'Live Synced') : 'Offline')"></span>
-                    </button>
-                </div>
 
                 {{-- In-App Notification Bell & Popover --}}
                 <div class="relative" @click.outside="notificationsOpen = false">
@@ -1213,46 +1136,6 @@
             };
         }
 
-        function topbarSyncWidget() {
-            return {
-                isOnline: true,
-                pendingCount: 0,
-                isSyncing: false,
-                async init() {
-                    this.check();
-                    setInterval(() => this.check(), 30000);
-                    window.addEventListener('online', () => { this.isOnline = true; this.triggerSync(); });
-                    window.addEventListener('offline', () => { this.isOnline = false; });
-                },
-                async check() {
-                    try {
-                        const res = await fetch('{{ route("admin.sync.status") }}');
-                        const data = await res.json();
-                        if (data.success) {
-                            this.isOnline = data.is_online;
-                            this.pendingCount = data.pending_count;
-                        }
-                    } catch (e) {
-                        this.isOnline = false;
-                    }
-                },
-                async triggerSync() {
-                    if (this.isSyncing) return;
-                    this.isSyncing = true;
-                    try {
-                        const res = await fetch('{{ route("admin.sync.trigger") }}', {
-                            method: 'POST',
-                            headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' }
-                        });
-                        await this.check();
-                    } catch (e) {
-                        this.isOnline = false;
-                    } finally {
-                        this.isSyncing = false;
-                    }
-                }
-            };
-        }
     </script>
 
     @stack('scripts')

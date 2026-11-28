@@ -159,22 +159,10 @@ Route::get('/run-migrations', function () {
     try {
         \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
         $output = \Illuminate\Support\Facades\Artisan::output();
-        \App\Models\SyncQueue::ensureTableExists();
         return response("<h2>All Migrations Executed Successfully!</h2><pre style='background:#f4f4f4;padding:15px;border-radius:8px;'>{$output}</pre>", 200);
     } catch (\Throwable $e) {
         return response("<h2>Migration execution notice:</h2><pre style='background:#f4f4f4;padding:15px;border-radius:8px;color:red;'>{$e->getMessage()}</pre>", 200);
     }
-});
-
-// Windows POS Desktop Installer Download (routed via PHP to bypass hosting .exe blocking)
-Route::get('/downloads/pos-app', [App\Http\Controllers\Admin\AdminPosController::class, 'downloadApp'])->name('pos.download-app');
-Route::get('/downloads/pos-app-zip', [App\Http\Controllers\Admin\AdminPosController::class, 'downloadZip'])->name('pos.download-zip');
-
-// Offline-First Store & POS Synchronization API (Live Cloud Sync)
-Route::prefix('api/sync')->group(function () {
-    Route::get('/ping', [App\Http\Controllers\Api\SyncApiController::class, 'ping'])->name('api.sync.ping');
-    Route::post('/push', [App\Http\Controllers\Api\SyncApiController::class, 'push'])->name('api.sync.push');
-    Route::get('/pull', [App\Http\Controllers\Api\SyncApiController::class, 'pull'])->name('api.sync.pull');
 });
 
 // Dynamic Legal Policy Slugs (Must be placed after static routes)

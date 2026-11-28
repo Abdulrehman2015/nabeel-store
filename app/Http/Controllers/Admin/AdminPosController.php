@@ -373,13 +373,6 @@ class AdminPosController extends Controller
                 'cashier' => auth()->user()->name,
             ]);
 
-            // Queue order into offline sync outbox
-            try {
-                \App\Models\SyncQueue::queueOrder($order);
-            } catch (\Throwable $e) {
-                \Illuminate\Support\Facades\Log::warning('POS Sync Queue Error: ' . $e->getMessage());
-            }
-
             return response()->json([
                 'success' => true,
                 'is_staff_pos' => $isStaffPos,
@@ -632,11 +625,6 @@ class AdminPosController extends Controller
                 'cashier' => auth()->user()->name,
             ]);
 
-            // 5. Offline sync outbox
-            try {
-                \App\Models\SyncQueue::queueOrder($order);
-            } catch (\Throwable $e) {}
-
             return response()->json([
                 'success' => true,
                 'message' => "Return processed successfully! RM " . number_format($totalRefundAmount, 2) . " refunded and product(s) restocked to inventory.",
@@ -799,13 +787,6 @@ class AdminPosController extends Controller
             'added_by' => auth()->user()->name,
         ]);
 
-        // Queue newly added product into offline sync outbox
-        try {
-            \App\Models\SyncQueue::queueProduct($product, 'created');
-        } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::warning('POS Product Sync Queue Error: ' . $e->getMessage());
-        }
-
         return response()->json([
             'success' => true,
             'message' => "Product '{$product->name}' added successfully!",
@@ -942,47 +923,6 @@ class AdminPosController extends Controller
             'success' => true,
             'total' => $products->count(),
             'products' => $products,
-        ]);
-    }
-
-    /**
-     * Download Windows POS desktop installer.
-     * Serves via PHP stream to bypass shared hosting static .exe blocking.
-     */
-    public function downloadApp()
-    {
-        $path = public_path('downloads/setup.dat');
-        if (!file_exists($path)) {
-            $path = base_path('windows-pos-app/N_I_POS_Setup_v1.0.exe');
-        }
-
-        if (!file_exists($path)) {
-            abort(404, 'Setup installer not found.');
-        }
-
-        return response()->download($path, 'N_I_POS_Setup_v1.0.exe', [
-            'Content-Type' => 'application/octet-stream',
-            'Content-Disposition' => 'attachment; filename="N_I_POS_Setup_v1.0.exe"',
-        ]);
-    }
-
-    /**
-     * Download Windows POS setup package as ZIP.
-     */
-    public function downloadZip()
-    {
-        $path = public_path('downloads/NI_POS_Windows_Setup.zip');
-        if (!file_exists($path)) {
-            $path = public_path('downloads/setup.dat');
-        }
-
-        if (!file_exists($path)) {
-            abort(404, 'Setup package not found.');
-        }
-
-        return response()->download($path, 'NI_POS_Windows_Setup.zip', [
-            'Content-Type' => 'application/zip',
-            'Content-Disposition' => 'attachment; filename="NI_POS_Windows_Setup.zip"',
         ]);
     }
 

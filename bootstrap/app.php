@@ -15,10 +15,6 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->trustProxies(at: '*');
 
-        $middleware->validateCsrfTokens(except: [
-            'api/sync/*',
-        ]);
-
         $middleware->alias([
             'admin' => AdminMiddleware::class,
             'admin.only' => \App\Http\Middleware\AdminOnlyMiddleware::class,

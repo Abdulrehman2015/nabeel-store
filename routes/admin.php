@@ -1,7 +1,6 @@
 <?php
 
 use App\Http\Controllers\Admin\AdminActivityLogController;
-use App\Http\Controllers\Admin\AdminBannerController;
 use App\Http\Controllers\Admin\AdminBrandController;
 use App\Http\Controllers\Admin\AdminCategoryController;
 use App\Http\Controllers\Admin\AdminCmsController;
@@ -18,7 +17,6 @@ use App\Http\Controllers\Admin\AdminProfileController;
 use App\Http\Controllers\Admin\AdminReportController;
 use App\Http\Controllers\Admin\AdminSettingsController;
 use App\Http\Controllers\Admin\AdminStaffController;
-use App\Http\Controllers\Admin\AdminSyncController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -71,7 +69,6 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 
     // Point of Sale (POS) Cashier Register
     Route::get('pos', [AdminPosController::class, 'index'])->name('pos.index');
-    Route::get('pos/download-windows-app', [AdminPosController::class, 'downloadApp'])->name('pos.download-app');
     Route::get('pos/find-barcode', [AdminPosController::class, 'findBarcode'])->name('pos.find-barcode');
     Route::get('pos/sync-products', [AdminPosController::class, 'syncProducts'])->name('pos.sync-products');
     Route::post('pos/checkout', [AdminPosController::class, 'checkout'])->name('pos.checkout');
@@ -83,15 +80,6 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::post('pos/customer', [AdminPosController::class, 'quickCustomer'])->name('pos.customer');
     Route::post('pos/quick-product', [AdminPosController::class, 'quickProduct'])->name('pos.quick-product');
     Route::get('pos/shift-summary', [AdminPosController::class, 'shiftSummary'])->name('pos.shift-summary');
-
-    // Offline / Live Database Sync Center
-    Route::prefix('sync')->name('sync.')->group(function () {
-        Route::get('/', [AdminSyncController::class, 'index'])->name('index');
-        Route::get('/status', [AdminSyncController::class, 'status'])->name('status');
-        Route::post('/trigger', [AdminSyncController::class, 'triggerSync'])->name('trigger');
-        Route::post('/{syncQueue}/retry', [AdminSyncController::class, 'retry'])->name('retry');
-        Route::post('/clear-synced', [AdminSyncController::class, 'clearSynced'])->name('clear-synced');
-    });
 
     // Categories (Cashier can view/create, but cannot bulk delete)
     Route::delete('categories/delete-all', [AdminCategoryController::class, 'deleteAll'])->name('categories.delete-all')->middleware('admin.only');
@@ -162,12 +150,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
         Route::post('data-reset', [AdminSettingsController::class, 'processDataReset'])->name('data-reset.process');
         Route::post('data-reset/clean-slate', [AdminSettingsController::class, 'cleanSlate'])->name('data-reset.clean-slate');
 
-        // Banners / Slider
-        Route::resource('banners', AdminBannerController::class);
-
         // Dynamic CMS Modules
-        Route::get('home-sections', [AdminCmsController::class, 'homeSections'])->name('home-sections.index');
-        Route::post('home-sections/reorder', [AdminCmsController::class, 'reorderHomeSections'])->name('home-sections.reorder');
         Route::resource('how-it-works', AdminCmsController::class)->names('how-it-works');
         Route::resource('benefits', AdminCmsController::class)->names('benefits');
         Route::resource('faqs', AdminCmsController::class)->names('faqs');

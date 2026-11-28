@@ -6,7 +6,6 @@ use App\Models\Banner;
 use App\Models\Benefit;
 use App\Models\Category;
 use App\Models\Faq;
-use App\Models\HomeSection;
 use App\Models\HowItWorksStep;
 use App\Models\Product;
 use App\Services\SeoService;
@@ -29,10 +28,7 @@ class HomeController extends Controller
             ->orderBy('sort_order')
             ->get();
 
-        // 3. Dynamic Homepage Sections
-        $sections = HomeSection::active()->get()->keyBy('key');
-
-        // 4. Products for sections
+        // 3. Products for sections
         $promoProducts = Product::promo()
             ->with(['category', 'brand'])
             ->latest()
@@ -80,7 +76,6 @@ class HomeController extends Controller
         return view('storefront.home', compact(
             'banners',
             'categories',
-            'sections',
             'promoProducts',
             'newArrivalProducts',
             'featuredProducts',

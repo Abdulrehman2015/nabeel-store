@@ -8,44 +8,11 @@ use App\Models\Benefit;
 use App\Models\ContactMessage;
 use App\Models\DataRequest;
 use App\Models\Faq;
-use App\Models\HomeSection;
 use App\Models\HowItWorksStep;
 use Illuminate\Http\Request;
 
 class AdminCmsController extends Controller
 {
-    /**
-     * Homepage Sections Manager
-     */
-    public function homeSections()
-    {
-        $sections = HomeSection::orderBy('sort_order')->get();
-        return view('admin.cms.home_sections', compact('sections'));
-    }
-
-    public function reorderHomeSections(Request $request)
-    {
-        $request->validate([
-            'sections' => 'required|array',
-            'sections.*.id' => 'required|exists:home_sections,id',
-            'sections.*.title' => 'required|string',
-            'sections.*.is_active' => 'nullable',
-            'sections.*.sort_order' => 'required|integer',
-        ]);
-
-        foreach ($request->input('sections') as $item) {
-            HomeSection::where('id', $item['id'])->update([
-                'title' => $item['title'],
-                'is_active' => !empty($item['is_active']),
-                'sort_order' => (int) $item['sort_order'],
-            ]);
-        }
-
-        ActivityLog::log('cms.home_sections_updated');
-
-        return redirect()->back()->with('success', 'Homepage sections updated successfully.');
-    }
-
     /**
      * Contact Messages Inbox
      */
