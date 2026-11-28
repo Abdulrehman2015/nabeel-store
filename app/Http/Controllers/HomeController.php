@@ -9,7 +9,7 @@ use App\Models\Faq;
 use App\Models\HowItWorksStep;
 use App\Models\Product;
 use App\Services\SeoService;
-use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class HomeController extends Controller
 {
@@ -17,75 +17,56 @@ class HomeController extends Controller
 
     public function index()
     {
-        // 1. Active Banners
-        $banners = Banner::active()->get();
+        $data = Cache::remember('storefront_home_data', 60, function () {
+            $banners = Banner::active()->get();
 
-        // 2. Active Categories with product count
-        $categories = Category::active()
-            ->withCount(['products' => function ($query) {
-                $query->where('is_active', true);
-            }])
-            ->orderBy('sort_order')
-            ->get();
+            $categories = Category::active()
+                ->withCount(['products' => function ($query) {
+                    $query->where('is_active', true);
+                }])
+                ->orderBy('sort_order')
+                ->get();
 
-        // 3. Products for sections
-        $promoProducts = Product::promo()
-            ->with(['category', 'brand'])
-            ->latest()
-            ->take(8)
-            ->get();
-
-        $newArrivalProducts = Product::newArrivals()
-            ->with(['category', 'brand'])
-            ->latest()
-            ->take(8)
-            ->get();
-
-        $featuredProducts = Product::featured()
-            ->with(['category', 'brand'])
-            ->latest()
-            ->take(50)
-            ->get();
-
-        if ($featuredProducts->count() < 10) {
-            $featuredProducts = Product::active()
+            $promoProducts = Product::promo()
                 ->with(['category', 'brand'])
                 ->latest()
-                ->take(50)
+                ->take(8)
                 ->get();
-        }
 
-        $bestSellers = Product::active()
-            ->with(['category', 'brand'])
-            ->orderBy('stock_quantity', 'desc')
-            ->take(8)
-            ->get();
+            $featuredProducts = Product::featured()
+                ->with(['category', 'brand'])
+                ->latest()
+                ->take(20)
+                ->get();
 
-        $allProducts = $featuredProducts;
+            if ($featuredProducts->count() < 10) {
+                $featuredProducts = Product::active()
+                    ->with(['category', 'brand'])
+                    ->latest()
+                    ->take(20)
+                    ->get();
+            }
 
-        // 5. Value content
-        $steps = HowItWorksStep::active()->get();
-        $benefits = Benefit::active()->get();
-        $faqs = Faq::active()->take(6)->get();
+            $steps = HowItWorksStep::active()->get();
+            $benefits = Benefit::active()->get();
+            $faqs = Faq::active()->take(6)->get();
 
-        // 6. SEO Metadata for Home
+            return [
+                'banners' => $banners,
+                'categories' => $categories,
+                'promoProducts' => $promoProducts,
+                'featuredProducts' => $featuredProducts,
+                'allProducts' => $featuredProducts,
+                'steps' => $steps,
+                'benefits' => $benefits,
+                'faqs' => $faqs,
+            ];
+        });
+
         $seo = $this->seoService->resolveMetadata(null, 'home', [
             'schema_type' => 'Store',
         ]);
 
-        return view('storefront.home', compact(
-            'banners',
-            'categories',
-            'promoProducts',
-            'newArrivalProducts',
-            'featuredProducts',
-            'bestSellers',
-            'allProducts',
-            'steps',
-            'benefits',
-            'faqs',
-            'seo'
-        ));
+        return view('storefront.home', array_merge($data, ['seo' => $seo]));
     }
 }
-

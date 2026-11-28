@@ -171,13 +171,14 @@ class Product extends Model
                 return $this->featured_image;
             }
             $cleanPath = ltrim($this->featured_image, '/');
-            if (str_starts_with($cleanPath, 'storage/')) {
-                return asset($cleanPath);
-            }
             if (str_starts_with($cleanPath, 'images/')) {
                 return asset($cleanPath);
             }
-            return asset('storage/' . $cleanPath);
+            $relPath = str_starts_with($cleanPath, 'storage/') ? substr($cleanPath, 8) : $cleanPath;
+            if (file_exists(public_path('storage/' . $relPath)) || file_exists(storage_path('app/public/' . $relPath))) {
+                return asset('storage/' . $relPath);
+            }
+            return asset('images/default-product.png');
         }
 
         // Match by product name or category keywords
